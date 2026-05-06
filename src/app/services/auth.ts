@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Auth, signInWithEmailAndPassword, signOut } from '@angular/fire/auth';
+import { Firestore, doc, getDoc } from '@angular/fire/firestore';
 
 export type UserRole = 'admin' | 'elecom' | 'student';
 
@@ -10,22 +10,38 @@ export interface User {
   email: string;
   role: UserRole;
   name: string;
+  createdAt?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000';
+  private auth = inject(Auth);
+  private firestore = inject(Firestore);
+  private router = inject(Router);
 
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-  ) {}
+  async login(email: string, password: string): Promise<User> {
+    const credential = await signInWithEmailAndPassword(this.auth, email, password);
+    const uid = credential.user.uid;
 
-  login(email: string, password: string): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/users?email=${email}&password=${password}`);
+    const userDoc = await getDoc(doc(this.firestore, 'users', uid));
+
+    if (!userDoc.exists()) {
+      throw new Error('User not found in database');
+    }
+
+    const user: User = {
+      id: userDoc.id,
+      ...(userDoc.data() as Omit<User, 'id'>),
+    };
+
+    localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('isLoggedIn', 'true');
+
+    return user;
   }
 
-  logout(): void {
+  async logout(): Promise<void> {
+    await signOut(this.auth);
     localStorage.removeItem('user');
     localStorage.removeItem('isLoggedIn');
     this.router.navigate(['/login']);
@@ -42,14 +58,5 @@ export class AuthService {
 
   getRole(): UserRole | null {
     return this.getCurrentUser()?.role ?? null;
-  }
-
-  redirectByRole(role: UserRole): void {
-    const routeMap: Record<UserRole, string> = {
-      admin: '/admin-dashboard',
-      elecom: '/elecom-dashboard',
-      student: '/student-dashboard',
-    };
-    this.router.navigate([routeMap[role]]);
   }
 }

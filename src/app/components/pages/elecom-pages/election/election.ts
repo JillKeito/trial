@@ -12,7 +12,6 @@ import Swal from 'sweetalert2';
   styleUrl: './election.scss',
 })
 export class Elections implements OnInit {
-
   elections: Election[] = [];
   showModal = false;
   showViewModal = false;
@@ -24,18 +23,20 @@ export class Elections implements OnInit {
 
   constructor(private svc: ElectionService) {}
 
-  ngOnInit(): void { this.loadElections(); }
+  ngOnInit(): void {
+    this.loadElections();
+  }
 
   loadElections(): void {
     this.loading = true;
-    this.svc.getElections().subscribe(e => {
+    this.svc.getElections().subscribe((e) => {
       this.elections = e;
       this.loading = false;
     });
   }
 
   get activeElection(): Election | null {
-    return this.elections.find(e => e.status === 'active') || null;
+    return this.elections.find((e) => e.status === 'active') || null;
   }
 
   get turnoutPercent(): number {
@@ -48,7 +49,11 @@ export class Elections implements OnInit {
   }
 
   getStatusLabel(status: string): string {
-    return ({ upcoming: 'Upcoming', active: 'Active', completed: 'Completed' } as Record<string, string>)[status] ?? status;
+    return (
+      (
+        { upcoming: 'Upcoming', active: 'Active', completed: 'Completed' } as Record<string, string>
+      )[status] ?? status
+    );
   }
 
   openAddModal(): void {
@@ -68,11 +73,21 @@ export class Elections implements OnInit {
     this.showViewModal = true;
   }
 
-  closeModal(): void     { this.showModal = false; }
-  closeViewModal(): void { this.showViewModal = false; this.viewingElection = null; }
+  closeModal(): void {
+    this.showModal = false;
+  }
+  closeViewModal(): void {
+    this.showViewModal = false;
+    this.viewingElection = null;
+  }
 
   saveElection(): void {
-    if (!this.currentElection.name || !this.currentElection.startDate || !this.currentElection.endDate) return;
+    if (
+      !this.currentElection.name ||
+      !this.currentElection.startDate ||
+      !this.currentElection.endDate
+    )
+      return;
 
     if (this.isEditMode && this.currentElection.id) {
       this.svc.updateElection(this.currentElection as Election).subscribe(() => {
@@ -80,6 +95,7 @@ export class Elections implements OnInit {
         this.closeModal();
       });
     } else {
+      // ✅ removed markAllRead, markNotificationRead, getNotifications
       const newElection: Omit<Election, 'id'> = {
         name: this.currentElection.name!,
         description: this.currentElection.description || '',
@@ -89,15 +105,6 @@ export class Elections implements OnInit {
         totalVoters: 0,
         voted: 0,
         status: this.currentElection.status || 'upcoming',
-        markAllRead: function (unread: Notification[]): unknown {
-          throw new Error('Function not implemented.');
-        },
-        markNotificationRead: function (n: Notification): unknown {
-          throw new Error('Function not implemented.');
-        },
-        getNotifications: function (role: string): unknown {
-          throw new Error('Function not implemented.');
-        }
       };
       this.svc.addElection(newElection).subscribe(() => {
         this.loadElections();
@@ -108,7 +115,11 @@ export class Elections implements OnInit {
 
   startElection(e: Election): void {
     if (this.activeElection) {
-      Swal.fire({ icon: 'warning', title: 'An election is already active!', text: 'End the current election first.' });
+      Swal.fire({
+        icon: 'warning',
+        title: 'An election is already active!',
+        text: 'End the current election first.',
+      });
       return;
     }
     this.svc.updateElection({ ...e, status: 'active' }).subscribe(() => this.loadElections());
@@ -116,27 +127,41 @@ export class Elections implements OnInit {
 
   endElection(e: Election): void {
     Swal.fire({
-      title: 'End Election?', text: 'This will close voting and finalize results.',
-      icon: 'warning', showCancelButton: true,
-      confirmButtonColor: '#7B1C2E', confirmButtonText: 'End Election'
-    }).then(r => {
+      title: 'End Election?',
+      text: 'This will close voting and finalize results.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#7B1C2E',
+      confirmButtonText: 'End Election',
+    }).then((r) => {
       if (r.isConfirmed)
-        this.svc.updateElection({ ...e, status: 'completed' }).subscribe(() => this.loadElections());
+        this.svc
+          .updateElection({ ...e, status: 'completed' })
+          .subscribe(() => this.loadElections());
     });
   }
 
   deleteElection(e: Election): void {
     Swal.fire({
-      title: 'Delete election?', text: `Permanently delete "${e.name}"?`,
-      icon: 'warning', showCancelButton: true,
-      confirmButtonColor: '#7B1C2E', confirmButtonText: 'Delete'
-    }).then(r => {
-      if (r.isConfirmed)
-        this.svc.deleteElection(e.id).subscribe(() => this.loadElections());
+      title: 'Delete election?',
+      text: `Permanently delete "${e.name}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#7B1C2E',
+      confirmButtonText: 'Delete',
+    }).then((r) => {
+      if (r.isConfirmed) this.svc.deleteElection(e.id).subscribe(() => this.loadElections());
     });
   }
 
   private emptyElection(): Partial<Election> {
-    return { name: '', description: '', startDate: '', endDate: '', totalPositions: 7, status: 'upcoming' };
+    return {
+      name: '',
+      description: '',
+      startDate: '',
+      endDate: '',
+      totalPositions: 7,
+      status: 'upcoming',
+    };
   }
 }

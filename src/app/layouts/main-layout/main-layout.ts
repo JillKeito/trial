@@ -1,4 +1,4 @@
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterModule, RouterOutlet } from '@angular/router';
 import { AuthService, User } from '../../services/auth';
@@ -27,7 +27,6 @@ export class MainLayout implements OnInit {
 
   ngOnInit(): void {
     this.loadUser();
-
     this.router.events.subscribe(() => {
       this.loadUser();
       this.isProfileMenuOpen = false;
@@ -48,7 +47,7 @@ export class MainLayout implements OnInit {
   }
 
   getUserName(): string {
-    return this.currentUser?.name || 'admin';
+    return this.currentUser?.name || 'User';
   }
 
   getUserInitial(): string {
@@ -69,7 +68,6 @@ export class MainLayout implements OnInit {
     }
   }
 
-  // ✅ ADDED — this is what the HTML calls
   goToSettings(event: Event): void {
     event.stopPropagation();
     this.isProfileMenuOpen = false;
@@ -81,7 +79,6 @@ export class MainLayout implements OnInit {
     }
   }
 
-  // kept for backwards compat if anything still calls it
   goToElecomSetting(event: Event): void {
     this.goToSettings(event);
   }
@@ -96,16 +93,15 @@ export class MainLayout implements OnInit {
       cancelButtonColor: '#c0392b',
       confirmButtonText: 'Yes, logout!',
       cancelButtonText: 'Cancel',
-    }).then((result) => {
+    }).then(async (result) => {
+      // ✅ async added
       if (result.isConfirmed) {
-        this.auth.logout();
+        await this.auth.logout(); // ✅ await added
         Swal.fire({
           title: 'Logged out!',
           icon: 'success',
           timer: 1500,
           showConfirmButton: false,
-        }).then(() => {
-          this.router.navigate(['/login']);
         });
       }
     });

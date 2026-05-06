@@ -19,10 +19,13 @@ export interface Activity {
   styleUrl: './elecom-dashboard.scss',
 })
 export class ElecomDashboard implements OnInit, OnDestroy {
-
   stats = {
-    totalVoters: 0, voted: 0, notVoted: 0,
-    totalCandidates: 0, approvedCandidates: 0, pendingCandidates: 0
+    totalVoters: 0,
+    voted: 0,
+    notVoted: 0,
+    totalCandidates: 0,
+    approvedCandidates: 0,
+    pendingCandidates: 0,
   };
 
   activeElection: Election | null = null;
@@ -33,39 +36,65 @@ export class ElecomDashboard implements OnInit, OnDestroy {
   newElection = { name: '', description: '', startDate: '', endDate: '' };
 
   recentActivities: Activity[] = [
-    { type: 'vote',      title: 'New vote cast',       subtitle: 'Anonymous voter — ballot submitted',  time: '11:30 AM' },
-    { type: 'candidate', title: 'Candidate approved',  subtitle: 'Maria Santos — President',            time: '10:45 AM' },
-    { type: 'user',      title: 'Voter verified',      subtitle: 'Student ID 2023-0005 cleared',        time: '10:02 AM' },
-    { type: 'election',  title: 'Election configured', subtitle: '7 positions set up by ELECOM',        time: '08:00 AM' },
+    {
+      type: 'vote',
+      title: 'New vote cast',
+      subtitle: 'Anonymous voter — ballot submitted',
+      time: '11:30 AM',
+    },
+    {
+      type: 'candidate',
+      title: 'Candidate approved',
+      subtitle: 'Maria Santos — President',
+      time: '10:45 AM',
+    },
+    {
+      type: 'user',
+      title: 'Voter verified',
+      subtitle: 'Student ID 2023-0005 cleared',
+      time: '10:02 AM',
+    },
+    {
+      type: 'election',
+      title: 'Election configured',
+      subtitle: '7 positions set up by ELECOM',
+      time: '08:00 AM',
+    },
   ];
 
-  constructor(private svc: ElectionService, private router: Router) {}
+  constructor(
+    private svc: ElectionService,
+    private router: Router,
+  ) {}
 
-  ngOnInit(): void { this.loadStats(); }
+  ngOnInit(): void {
+    this.loadStats();
+  }
   ngOnDestroy(): void {}
 
   loadStats(): void {
-    this.svc.getVoters().subscribe(voters => {
+    this.svc.getVoters().subscribe((voters) => {
       this.stats.totalVoters = voters.length;
-      this.stats.voted       = voters.filter(v => v.hasVoted).length;
-      this.stats.notVoted    = this.stats.totalVoters - this.stats.voted;
+      this.stats.voted = voters.filter((v) => v.hasVoted).length;
+      this.stats.notVoted = this.stats.totalVoters - this.stats.voted;
     });
 
-    this.svc.getCandidates().subscribe(candidates => {
-      this.stats.totalCandidates    = candidates.length;
-      this.stats.approvedCandidates = candidates.filter(c => c.status === 'approved').length;
-      this.stats.pendingCandidates  = candidates.filter(c => c.status === 'pending').length;
+    this.svc.getCandidates().subscribe((candidates) => {
+      this.stats.totalCandidates = candidates.length;
+      this.stats.approvedCandidates = candidates.filter((c) => c.status === 'approved').length;
+      this.stats.pendingCandidates = candidates.filter((c) => c.status === 'pending').length;
     });
 
-    this.svc.getElections().subscribe(elections => {
-      this.activeElection   = elections.find(e => e.status === 'active')   || null;
-      this.upcomingElection = elections.find(e => e.status === 'upcoming') || null;
+    this.svc.getElections().subscribe((elections) => {
+      this.activeElection = elections.find((e) => e.status === 'active') || null;
+      this.upcomingElection = elections.find((e) => e.status === 'upcoming') || null;
     });
   }
 
   createElection(): void {
     if (!this.newElection.name || !this.newElection.startDate || !this.newElection.endDate) return;
 
+    // ✅ removed markAllRead, markNotificationRead, getNotifications
     const payload: Omit<Election, 'id'> = {
       name: this.newElection.name,
       description: this.newElection.description,
@@ -75,15 +104,6 @@ export class ElecomDashboard implements OnInit, OnDestroy {
       totalVoters: 0,
       voted: 0,
       status: 'upcoming',
-      markAllRead: function (unread: Notification[]): unknown {
-        throw new Error('Function not implemented.');
-      },
-      markNotificationRead: function (n: Notification): unknown {
-        throw new Error('Function not implemented.');
-      },
-      getNotifications: function (role: string): unknown {
-        throw new Error('Function not implemented.');
-      }
     };
 
     this.svc.addElection(payload).subscribe(() => {
@@ -126,17 +146,18 @@ export class ElecomDashboard implements OnInit, OnDestroy {
 
   get participationRate(): number {
     return this.stats.totalVoters > 0
-      ? Math.round((this.stats.voted / this.stats.totalVoters) * 100) : 0;
+      ? Math.round((this.stats.voted / this.stats.totalVoters) * 100)
+      : 0;
   }
 
   get statusLabel(): string {
-    if (this.activeElection)   return 'Active';
+    if (this.activeElection) return 'Active';
     if (this.upcomingElection) return 'Ready to Start';
     return 'No Election';
   }
 
   get statusClass(): string {
-    if (this.activeElection)   return 'status-active';
+    if (this.activeElection) return 'status-active';
     if (this.upcomingElection) return 'status-pending';
     return 'status-ended';
   }
@@ -150,5 +171,7 @@ export class ElecomDashboard implements OnInit, OnDestroy {
     return new Date().toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
   }
 
-  goTo(path: string): void { this.router.navigate([path]); }
+  goTo(path: string): void {
+    this.router.navigate([path]);
+  }
 }

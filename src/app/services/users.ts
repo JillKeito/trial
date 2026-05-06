@@ -1,27 +1,35 @@
-import { Injectable } from '@angular/core';
-import { user } from '../components/models';
+import { Injectable, inject } from '@angular/core';
+import {
+  Firestore,
+  collection,
+  collectionData,
+  doc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+} from '@angular/fire/firestore';
+import { Observable } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class Users {
-  private apiUrl = 'http://localhost:3000/users';
-  private users: user[] = [];
-  http: any;
+  private firestore = inject(Firestore);
 
-  getUsers() {
-    return this.http.get('http://localhost:3000/users');
+  getUsers(): Observable<any[]> {
+    return collectionData(collection(this.firestore, 'users'), { idField: 'id' }) as Observable<
+      any[]
+    >;
   }
 
-  addUser(user: any) {
-    return this.http.post('http://localhost:3000/users', user);
+  async addUser(user: any): Promise<void> {
+    const ref = doc(collection(this.firestore, 'users'));
+    await setDoc(ref, user);
   }
 
-  updateUser(id: number, user: any) {
-    return this.http.put(`http://localhost:3000/users/${id}`, user);
+  async updateUser(id: string, user: any): Promise<void> {
+    await updateDoc(doc(this.firestore, 'users', id), user);
   }
 
-  deleteUser(id: number) {
-    return this.http.delete(`http://localhost:3000/users/${id}`);
+  async deleteUser(id: string): Promise<void> {
+    await deleteDoc(doc(this.firestore, 'users', id));
   }
 }

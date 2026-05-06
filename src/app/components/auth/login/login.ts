@@ -20,7 +20,7 @@ export class LoginComponent implements OnInit {
   error: string | null = null;
   loading = false;
 
-  private platformId = inject(PLATFORM_ID); // ✅ ADDED
+  private platformId = inject(PLATFORM_ID);
 
   constructor(
     private auth: AuthService,
@@ -28,7 +28,6 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // ✅ wrap in isPlatformBrowser so it only runs in browser, not SSR
     if (isPlatformBrowser(this.platformId)) {
       if (localStorage.getItem('isLoggedIn') === 'true') {
         const role = this.auth.getRole();
@@ -39,7 +38,7 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  login() {
+  async login() {
     this.error = null;
 
     if (!this.identifier || !this.password) {
@@ -49,49 +48,33 @@ export class LoginComponent implements OnInit {
 
     this.loading = true;
 
-    this.auth.login(this.identifier, this.password).subscribe({
-      next: (users) => {
-        this.loading = false;
+    try {
+      const user = await this.auth.login(this.identifier, this.password);
 
-        if (users.length > 0) {
-          const user = users[0];
-          localStorage.setItem('user', JSON.stringify(user));
-          localStorage.setItem('isLoggedIn', 'true');
+      const roleLabel =
+        user.role === 'admin'
+          ? 'Administrator'
+          : user.role === 'elecom'
+            ? 'Electoral Commission'
+            : user.role === 'student'
+              ? 'Student'
+              : 'Unknown';
 
-          const roleLabel =
-            user.role === 'admin'
-              ? 'Administrator'
-              : user.role === 'elecom'
-                ? 'Electoral Commission'
-                : user.role === 'student'
-                  ? 'Student'
-                  : 'Unknown';
+      await Swal.fire({
+        icon: 'success',
+        title: 'Login Successful!',
+        text: `Welcome, ${roleLabel}!`,
+        timer: 1500,
+        showConfirmButton: false,
+      });
 
-          Swal.fire({
-            icon: 'success',
-            title: 'Login Successful!',
-            text: `Welcome, ${roleLabel}!`,
-            timer: 1500,
-            showConfirmButton: false,
-          }).then(() => {
-            if (user.role === 'admin') {
-              this.router.navigate(['/app/admin-dashboard']);
-            } else if (user.role === 'elecom') {
-              this.router.navigate(['/app/elecom-dashboard']);
-            } else if (user.role === 'student') {
-              this.router.navigate(['/app/student-dashboard']);
-            } else {
-              this.router.navigate(['/login']);
-            }
-          });
-        } else {
-          this.error = 'Invalid email or password';
-        }
-      },
-      error: () => {
-        this.loading = false;
-        this.error = 'An error occurred during login';
-      },
-    });
+      if (user.role === 'admin') this.router.navigate(['/app/admin-dashboard']);
+      else if (user.role === 'elecom') this.router.navigate(['/app/elecom-dashboard']);
+      else if (user.role === 'student') this.router.navigate(['/app/student-dashboard']);
+    } catch (err) {
+      this.error = 'Invalid email or password';
+    } finally {
+      this.loading = false;
+    }
   }
 }

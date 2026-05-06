@@ -30,8 +30,8 @@ export class StudentBallot implements OnInit {
   positions: BallotPosition[] = [];
   voter: Voter | null = null;
   votes: Record<string, string> = {};
-  loading: boolean = true;
-  submitting: boolean = false;
+  loading = true;
+  submitting = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -49,29 +49,24 @@ export class StudentBallot implements OnInit {
       return;
     }
 
-    const numericId = Number(id); // ✅ FIX HERE
-
-    // Load election
-    this.svc.getElections(numericId).subscribe((elections: Election[]) => {
-      this.election = elections.find((e) => e.id === numericId) ?? null;
+    // ✅ id stays as string — Firestore uses string IDs
+    this.svc.getElectionById(id).subscribe((election) => {
+      this.election = election;
     });
 
-    // Load voter
     this.svc.getVoterByStudentId(user.email).subscribe((voters: Voter[]) => {
       this.voter = voters[0] ?? null;
     });
 
-    // Load candidates
-    (this.svc as any).getCandidatesByElection(numericId).subscribe((candidates: any[]) => {
+    this.svc.getCandidatesByElection(id).subscribe((candidates: any[]) => {
       const positionMap = new Map<string, Candidate[]>();
 
       candidates.forEach((c: any) => {
         if (!positionMap.has(c.position)) {
           positionMap.set(c.position, []);
         }
-
         positionMap.get(c.position)!.push({
-          id: String(c.id), // ✅ ensure string
+          id: String(c.id),
           name: c.name,
           party: c.party,
           course: c.course,
@@ -91,15 +86,12 @@ export class StudentBallot implements OnInit {
   get hasVoted(): boolean {
     return this.voter?.hasVoted ?? false;
   }
-
   get totalPositions(): number {
     return this.positions.length;
   }
-
   get answeredCount(): number {
     return Object.keys(this.votes).length;
   }
-
   get progressPercent(): number {
     return this.totalPositions ? (this.answeredCount / this.totalPositions) * 100 : 0;
   }
@@ -115,7 +107,6 @@ export class StudentBallot implements OnInit {
 
   selectCandidate(position: string, candidateId: string): void {
     if (this.hasVoted) return;
-
     if (this.votes[position] === candidateId) {
       const updated = { ...this.votes };
       delete updated[position];
@@ -126,14 +117,13 @@ export class StudentBallot implements OnInit {
   }
 
   submitBallot(): void {
-    if (this.answeredCount < this.totalPositions || !this.election) return;
-
+    if (this.answeredCount < this.totalPositions || !this.election || !this.voter) return;
     this.submitting = true;
 
-    (this.svc as any).submitVote(this.election.id, this.votes).subscribe({
+    this.svc.castVote(this.voter, this.election, this.votes, []).subscribe({
       next: () => {
         this.submitting = false;
-        this.router.navigate(['/student-results']);
+        this.router.navigate(['/app/student-results']);
       },
       error: () => {
         this.submitting = false;
@@ -143,10 +133,9 @@ export class StudentBallot implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/student-elections']);
+    this.router.navigate(['/app/student-elections']);
   }
-
   goToResults(): void {
-    this.router.navigate(['/student-results']);
+    this.router.navigate(['/app/student-results']);
   }
 }

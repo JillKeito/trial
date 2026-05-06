@@ -1,24 +1,38 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import {
+  Firestore,
+  collection,
+  collectionData,
+  doc,
+  setDoc,
+  query,
+  where,
+  getDocs,
+} from '@angular/fire/firestore';
+import { Observable } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class Vote {
-  constructor(private http: HttpClient) {}
+  private firestore = inject(Firestore);
 
-  submitVote(vote: any) {
-    return this.http.post('http://localhost:3000/votes', vote);
+  async submitVote(vote: any): Promise<void> {
+    const ref = doc(collection(this.firestore, 'voteRecords'));
+    await setDoc(ref, { ...vote, submittedAt: new Date().toISOString() });
   }
 
-  getVotes() {
-    return this.http.get('http://localhost:3000/votes');
+  getVotes(): Observable<any[]> {
+    return collectionData(collection(this.firestore, 'voteRecords'), {
+      idField: 'id',
+    }) as Observable<any[]>;
   }
 
-  checkVoteStatus(user: { alreadyVoted: boolean }) {
-    if (user.alreadyVoted) {
-      alert('You have already voted!');
-      return;
-    }
+  async checkVoteStatus(studentId: string, electionId: string): Promise<boolean> {
+    const q = query(
+      collection(this.firestore, 'voteRecords'),
+      where('studentId', '==', studentId),
+      where('electionId', '==', electionId),
+    );
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
   }
 }
