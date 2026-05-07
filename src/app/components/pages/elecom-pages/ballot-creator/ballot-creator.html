@@ -1,0 +1,297 @@
+<div class="bc-page">
+
+  <!-- Page Header -->
+  <div class="bc-header">
+    <div class="bc-header-left">
+      <h1>Ballot Creator</h1>
+      <p class="bc-sub">Build the official ballot by assigning approved candidates to positions.</p>
+    </div>
+    <div class="bc-header-actions">
+      <button class="btn-outline" (click)="resetBallot()" [disabled]="!isDirty">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Reset
+      </button>
+      <button class="btn-primary" (click)="publishBallot()" [disabled]="!canPublish || publishing">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+        {{ publishing ? 'Publishing…' : 'Publish Ballot' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Election Selector -->
+  <div class="bc-card">
+    <div class="bc-card-head">
+      <div class="bc-card-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <div>
+        <h2>Select Election</h2>
+        <p>Choose which election this ballot is for</p>
+      </div>
+    </div>
+    <div class="bc-card-body">
+      <div class="field-row">
+        <div class="field">
+          <label>Election <span class="req">*</span></label>
+          <select [(ngModel)]="selectedElectionId" (change)="onElectionChange()">
+            <option [ngValue]="null" disabled>Select an election…</option>
+            <option *ngFor="let e of elections" [value]="e.id">
+              {{ e.name }} — {{ e.status | titlecase }}
+            </option>
+          </select>
+        </div>
+        <div class="field" *ngIf="selectedElection">
+          <label>Period</label>
+          <div class="field-static">{{ selectedElection.startDate }} — {{ selectedElection.endDate }}</div>
+        </div>
+        <div class="field" *ngIf="selectedElection">
+          <label>Status</label>
+          <span class="status-pill"
+            [class.pill-active]="selectedElection.status === 'active'"
+            [class.pill-upcoming]="selectedElection.status === 'upcoming'"
+            [class.pill-done]="selectedElection.status === 'completed'">
+            {{ selectedElection.status | titlecase }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="bc-loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Loading candidates…</p>
+  </div>
+
+  <!-- No election selected -->
+  <div class="bc-empty" *ngIf="!loading && !selectedElectionId">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="2" width="18" height="20" rx="2"/><path d="M8 6h8M8 10h8M8 14h5"/></svg>
+    <h3>No election selected</h3>
+    <p>Select an election above to start building the ballot.</p>
+  </div>
+
+  <!-- Main ballot builder -->
+  <div *ngIf="!loading && selectedElectionId">
+
+    <!-- Stats row -->
+    <div class="stats-row">
+      <div class="stat-chip">
+        <div class="stat-chip-val">{{ positions.length }}</div>
+        <div class="stat-chip-label">Positions</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-val">{{ approvedCandidates.length }}</div>
+        <div class="stat-chip-label">Approved Candidates</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-val">{{ assignedCount }}</div>
+        <div class="stat-chip-label">Assigned</div>
+      </div>
+      <div class="stat-chip" [class.chip-warn]="unassignedCount > 0" [class.chip-ok]="unassignedCount === 0">
+        <div class="stat-chip-val">{{ unassignedCount }}</div>
+        <div class="stat-chip-label">Unassigned</div>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="bc-progress-wrap">
+      <div class="bc-progress-labels">
+        <span>Ballot completion</span>
+        <span class="bc-pct" [class.pct-done]="progressPercent === 100">{{ progressPercent }}%</span>
+      </div>
+      <div class="bc-progress-track">
+        <div class="bc-progress-fill" [style.width.%]="progressPercent"></div>
+      </div>
+    </div>
+
+    <!-- Add Position -->
+    <div class="bc-card">
+      <div class="bc-card-head">
+        <div class="bc-card-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        </div>
+        <div>
+          <h2>Positions</h2>
+          <p>Add or remove positions on this ballot</p>
+        </div>
+        <button class="btn-sm-primary" (click)="addPosition()">+ Add Position</button>
+      </div>
+      <div class="bc-card-body" *ngIf="showAddPosition">
+        <div class="add-position-row">
+          <input class="pos-input" type="text" [(ngModel)]="newPositionName"
+            placeholder="e.g. President, Vice President…"
+            (keydown.enter)="confirmAddPosition()" />
+          <button class="btn-confirm" (click)="confirmAddPosition()" [disabled]="!newPositionName.trim()">Add</button>
+          <button class="btn-cancel-sm" (click)="cancelAddPosition()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Positions list with candidates -->
+      <div class="positions-list" *ngIf="positions.length > 0">
+        <div class="position-block" *ngFor="let pos of positions; let i = index">
+          <div class="position-block-head">
+            <div class="pos-num">{{ i + 1 }}</div>
+            <div class="pos-name">{{ pos }}</div>
+            <div class="pos-count-pill" [class.filled]="getCandidatesForPosition(pos).length > 0">
+              {{ getCandidatesForPosition(pos).length }} candidate{{ getCandidatesForPosition(pos).length !== 1 ? 's' : '' }}
+            </div>
+            <button class="pos-remove-btn" (click)="removePosition(pos)" title="Remove position">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+
+          <!-- Candidates assigned to this position -->
+          <div class="position-candidates">
+            <div class="cand-row" *ngFor="let c of getCandidatesForPosition(pos)">
+              <div class="cand-avatar">{{ getInitials(c.name) }}</div>
+              <div class="cand-info">
+                <div class="cand-name">{{ c.name }}</div>
+                <div class="cand-meta">{{ c.party }} · {{ c.course }}</div>
+              </div>
+              <span class="cand-status-pill pill-approved">Approved</span>
+              <button class="cand-remove" (click)="unassignCandidate(c)" title="Remove from ballot">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+
+            <div class="empty-position" *ngIf="getCandidatesForPosition(pos).length === 0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              No candidates assigned yet
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-positions" *ngIf="positions.length === 0">
+        <p>No positions added yet. Click "Add Position" to get started.</p>
+      </div>
+    </div>
+
+    <!-- Candidate Pool -->
+    <div class="bc-card">
+      <div class="bc-card-head">
+        <div class="bc-card-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4"/><path d="M16 11l2 2 4-4"/></svg>
+        </div>
+        <div>
+          <h2>Approved Candidates</h2>
+          <p>Drag candidates into positions or use the assign button</p>
+        </div>
+        <div class="pool-search-wrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="pool-search" type="text" [(ngModel)]="searchQuery" placeholder="Search candidates…" />
+        </div>
+      </div>
+
+      <div class="bc-card-body">
+
+        <!-- Unassigned candidates -->
+        <div class="pool-section-label">Unassigned ({{ filteredUnassigned.length }})</div>
+        <div class="candidate-pool" *ngIf="filteredUnassigned.length > 0">
+          <div class="pool-card" *ngFor="let c of filteredUnassigned">
+            <div class="pool-avatar">{{ getInitials(c.name) }}</div>
+            <div class="pool-info">
+              <div class="pool-name">{{ c.name }}</div>
+              <div class="pool-meta">{{ c.position }} · {{ c.party }}</div>
+              <div class="pool-course">{{ c.course }} · Year {{ c.year }}</div>
+            </div>
+            <div class="pool-assign">
+              <select class="assign-select" [(ngModel)]="assignTarget[c.id]">
+                <option value="" disabled selected>Assign to…</option>
+                <option *ngFor="let p of positions" [value]="p">{{ p }}</option>
+              </select>
+              <button class="btn-assign" (click)="assignCandidate(c)" [disabled]="!assignTarget[c.id]">
+                Assign
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="pool-empty" *ngIf="filteredUnassigned.length === 0 && unassignedCandidates.length > 0">
+          No results for "{{ searchQuery }}"
+        </div>
+        <div class="pool-empty" *ngIf="unassignedCandidates.length === 0">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          All approved candidates have been assigned!
+        </div>
+
+        <!-- Already assigned candidates -->
+        <div class="pool-section-label assigned-label" *ngIf="assignedCandidates.length > 0">
+          Already Assigned ({{ assignedCandidates.length }})
+        </div>
+        <div class="candidate-pool assigned-pool" *ngIf="assignedCandidates.length > 0">
+          <div class="pool-card assigned-card" *ngFor="let c of assignedCandidates">
+            <div class="pool-avatar assigned-av">{{ getInitials(c.name) }}</div>
+            <div class="pool-info">
+              <div class="pool-name">{{ c.name }}</div>
+              <div class="pool-meta">{{ c.ballotPosition || c.position }} · {{ c.party }}</div>
+            </div>
+            <span class="cand-status-pill pill-approved">{{ c.ballotPosition || c.position }}</span>
+            <button class="cand-remove" (click)="unassignCandidate(c)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Ballot Preview -->
+    <div class="bc-card preview-card" *ngIf="positions.length > 0">
+      <div class="bc-card-head">
+        <div class="bc-card-icon preview-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <div>
+          <h2>Ballot Preview</h2>
+          <p>This is how the ballot will appear to voters</p>
+        </div>
+      </div>
+      <div class="preview-body">
+        <div class="preview-election-title">{{ selectedElection?.name }}</div>
+        <div class="preview-positions">
+          <div class="preview-pos-block" *ngFor="let pos of positions; let i = index">
+            <div class="preview-pos-head">
+              <span class="preview-pos-num">{{ i + 1 }}</span>
+              <span class="preview-pos-name">{{ pos }}</span>
+              <span class="preview-pos-instruction">Vote for 1</span>
+            </div>
+            <div class="preview-candidates">
+              <div class="preview-cand" *ngFor="let c of getCandidatesForPosition(pos)">
+                <div class="preview-radio"></div>
+                <div class="preview-cand-av">{{ getInitials(c.name) }}</div>
+                <div>
+                  <div class="preview-cand-name">{{ c.name }}</div>
+                  <div class="preview-cand-party">{{ c.party }}</div>
+                </div>
+              </div>
+              <div class="preview-no-cands" *ngIf="getCandidatesForPosition(pos).length === 0">
+                — No candidates assigned —
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Publish footer -->
+    <div class="bc-footer">
+      <div class="footer-info" *ngIf="!canPublish">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ unassignedCount }} candidate{{ unassignedCount !== 1 ? 's' : '' }} still unassigned. Assign all to publish.
+      </div>
+      <div class="footer-info complete" *ngIf="canPublish">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+        Ballot is ready to publish — all candidates assigned.
+      </div>
+      <div class="footer-actions">
+        <button class="btn-outline" (click)="resetBallot()" [disabled]="!isDirty">Reset</button>
+        <button class="btn-primary" (click)="publishBallot()" [disabled]="!canPublish || publishing">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+          {{ publishing ? 'Publishing…' : 'Publish Ballot' }}
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
