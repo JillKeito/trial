@@ -104,6 +104,7 @@ export class ElecomDashboard implements OnInit, OnDestroy {
       totalVoters: 0,
       voted: 0,
       status: 'upcoming',
+      title: undefined
     };
 
     this.svc.addElection(payload).subscribe(() => {

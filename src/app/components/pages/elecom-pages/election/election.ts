@@ -29,6 +29,7 @@ export class Elections implements OnInit {
 
   loadElections(): void {
     this.loading = true;
+
     this.svc.getElections().subscribe((e) => {
       this.elections = e;
       this.loading = false;
@@ -40,18 +41,29 @@ export class Elections implements OnInit {
   }
 
   get turnoutPercent(): number {
-    if (!this.activeElection || this.activeElection.totalVoters === 0) return 0;
-    return Math.round((this.activeElection.voted / this.activeElection.totalVoters) * 100);
+    if (!this.activeElection || this.activeElection.totalVoters === 0) {
+      return 0;
+    }
+
+    return Math.round(
+      (this.activeElection.voted / this.activeElection.totalVoters) * 100,
+    );
   }
 
   getTurnout(e: Election): number {
-    return e.totalVoters > 0 ? Math.round((e.voted / e.totalVoters) * 100) : 0;
+    return e.totalVoters > 0
+      ? Math.round((e.voted / e.totalVoters) * 100)
+      : 0;
   }
 
   getStatusLabel(status: string): string {
     return (
       (
-        { upcoming: 'Upcoming', active: 'Active', completed: 'Completed' } as Record<string, string>
+        {
+          upcoming: 'Upcoming',
+          active: 'Active',
+          completed: 'Completed',
+        } as Record<string, string>
       )[status] ?? status
     );
   }
@@ -76,6 +88,7 @@ export class Elections implements OnInit {
   closeModal(): void {
     this.showModal = false;
   }
+
   closeViewModal(): void {
     this.showViewModal = false;
     this.viewingElection = null;
@@ -86,16 +99,20 @@ export class Elections implements OnInit {
       !this.currentElection.name ||
       !this.currentElection.startDate ||
       !this.currentElection.endDate
-    )
+    ) {
       return;
+    }
 
     if (this.isEditMode && this.currentElection.id) {
-      this.svc.updateElection(this.currentElection as Election).subscribe(() => {
-        this.loadElections();
-        this.closeModal();
-      });
+      this.svc
+        .updateElection(this.currentElection as Election)
+        .subscribe(() => {
+          this.loadElections();
+          this.closeModal();
+        });
+
     } else {
-      // ✅ removed markAllRead, markNotificationRead, getNotifications
+
       const newElection: Omit<Election, 'id'> = {
         name: this.currentElection.name!,
         description: this.currentElection.description || '',
@@ -105,7 +122,9 @@ export class Elections implements OnInit {
         totalVoters: 0,
         voted: 0,
         status: this.currentElection.status || 'upcoming',
+        title: undefined
       };
+
       this.svc.addElection(newElection).subscribe(() => {
         this.loadElections();
         this.closeModal();
@@ -120,9 +139,13 @@ export class Elections implements OnInit {
         title: 'An election is already active!',
         text: 'End the current election first.',
       });
+
       return;
     }
-    this.svc.updateElection({ ...e, status: 'active' }).subscribe(() => this.loadElections());
+
+    this.svc
+      .updateElection({ ...e, status: 'active' })
+      .subscribe(() => this.loadElections());
   }
 
   endElection(e: Election): void {
@@ -134,10 +157,11 @@ export class Elections implements OnInit {
       confirmButtonColor: '#7B1C2E',
       confirmButtonText: 'End Election',
     }).then((r) => {
-      if (r.isConfirmed)
+      if (r.isConfirmed) {
         this.svc
           .updateElection({ ...e, status: 'completed' })
           .subscribe(() => this.loadElections());
+      }
     });
   }
 
@@ -150,7 +174,11 @@ export class Elections implements OnInit {
       confirmButtonColor: '#7B1C2E',
       confirmButtonText: 'Delete',
     }).then((r) => {
-      if (r.isConfirmed) this.svc.deleteElection(e.id).subscribe(() => this.loadElections());
+      if (r.isConfirmed) {
+        this.svc
+          .deleteElection(e.id)
+          .subscribe(() => this.loadElections());
+      }
     });
   }
 
