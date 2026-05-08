@@ -284,7 +284,7 @@ $radius-lg:  16px;
 
   &::placeholder { color: $ink-4; }
 
-  &:hover { border-color: darken($border-md, 10%); }
+  &:hover { border-color: rgba(0, 0, 0, 0.22); }
 
   &:focus {
     border-color: $accent;
@@ -556,7 +556,7 @@ $radius-lg:  16px;
 
   &:hover {
     background: $surface-3;
-    border-color: darken($border-md, 8%);
+    border-color: rgba(0, 0, 0, 0.20);
     color: $ink;
   }
 }
@@ -567,7 +567,7 @@ $radius-lg:  16px;
   color: #fff;
 
   &:hover:not(:disabled) {
-    background: lighten($ink, 10%);
+    background: #2a2e3d;
     transform: translateY(-1px);
     box-shadow: 0 4px 16px rgba(0,0,0,0.18);
   }
@@ -586,7 +586,7 @@ $radius-lg:  16px;
   box-shadow: 0 4px 16px rgba(26, 76, 255, 0.28);
 
   &:hover {
-    background: darken($accent, 8%);
+    background: #0035e0;
     transform: translateY(-1px);
     box-shadow: 0 6px 22px rgba(26, 76, 255, 0.38);
   }

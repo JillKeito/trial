@@ -1,281 +1,45 @@
-// ── Design tokens ──────────────────────────────────────────────────────────
-$blue-700 : #1e3fa0;
-$blue-600 : #2952cc;
-$blue-500 : #3b6ef0;
-$blue-200 : #c7d4f8;
-$blue-100 : #e8eeff;
-$blue-50  : #f0f4ff;
+// ── Tokens ────────────────────────────────────────────────────
+$ink:        #1e2a5e;
+$ink-2:      #3a4675;
+$ink-3:      #7a84aa;
+$ink-4:      #b8bdd4;
+$surface:    #ffffff;
+$surface-2:  #e8ebf7;
+$surface-3:  #dde1f2;
+$page-bg:    #f0f2f9;
+$accent:     #3d4eac;
+$accent-dim: rgba(61, 78, 172, 0.08);
+$accent-mid: rgba(61, 78, 172, 0.18);
+$success:    #16a34a;
+$success-bg: #f0fdf4;
+$success-bd: #bbf7d0;
+$danger:     #dc3545;
+$danger-bg:  #fef2f2;
+$warn-bg:    #fffbeb;
+$warn-bd:    #fde68a;
+$border:     rgba(61, 78, 172, 0.10);
+$border-md:  rgba(61, 78, 172, 0.16);
+$r:          10px;
+$r-lg:       14px;
 
-$green    : #16a34a;
-$green-bg : #f0fdf4;
-$green-bd : #86efac;
+:host { display: block; width: 100%; }
 
-$amber    : #b45309;
-$amber-bg : #fffbeb;
-$amber-bd : #fde68a;
-
-$surface  : #ffffff;
-$bg       : #f4f6fb;
-$border   : #e4e9f5;
-$text     : #0d1f4e;
-$muted    : #7a89b0;
-$r        : 12px;
-
-// ── Page shell ─────────────────────────────────────────────────────────────
-.ballot-page {
+// ── Page ──────────────────────────────────────────────────────
+.bc-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  font-family: 'Inter', 'Segoe UI', sans-serif;
-  max-width: 760px;
+  gap: 18px;
+  padding: 32px 40px;
+  background: $page-bg;
+  min-height: 100%;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 14px;
+  color: $ink;
+  box-sizing: border-box;
 }
 
-// ── Page header (election selection) ───────────────────────────────────────
-.page-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-
-  h1 {
-    font-size: 20px;
-    font-weight: 700;
-    color: $text;
-    margin: 0 0 3px;
-    letter-spacing: -0.02em;
-  }
-}
-
-.header-icon {
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: $blue-100;
-  color: $blue-600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.page-sub { font-size: 13px; color: $muted; margin: 0; }
-
-// ── Generic state card ─────────────────────────────────────────────────────
-.state-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 60px 24px;
-  background: $surface;
-  border: 1px solid $border;
-  border-radius: $r;
-  text-align: center;
-  color: $muted;
-
-  p { font-size: 13px; margin: 0; max-width: 360px; line-height: 1.6; }
-  h3 { font-size: 16px; font-weight: 650; color: $text; margin: 0; }
-}
-
-.state-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 4px;
-}
-
-.voted-icon  { background: $green-bg;  color: $green; }
-.empty-icon  { background: $amber-bg;  color: $amber; }
-
-.state-voted {
-  border-color: $green-bd;
-  background: $green-bg;
-  h3, p { color: darken($green, 8%); }
-}
-
-.state-empty {
-  border-color: $amber-bd;
-  background: $amber-bg;
-}
-
-.empty-hint {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-  font-size: 12px;
-  color: $amber;
-  background: rgba(#fde68a, 0.5);
-  border: 1px solid $amber-bd;
-  padding: 7px 14px;
-  border-radius: 6px;
-}
-
-// ── Elections grid ─────────────────────────────────────────────────────────
-.elections-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 14px;
-}
-
-.election-card {
-  background: $surface;
-  border: 1px solid $border;
-  border-radius: $r;
-  overflow: hidden;
-  cursor: pointer;
-  transition: box-shadow 0.16s, border-color 0.16s, transform 0.12s;
-  display: flex;
-  flex-direction: column;
-
-  &:hover {
-    border-color: $blue-200;
-    box-shadow: 0 4px 20px rgba($blue-500, 0.12);
-    transform: translateY(-1px);
-
-    .card-arrow { color: $blue-600; transform: translateX(2px); }
-    .btn-vote { background: $blue-700; }
-  }
-
-  &:focus-visible {
-    outline: 2px solid $blue-500;
-    outline-offset: 2px;
-  }
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: $blue-50;
-  border-bottom: 1px solid $border;
-}
-
-.card-positions {
-  font-size: 11.5px;
-  color: $muted;
-  font-weight: 500;
-}
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11.5px;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 20px;
-  letter-spacing: 0.01em;
-}
-
-.badge-active {
-  background: $green-bg;
-  color: $green;
-  border: 1px solid $green-bd;
-
-  .status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: $green;
-    animation: pulse 1.8s ease-in-out infinite;
-  }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-
-.card-body {
-  padding: 16px;
-  flex: 1;
-}
-
-.election-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: $text;
-  margin: 0 0 6px;
-  letter-spacing: -0.01em;
-}
-
-.election-desc {
-  font-size: 12.5px;
-  color: $muted;
-  margin: 0 0 12px;
-  line-height: 1.55;
-}
-
-.election-meta { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
-.meta-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: $muted;
-  svg { flex-shrink: 0; }
-}
-
-.turnout-wrap { margin-top: 4px; }
-.turnout-header {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11.5px;
-  color: $muted;
-  margin-bottom: 6px;
-  font-weight: 500;
-}
-.turnout-pct { color: $blue-600; font-weight: 600; }
-.turnout-track {
-  height: 5px;
-  background: $border;
-  border-radius: 3px;
-  overflow: hidden;
-}
-.turnout-fill {
-  height: 100%;
-  background: linear-gradient(90deg, $blue-500, $blue-600);
-  border-radius: 3px;
-  transition: width 0.4s ease;
-}
-
-.card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-top: 1px solid $border;
-  background: $bg;
-}
-
-.card-arrow {
-  color: $muted;
-  transition: color 0.15s, transform 0.15s;
-  flex-shrink: 0;
-}
-
-.btn-vote {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  background: $blue-600;
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  padding: 8px 16px;
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.13s;
-}
-
-// ── Ballot header ──────────────────────────────────────────────────────────
-.ballot-header {
+// ── Header ────────────────────────────────────────────────────
+.bc-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -283,84 +47,357 @@ $r        : 12px;
   flex-wrap: wrap;
 
   h1 {
-    font-size: 18px;
-    font-weight: 700;
-    color: $text;
-    margin: 0 0 3px;
-    letter-spacing: -0.01em;
+    font-size: 22px;
+    font-weight: 600;
+    color: $ink;
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+  }
+
+  .bc-sub {
+    font-size: 13px;
+    color: $ink-3;
+    margin: 0;
   }
 }
 
-.ballot-header-left { display: flex; align-items: flex-start; gap: 12px; }
-.ballot-sub { font-size: 12px; color: $muted; margin: 0; }
+.bc-header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-shrink: 0;
+}
 
-.back-btn {
+// ── Buttons ───────────────────────────────────────────────────
+%btn-base {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  background: none;
-  border: 1px solid $border;
-  border-radius: 7px;
-  padding: 7px 12px;
-  font-size: 12.5px;
+  gap: 7px;
+  border-radius: $r;
+  padding: 9px 18px;
+  font-size: 13px;
   font-weight: 500;
-  color: $muted;
-  cursor: pointer;
   font-family: inherit;
-  flex-shrink: 0;
-  margin-top: 2px;
-  transition: all 0.13s;
-
-  &:hover { background: $blue-50; color: $blue-700; border-color: $blue-100; }
+  cursor: pointer;
+  border: none;
+  transition: all 0.14s;
 }
 
-.ballot-progress {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-  min-width: 160px;
+.btn-primary {
+  @extend %btn-base;
+  background: $accent;
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(61, 78, 172, 0.22);
+
+  &:hover:not(:disabled) { background: #2e3c83; transform: translateY(-1px); }
+  &:disabled { opacity: 0.38; cursor: not-allowed; transform: none; }
 }
-.progress-label { font-size: 11.5px; color: $muted; font-weight: 500; }
-.progress-track { width: 160px; height: 5px; background: $border; border-radius: 3px; overflow: hidden; }
-.progress-fill  { height: 100%; background: linear-gradient(90deg, $blue-500, $blue-600); border-radius: 3px; transition: width 0.3s ease; }
 
-// ── Spinner ────────────────────────────────────────────────────────────────
-.spinner {
-  width: 26px;
-  height: 26px;
-  border: 2.5px solid $border;
-  border-top-color: $blue-500;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+.btn-outline {
+  @extend %btn-base;
+  background: $surface;
+  color: $ink-2;
+  border: 1.5px solid $border-md;
+
+  &:hover:not(:disabled) { background: $surface-2; color: $ink; }
+  &:disabled { opacity: 0.38; cursor: not-allowed; }
 }
-@keyframes spin { to { transform: rotate(360deg); } }
 
-// ── Positions list ─────────────────────────────────────────────────────────
-.positions-list { display: flex; flex-direction: column; gap: 12px; }
+.btn-sm-primary {
+  @extend %btn-base;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  background: $accent-dim;
+  color: $accent;
+  border: 1px solid $accent-mid;
+  margin-left: auto;
 
-.position-card {
+  &:hover { background: $accent; color: #fff; }
+}
+
+.btn-confirm {
+  @extend %btn-base;
+  padding: 8px 16px;
+  background: $accent;
+  color: #fff;
+  font-size: 13px;
+
+  &:disabled { opacity: 0.38; cursor: not-allowed; }
+}
+
+.btn-cancel-sm {
+  @extend %btn-base;
+  padding: 8px 14px;
+  background: none;
+  border: 1px solid $border-md;
+  color: $ink-3;
+  font-size: 13px;
+
+  &:hover { background: $surface-2; color: $ink; }
+}
+
+.btn-assign {
+  @extend %btn-base;
+  padding: 6px 13px;
+  font-size: 12px;
+  background: $accent;
+  color: #fff;
+  white-space: nowrap;
+
+  &:disabled { opacity: 0.38; cursor: not-allowed; }
+  &:hover:not(:disabled) { background: #2e3c83; }
+}
+
+// ── Card ──────────────────────────────────────────────────────
+.bc-card {
   background: $surface;
   border: 1px solid $border;
-  border-radius: $r;
+  border-radius: $r-lg;
   overflow: hidden;
 }
 
-.position-head {
+.bc-card-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 13px;
+  padding: 16px 22px;
   border-bottom: 1px solid $border;
-  background: $bg;
+  background: $surface-2;
+
+  h2 { font-size: 14px; font-weight: 600; color: $ink; margin: 0 0 2px; }
+  p  { font-size: 12px; color: $ink-3; margin: 0; }
 }
 
-.position-num {
-  width: 26px;
-  height: 26px;
+.bc-card-icon {
+  width: 36px; height: 36px;
+  border-radius: 9px;
+  background: $surface;
+  border: 1px solid $border-md;
+  color: $accent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.preview-icon {
+  background: rgba(61,78,172,.06);
+  border-color: $accent-mid;
+}
+
+.bc-card-body {
+  padding: 18px 22px;
+}
+
+// ── Election Selector ─────────────────────────────────────────
+.field-row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 180px;
+
+  label {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: $ink-3;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  select {
+    font-size: 13.5px;
+    font-family: inherit;
+    color: $ink;
+    background: $surface;
+    border: 1.5px solid $border-md;
+    border-radius: $r;
+    padding: 9px 34px 9px 12px;
+    outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a84aa' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 10px;
+    cursor: pointer;
+    transition: border-color 0.14s, box-shadow 0.14s;
+
+    &:focus {
+      border-color: $accent;
+      box-shadow: 0 0 0 3px $accent-dim;
+    }
+  }
+}
+
+.field-static {
+  font-size: 13.5px;
+  color: $ink-2;
+  padding: 9px 0;
+}
+
+.status-pill {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 20px;
+  display: inline-block;
+
+  &.pill-active   { background: $success-bg; color: $success; }
+  &.pill-upcoming { background: $accent-dim; color: $accent; }
+  &.pill-done     { background: $surface-3; color: $ink-3; }
+}
+
+.req { color: $danger; margin-left: 2px; }
+
+// ── Loading / empty ───────────────────────────────────────────
+.bc-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 3rem;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $r-lg;
+  color: $ink-3;
+
+  p { font-size: 13px; margin: 0; }
+}
+
+.spinner {
+  width: 24px; height: 24px;
+  border: 2.5px solid $border-md;
+  border-top-color: $accent;
   border-radius: 50%;
-  background: $blue-100;
-  color: $blue-700;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.bc-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 3.5rem;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $r-lg;
+  color: $ink-3;
+  text-align: center;
+
+  h3 { font-size: 15px; font-weight: 500; color: $ink-2; margin: 0; }
+  p  { font-size: 13px; margin: 0; }
+}
+
+// ── Stats row ─────────────────────────────────────────────────
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.stat-chip {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $r;
+  padding: 14px 18px;
+  text-align: center;
+
+  &.chip-warn { background: $warn-bg; border-color: $warn-bd; .stat-chip-val { color: #92400e; } }
+  &.chip-ok   { background: $success-bg; border-color: $success-bd; .stat-chip-val { color: $success; } }
+}
+
+.stat-chip-val   { font-size: 24px; font-weight: 600; color: $ink; line-height: 1; }
+.stat-chip-label { font-size: 11.5px; color: $ink-3; margin-top: 4px; }
+
+// ── Progress ──────────────────────────────────────────────────
+.bc-progress-wrap {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $r;
+  padding: 14px 18px;
+}
+
+.bc-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: $ink-3;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.bc-pct { font-weight: 600; &.pct-done { color: $success; } }
+
+.bc-progress-track {
+  height: 5px;
+  background: $surface-3;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bc-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, $accent, $success);
+  border-radius: 3px;
+  transition: width 0.35s ease;
+}
+
+// ── Add position ──────────────────────────────────────────────
+.add-position-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.pos-input {
+  flex: 1;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: $ink;
+  background: $surface;
+  border: 1.5px solid $border-md;
+  border-radius: $r;
+  padding: 9px 12px;
+  outline: none;
+
+  &:focus { border-color: $accent; box-shadow: 0 0 0 3px $accent-dim; }
+  &::placeholder { color: $ink-4; }
+}
+
+// ── Positions list ────────────────────────────────────────────
+.positions-list {
+  border-top: 1px solid $border;
+}
+
+.position-block {
+  border-bottom: 1px solid $border;
+  &:last-child { border-bottom: none; }
+}
+
+.position-block-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 22px;
+  background: $surface-2;
+  border-bottom: 1px solid $border;
+}
+
+.pos-num {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: $accent-dim;
+  border: 1px solid $accent-mid;
+  color: $accent;
   font-size: 11.5px;
   font-weight: 700;
   display: flex;
@@ -369,210 +406,371 @@ $r        : 12px;
   flex-shrink: 0;
 }
 
-.position-name { font-size: 13.5px; font-weight: 650; color: $text; }
-.position-meta { font-size: 11.5px; color: $muted; margin-top: 1px; }
+.pos-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: $ink;
+  flex: 1;
+}
 
-.position-status {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+.pos-count-pill {
   font-size: 11px;
   font-weight: 600;
   padding: 3px 10px;
   border-radius: 20px;
+  background: $surface-3;
+  color: $ink-3;
 
-  &.filled { background: $green-bg; color: $green; border: 1px solid $green-bd; }
-  &.empty  { background: $blue-50;  color: $blue-600; border: 1px solid $blue-100; }
+  &.filled { background: $success-bg; color: $success; }
 }
 
-.candidates-grid { display: flex; flex-direction: column; }
-
-.candidate-card {
+.pos-remove-btn {
+  background: none;
+  border: none;
+  color: $ink-4;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
-  gap: 13px;
-  padding: 12px 16px;
-  cursor: pointer;
-  transition: background 0.12s;
+  transition: color 0.12s, background 0.12s;
+
+  &:hover { color: $danger; background: $danger-bg; }
+}
+
+.position-candidates {
+  display: flex;
+  flex-direction: column;
+}
+
+.cand-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 22px;
   border-bottom: 1px solid $border;
-
   &:last-child { border-bottom: none; }
+}
 
-  &:hover:not(.selected) { background: $blue-50; }
+.cand-avatar {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: $accent-dim;
+  color: $accent;
+  font-size: 11.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 
-  &.selected {
-    background: $blue-50;
-    border-left: 3px solid $blue-600;
-    padding-left: 13px;
+.cand-info { flex: 1; min-width: 0; }
+.cand-name { font-size: 13px; font-weight: 500; color: $ink; }
+.cand-meta { font-size: 11.5px; color: $ink-3; margin-top: 2px; }
 
-    .candidate-name   { color: $blue-700; font-weight: 650; }
-    .candidate-avatar { background: $blue-600; color: #fff; }
-    .select-indicator { color: $blue-600; }
+.cand-status-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  flex-shrink: 0;
+
+  &.pill-approved { background: $success-bg; color: $success; }
+}
+
+.cand-remove {
+  background: none;
+  border: none;
+  color: $ink-4;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  transition: color 0.12s, background 0.12s;
+  flex-shrink: 0;
+
+  &:hover { color: $danger; background: $danger-bg; }
+}
+
+.empty-position {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 22px;
+  font-size: 12.5px;
+  color: $ink-4;
+  font-style: italic;
+}
+
+.empty-positions {
+  padding: 16px 22px;
+  font-size: 13px;
+  color: $ink-3;
+  text-align: center;
+}
+
+// ── Candidate Pool ────────────────────────────────────────────
+.pool-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  background: $surface;
+  border: 1.5px solid $border-md;
+  border-radius: $r;
+  padding: 7px 12px;
+  color: $ink-3;
+
+  &:focus-within { border-color: $accent; box-shadow: 0 0 0 3px $accent-dim; }
+}
+
+.pool-search {
+  border: none;
+  outline: none;
+  font-size: 13px;
+  font-family: inherit;
+  color: $ink;
+  background: none;
+  width: 160px;
+  &::placeholder { color: $ink-4; }
+}
+
+.pool-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $ink-3;
+  margin-bottom: 10px;
+
+  &.assigned-label { margin-top: 18px; }
+}
+
+.candidate-pool {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.pool-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 13px 14px;
+  border: 1.5px solid $border;
+  border-radius: $r;
+  background: $surface;
+  transition: border-color 0.13s, background 0.13s;
+
+  &:hover { border-color: $accent-mid; background: $accent-dim; }
+
+  &.assigned-card {
+    background: $success-bg;
+    border-color: $success-bd;
+    opacity: 0.85;
   }
 }
 
-.candidate-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: $blue-100;
-  color: $blue-700;
+.pool-avatar {
+  width: 36px; height: 36px;
+  border-radius: 9px;
+  background: $accent-dim;
+  color: $accent;
   font-size: 12px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background 0.13s, color 0.13s;
+
+  &.assigned-av { background: $success-bg; color: $success; }
 }
 
-.candidate-info { flex: 1; min-width: 0; }
-.candidate-name { font-size: 13px; font-weight: 500; color: $text; transition: color 0.12s; }
-.candidate-party { font-size: 11.5px; color: $muted; margin-top: 2px; }
-.select-indicator { flex-shrink: 0; color: $border; transition: color 0.13s; }
+.pool-info { flex: 1; min-width: 0; }
+.pool-name   { font-size: 13px; font-weight: 600; color: $ink; }
+.pool-meta   { font-size: 11.5px; color: $ink-3; margin-top: 2px; }
+.pool-course { font-size: 11px; color: $ink-4; margin-top: 2px; }
 
-// ── Ballot footer ──────────────────────────────────────────────────────────
-.ballot-footer {
+.pool-assign {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+  width: 130px;
+}
+
+.assign-select {
+  font-size: 12px;
+  font-family: inherit;
+  color: $ink;
+  background: $surface;
+  border: 1.5px solid $border-md;
+  border-radius: 7px;
+  padding: 6px 28px 6px 9px;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a84aa' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 9px;
+  cursor: pointer;
+  width: 100%;
+
+  &:focus { border-color: $accent; }
+}
+
+.pool-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 2rem;
+  color: $ink-3;
+  font-size: 13px;
+  text-align: center;
+}
+
+.assigned-pool { opacity: 0.9; }
+
+// ── Ballot Preview ────────────────────────────────────────────
+.preview-card { border-color: $accent-mid; }
+
+.preview-body {
+  padding: 20px 22px;
+}
+
+.preview-election-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: $ink;
+  margin-bottom: 16px;
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid $border;
+}
+
+.preview-positions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.preview-pos-block {
+  border: 1px solid $border;
+  border-radius: $r;
+  overflow: hidden;
+}
+
+.preview-pos-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: $surface-2;
+  border-bottom: 1px solid $border;
+}
+
+.preview-pos-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: $accent;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.preview-pos-name        { font-size: 13px; font-weight: 600; color: $ink; flex: 1; }
+.preview-pos-instruction { font-size: 11px; color: $ink-3; }
+
+.preview-candidates {
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-cand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 16px;
+  border-bottom: 1px solid $border;
+  &:last-child { border-bottom: none; }
+}
+
+.preview-radio {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid $border-md;
+  flex-shrink: 0;
+}
+
+.preview-cand-av {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  background: $accent-dim;
+  color: $accent;
+  font-size: 10.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.preview-cand-name  { font-size: 12.5px; font-weight: 500; color: $ink; }
+.preview-cand-party { font-size: 11px; color: $ink-3; margin-top: 1px; }
+
+.preview-no-cands {
+  padding: 12px 16px;
+  font-size: 12px;
+  color: $ink-4;
+  font-style: italic;
+  text-align: center;
+}
+
+// ── Footer ────────────────────────────────────────────────────
+.bc-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 18px;
+  padding: 14px 20px;
   background: $surface;
   border: 1px solid $border;
-  border-radius: $r;
+  border-radius: $r-lg;
   flex-wrap: wrap;
 }
 
-.footer-note {
+.footer-info {
   display: flex;
   align-items: center;
   gap: 7px;
   font-size: 12.5px;
-  color: $muted;
+  color: $ink-3;
+
   svg { flex-shrink: 0; }
-
-  &.complete { color: $green; }
+  &.complete { color: $success; }
 }
 
-.footer-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-
-.btn-secondary {
-  background: none;
-  border: 1px solid $border;
-  border-radius: 7px;
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  color: $muted;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.13s;
-
-  &:hover { background: $bg; color: $text; }
-}
-
-.btn-submit {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  background: $blue-600;
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  padding: 9px 22px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.13s;
-
-  &:hover:not(:disabled) { background: $blue-700; }
-  &:disabled { opacity: 0.4; cursor: not-allowed; }
-}
-
-.btn-outline {
-  background: none;
-  border: 1.5px solid $blue-600;
-  color: $blue-600;
-  border-radius: 7px;
-  padding: 9px 20px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.13s;
-
-  &:hover { background: $blue-50; }
-}
-
-// ── Success view ───────────────────────────────────────────────────────────
-.success-page {
+.footer-actions {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 60px 24px;
-  background: $surface;
-  border: 1px solid $green-bd;
-  border-radius: $r;
-  text-align: center;
-
-  h2 {
-    font-size: 22px;
-    font-weight: 700;
-    color: $text;
-    margin: 0;
-    letter-spacing: -0.02em;
-  }
-
-  p {
-    font-size: 13.5px;
-    color: $muted;
-    margin: 0;
-    max-width: 380px;
-    line-height: 1.6;
-    strong { color: $text; }
-  }
-}
-
-.success-graphic {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  margin-bottom: 4px;
-}
-
-.success-ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: $green-bg;
-  border: 2px solid $green-bd;
-  animation: ring-pop 0.4s ease-out;
-}
-
-.success-check {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: $green;
-}
-
-@keyframes ring-pop {
-  0%   { transform: scale(0.5); opacity: 0; }
-  70%  { transform: scale(1.1); }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.success-actions {
-  display: flex;
-  align-items: center;
   gap: 10px;
-  margin-top: 4px;
-  flex-wrap: wrap;
-  justify-content: center;
+  align-items: center;
+  margin-left: auto;
+}
+
+// ── Responsive ────────────────────────────────────────────────
+@media (max-width: 700px) {
+  .bc-page { padding: 20px 16px; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .candidate-pool { grid-template-columns: 1fr; }
+  .pool-card { flex-direction: column; }
+  .pool-assign { width: 100%; flex-direction: row; }
+  .field-row { flex-direction: column; }
 }

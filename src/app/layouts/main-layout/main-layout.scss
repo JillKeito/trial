@@ -362,3 +362,22 @@ $radius: 8px;
     display: block;
   }
 }
+
+// ── Sidebar notification badge (student) ──────────────────────
+.menu li {
+  position: relative;
+
+  .sidebar-badge {
+    margin-left: auto;
+    background: #7B1C2E;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 20px;
+    padding: 1px 6px;
+    min-width: 16px;
+    text-align: center;
+    line-height: 16px;
+    height: 16px;
+  }
+}

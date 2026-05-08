@@ -22,10 +22,10 @@ import { AdminSettings } from './layouts/admin-portal/admin-settings/admin-setti
 // STUDENT
 import { StudentDashboard } from './layouts/student-portal/student-dashboard/student-dashboard';
 import { StudentElections } from './components/pages/student-pages/student-elections/student-elections';
-import { StudentResults } from './components/pages/student-pages/student-results/student-results';
-import { StudentCandidates } from './components/pages/student-pages/student-candidates/student-candidates';
 import { StudentApply } from './components/pages/student-pages/student-apply/student-apply';
 import { StudentBallot } from './components/pages/student-pages/student-ballot/student-ballot';
+// ✅ NEW: Import student notification component
+import { StudentNotif } from './layouts/student-portal/student-dashboard/student-notif/student-notif';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -120,18 +120,6 @@ export const routes: Routes = [
         data: { role: 'student' },
       },
       {
-        path: 'student-candidates',
-        component: StudentCandidates,
-        canActivate: [RoleGuard],
-        data: { role: 'student' },
-      },
-      {
-        path: 'student-results',
-        component: StudentResults,
-        canActivate: [RoleGuard],
-        data: { role: 'student' },
-      },
-      {
         path: 'student-apply',
         component: StudentApply,
         canActivate: [RoleGuard],
@@ -140,6 +128,13 @@ export const routes: Routes = [
       {
         path: 'student-ballot/:id',
         component: StudentBallot,
+        canActivate: [RoleGuard],
+        data: { role: 'student' },
+      },
+      // ✅ NEW: Student notifications route
+      {
+        path: 'student-notifications',
+        component: StudentNotif,
         canActivate: [RoleGuard],
         data: { role: 'student' },
       },

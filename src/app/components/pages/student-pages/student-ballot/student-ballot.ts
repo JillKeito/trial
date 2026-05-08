@@ -20,16 +20,12 @@ type BallotView = 'select-election' | 'ballot' | 'success';
   styleUrl: './student-ballot.scss',
 })
 export class StudentBallot implements OnInit {
-  // Election selection state
   elections: Election[] = [];
   selectedElection: Election | null = null;
-
-  // Ballot state
   positions: BallotPosition[] = [];
   voter: Voter | null = null;
   votes: Record<string, string> = {};
 
-  // UI state
   view: BallotView = 'select-election';
   loading = true;
   ballotLoading = false;
@@ -44,22 +40,19 @@ export class StudentBallot implements OnInit {
   ngOnInit(): void {
     const user = this.auth.getCurrentUser();
 
-    // Load voter status
+    // Use user.id (not email) to match studentId stored in Firestore voters collection
     if (user) {
-      this.svc.getVoterByStudentId(user.email).subscribe((voters: Voter[]) => {
+      this.svc.getVoterByStudentId(user.id).subscribe((voters: Voter[]) => {
         this.voter = voters[0] ?? null;
       });
     }
 
-    // Load active elections
+    // Load active elections only
     this.svc.getElections().subscribe((elections: Election[]) => {
-      // Show active elections only on ballot page
       this.elections = elections.filter((e) => e.status === 'active');
       this.loading = false;
     });
   }
-
-  // ── Election selection ──────────────────────────────────────────────
 
   selectElection(election: Election): void {
     this.selectedElection = election;
@@ -68,9 +61,7 @@ export class StudentBallot implements OnInit {
     this.ballotLoading = true;
 
     this.svc.getCandidates().subscribe((candidates: Candidate[]) => {
-      const approved = candidates.filter(
-        (c) => c.status === 'approved'
-      );
+      const approved = candidates.filter((c) => c.status === 'approved');
       const positionMap = new Map<string, Candidate[]>();
 
       approved.forEach((c) => {
@@ -94,35 +85,18 @@ export class StudentBallot implements OnInit {
     this.view = 'select-election';
   }
 
-  // ── Ballot logic ────────────────────────────────────────────────────
-
-  get hasVoted(): boolean {
-    return this.voter?.hasVoted ?? false;
-  }
-
-  get totalPositions(): number {
-    return this.positions.length;
-  }
-
-  get answeredCount(): number {
-    return Object.keys(this.votes).length;
-  }
-
+  get hasVoted(): boolean { return this.voter?.hasVoted ?? false; }
+  get totalPositions(): number { return this.positions.length; }
+  get answeredCount(): number { return Object.keys(this.votes).length; }
   get progressPercent(): number {
     return this.totalPositions ? (this.answeredCount / this.totalPositions) * 100 : 0;
   }
-
   get allAnswered(): boolean {
     return this.answeredCount === this.totalPositions && this.totalPositions > 0;
   }
 
   getInitials(name: string): string {
-    return name
-      .split(' ')
-      .slice(0, 2)
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase();
+    return name.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase();
   }
 
   selectCandidate(position: string, candidateId: string): void {
@@ -136,41 +110,37 @@ export class StudentBallot implements OnInit {
     }
   }
 
+  isSelected(position: string, candidateId: string): boolean {
+    return this.votes[position] === candidateId;
+  }
+
   submitBallot(): void {
     if (!this.allAnswered || !this.selectedElection || !this.voter) return;
     this.submitting = true;
 
     const candidateList: Candidate[] = this.positions.flatMap((p) => p.candidates);
 
-    this.svc
-      .castVote(this.voter, this.selectedElection, this.votes, candidateList)
-      .subscribe({
-        next: () => {
-          this.submitting = false;
-          if (this.voter) this.voter = { ...this.voter, hasVoted: true };
-          this.view = 'success';
-        },
-        error: () => {
-          this.submitting = false;
-          alert('Something went wrong. Please try again.');
-        },
-      });
+    this.svc.castVote(this.voter, this.selectedElection, this.votes, candidateList).subscribe({
+      next: () => {
+        this.submitting = false;
+        if (this.voter) this.voter = { ...this.voter, hasVoted: true };
+        this.view = 'success';
+      },
+      error: (err) => {
+        this.submitting = false;
+        console.error('Vote error:', err);
+        alert('Something went wrong. Please try again.');
+      },
+    });
   }
 
   getStatusLabel(status: string): string {
     const map: Record<string, string> = {
-      active: 'Active',
-      upcoming: 'Upcoming',
-      completed: 'Completed',
+      active: 'Active', upcoming: 'Upcoming', completed: 'Completed',
     };
     return map[status] ?? status;
   }
 
-  goToResults(): void {
-    this.router.navigate(['/app/student-results']);
-  }
-
-  goHome(): void {
-    this.router.navigate(['/app/student-elections']);
-  }
+  goToResults(): void { this.router.navigate(['/app/student-results']); }
+  goHome(): void { this.router.navigate(['/app/student-elections']); }
 }
