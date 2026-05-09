@@ -48,6 +48,7 @@ export interface Voter {
 }
 
 export interface Election {
+  title?: any;
   id: string;
   name: string;
   description: string;

@@ -1,578 +1,608 @@
-// ── Design tokens ──────────────────────────────────────────────────────────
-$blue-700 : #1e3fa0;
-$blue-600 : #2952cc;
-$blue-500 : #3b6ef0;
-$blue-200 : #c7d4f8;
-$blue-100 : #e8eeff;
-$blue-50  : #f0f4ff;
+// ─────────────────────────────────────────────
+// COLORS
+// ─────────────────────────────────────────────
+$ink: #1e2a5e;
+$ink-2: #3a4675;
+$ink-3: #7a84aa;
+$ink-4: #b8bdd4;
 
-$green    : #16a34a;
-$green-bg : #f0fdf4;
-$green-bd : #86efac;
+$surface: #ffffff;
+$page-bg: #f4f6fc;
 
-$amber    : #b45309;
-$amber-bg : #fffbeb;
-$amber-bd : #fde68a;
+$accent: #3d4eac;
+$accent-dark: #2f3f90;
 
-$surface  : #ffffff;
-$bg       : #f4f6fb;
-$border   : #e4e9f5;
-$text     : #0d1f4e;
-$muted    : #7a89b0;
-$r        : 12px;
+$border: rgba(61, 78, 172, 0.12);
 
-// ── Page shell ─────────────────────────────────────────────────────────────
-.ballot-page {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  font-family: 'Inter', 'Segoe UI', sans-serif;
-  max-width: 760px;
+$success: #16a34a;
+$danger: #dc3545;
+
+$r: 12px;
+$r-lg: 18px;
+
+// ─────────────────────────────────────────────
+// HOST
+// ─────────────────────────────────────────────
+:host {
+  display: block;
+  width: 100%;
+  min-height: 100%;
 }
 
-// ── Page header (election selection) ───────────────────────────────────────
-.page-header {
+// ─────────────────────────────────────────────
+// PAGE
+// ─────────────────────────────────────────────
+.ballot-page {
+  padding: 32px;
+  background: $page-bg;
+  min-height: 100vh;
+
+  font-family: 'DM Sans', sans-serif;
+  color: $ink;
+  box-sizing: border-box;
+}
+
+// ─────────────────────────────────────────────
+// HEADER (FIXED)
+// ─────────────────────────────────────────────
+.page-header,
+.ballot-header {
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: flex-start; // FIXED
+  gap: 18px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
 
-  h1 {
-    font-size: 20px;
-    font-weight: 700;
-    color: $text;
-    margin: 0 0 3px;
-    letter-spacing: -0.02em;
-  }
+.page-header h1,
+.ballot-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: $ink;
+}
+
+.page-sub,
+.ballot-sub {
+  color: $ink-3;
+  margin-top: 4px;
+  font-size: 14px;
 }
 
 .header-icon {
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: $blue-100;
-  color: $blue-600;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(61, 78, 172, 0.1);
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  color: $accent;
+  flex-shrink: 0;
 }
 
-.page-sub { font-size: 13px; color: $muted; margin: 0; }
+.ballot-header-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
 
-// ── Generic state card ─────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// STATE CARDS
+// ─────────────────────────────────────────────
 .state-card {
+  background: $surface;
+  border-radius: $r-lg;
+  border: 1px solid $border;
+
+  padding: 40px;
+
+  text-align: center;
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 60px 24px;
-  background: $surface;
-  border: 1px solid $border;
-  border-radius: $r;
-  text-align: center;
-  color: $muted;
-
-  p { font-size: 13px; margin: 0; max-width: 360px; line-height: 1.6; }
-  h3 { font-size: 16px; font-weight: 650; color: $text; margin: 0; }
-}
-
-.state-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 4px;
-}
-
-.voted-icon  { background: $green-bg;  color: $green; }
-.empty-icon  { background: $amber-bg;  color: $amber; }
-
-.state-voted {
-  border-color: $green-bd;
-  background: $green-bg;
-  h3, p { color: darken($green, 8%); }
-}
-
-.state-empty {
-  border-color: $amber-bd;
-  background: $amber-bg;
-}
-
-.empty-hint {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-  font-size: 12px;
-  color: $amber;
-  background: rgba(#fde68a, 0.5);
-  border: 1px solid $amber-bd;
-  padding: 7px 14px;
-  border-radius: 6px;
-}
-
-// ── Elections grid ─────────────────────────────────────────────────────────
-.elections-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 14px;
 }
 
-.election-card {
-  background: $surface;
-  border: 1px solid $border;
-  border-radius: $r;
-  overflow: hidden;
-  cursor: pointer;
-  transition: box-shadow 0.16s, border-color 0.16s, transform 0.12s;
-  display: flex;
-  flex-direction: column;
-
-  &:hover {
-    border-color: $blue-200;
-    box-shadow: 0 4px 20px rgba($blue-500, 0.12);
-    transform: translateY(-1px);
-
-    .card-arrow { color: $blue-600; transform: translateX(2px); }
-    .btn-vote { background: $blue-700; }
-  }
-
-  &:focus-visible {
-    outline: 2px solid $blue-500;
-    outline-offset: 2px;
-  }
+.state-card h3 {
+  margin: 0;
+  font-size: 22px;
 }
 
-.card-header {
+.state-card p {
+  margin: 0;
+  color: $ink-3;
+  max-width: 500px;
+}
+
+.state-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.voted-icon {
+  background: rgba(22, 163, 74, 0.12);
+  color: $success;
+}
+
+.empty-icon {
+  background: rgba(61, 78, 172, 0.08);
+  color: $accent;
+}
+
+// ─────────────────────────────────────────────
+// GRID
+// ─────────────────────────────────────────────
+.elections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 22px;
+}
+
+// ─────────────────────────────────────────────
+// ELECTION CARD
+// ─────────────────────────────────────────────
+.election-card {
+  background: $surface;
+  border-radius: $r-lg;
+  border: 1px solid $border;
+
+  overflow: hidden;
+
+  transition: 0.2s ease;
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.election-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.card-header,
+.card-footer {
+  padding: 16px 20px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: $blue-50;
-  border-bottom: 1px solid $border;
-}
-
-.card-positions {
-  font-size: 11.5px;
-  color: $muted;
-  font-weight: 500;
-}
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11.5px;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 20px;
-  letter-spacing: 0.01em;
-}
-
-.badge-active {
-  background: $green-bg;
-  color: $green;
-  border: 1px solid $green-bd;
-
-  .status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: $green;
-    animation: pulse 1.8s ease-in-out infinite;
-  }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
 }
 
 .card-body {
-  padding: 16px;
-  flex: 1;
+  padding: 0 20px 20px;
 }
 
 .election-name {
-  font-size: 15px;
+  margin: 0;
+  font-size: 22px;
   font-weight: 700;
-  color: $text;
-  margin: 0 0 6px;
-  letter-spacing: -0.01em;
 }
 
 .election-desc {
-  font-size: 12.5px;
-  color: $muted;
-  margin: 0 0 12px;
-  line-height: 1.55;
+  margin-top: 10px;
+  color: $ink-3;
+  line-height: 1.5;
 }
 
-.election-meta { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.status-badge {
+  background: rgba(22, 163, 74, 0.12);
+  color: $success;
+
+  padding: 6px 12px;
+  border-radius: 999px;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: $success;
+  border-radius: 50%;
+}
+
+.card-positions {
+  color: $ink-3;
+  font-size: 13px;
+}
+
+.election-meta {
+  margin-top: 18px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .meta-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: $muted;
-  svg { flex-shrink: 0; }
+  gap: 8px;
+
+  color: $ink-3;
+  font-size: 13px;
 }
 
-.turnout-wrap { margin-top: 4px; }
+// ─────────────────────────────────────────────
+// TURNOUT
+// ─────────────────────────────────────────────
+.turnout-wrap {
+  margin-top: 20px;
+}
+
 .turnout-header {
   display: flex;
   justify-content: space-between;
-  font-size: 11.5px;
-  color: $muted;
-  margin-bottom: 6px;
-  font-weight: 500;
+
+  margin-bottom: 8px;
+
+  font-size: 13px;
+  color: $ink-3;
 }
-.turnout-pct { color: $blue-600; font-weight: 600; }
-.turnout-track {
-  height: 5px;
-  background: $border;
-  border-radius: 3px;
+
+.turnout-track,
+.progress-track {
+  height: 8px;
+  background: #dfe4f5;
+  border-radius: 999px;
   overflow: hidden;
 }
-.turnout-fill {
+
+.turnout-fill,
+.progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, $blue-500, $blue-600);
-  border-radius: 3px;
-  transition: width 0.4s ease;
+  background: linear-gradient(to right, $accent, #6477df);
+  border-radius: inherit;
 }
 
-.card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-top: 1px solid $border;
-  background: $bg;
+// ─────────────────────────────────────────────
+// BUTTONS
+// ─────────────────────────────────────────────
+button {
+  font-family: inherit;
 }
 
-.card-arrow {
-  color: $muted;
-  transition: color 0.15s, transform 0.15s;
-  flex-shrink: 0;
-}
+.btn-vote,
+.btn-submit {
+  background: $accent;
+  color: white;
 
-.btn-vote {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  background: $blue-600;
-  color: #fff;
   border: none;
-  border-radius: 7px;
-  padding: 8px 16px;
-  font-size: 12.5px;
+
+  padding: 12px 18px;
+  border-radius: 12px;
+
   font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.13s;
-}
 
-// ── Ballot header ──────────────────────────────────────────────────────────
-.ballot-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-
-  h1 {
-    font-size: 18px;
-    font-weight: 700;
-    color: $text;
-    margin: 0 0 3px;
-    letter-spacing: -0.01em;
-  }
-}
-
-.ballot-header-left { display: flex; align-items: flex-start; gap: 12px; }
-.ballot-sub { font-size: 12px; color: $muted; margin: 0; }
-
-.back-btn {
-  display: inline-flex;
   align-items: center;
-  gap: 5px;
-  background: none;
-  border: 1px solid $border;
-  border-radius: 7px;
-  padding: 7px 12px;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: $muted;
-  cursor: pointer;
-  font-family: inherit;
-  flex-shrink: 0;
-  margin-top: 2px;
-  transition: all 0.13s;
+  gap: 8px;
 
-  &:hover { background: $blue-50; color: $blue-700; border-color: $blue-100; }
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-.ballot-progress {
+.btn-vote:hover,
+.btn-submit:hover {
+  background: $accent-dark;
+}
+
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-outline,
+.btn-secondary,
+.back-btn {
+  background: white;
+  border: 1px solid $border;
+  color: $ink;
+
+  padding: 11px 18px;
+  border-radius: 12px;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-outline:hover,
+.btn-secondary:hover,
+.back-btn:hover {
+  background: #f7f8fc;
+}
+
+// ─────────────────────────────────────────────
+// POSITIONS
+// ─────────────────────────────────────────────
+.positions-list {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-  min-width: 160px;
+  gap: 20px;
 }
-.progress-label { font-size: 11.5px; color: $muted; font-weight: 500; }
-.progress-track { width: 160px; height: 5px; background: $border; border-radius: 3px; overflow: hidden; }
-.progress-fill  { height: 100%; background: linear-gradient(90deg, $blue-500, $blue-600); border-radius: 3px; transition: width 0.3s ease; }
-
-// ── Spinner ────────────────────────────────────────────────────────────────
-.spinner {
-  width: 26px;
-  height: 26px;
-  border: 2.5px solid $border;
-  border-top-color: $blue-500;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-// ── Positions list ─────────────────────────────────────────────────────────
-.positions-list { display: flex; flex-direction: column; gap: 12px; }
 
 .position-card {
-  background: $surface;
+  background: white;
+  border-radius: $r-lg;
   border: 1px solid $border;
-  border-radius: $r;
+
   overflow: hidden;
 }
 
 .position-head {
+  padding: 18px 20px;
+
+  border-bottom: 1px solid $border;
+
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid $border;
-  background: $bg;
+  gap: 16px;
 }
 
 .position-num {
-  width: 26px;
-  height: 26px;
+  width: 38px;
+  height: 38px;
+
   border-radius: 50%;
-  background: $blue-100;
-  color: $blue-700;
-  font-size: 11.5px;
-  font-weight: 700;
+
+  background: rgba(61, 78, 172, 0.1);
+  color: $accent;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+
+  font-weight: 700;
 }
 
-.position-name { font-size: 13.5px; font-weight: 650; color: $text; }
-.position-meta { font-size: 11.5px; color: $muted; margin-top: 1px; }
+.position-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.position-meta {
+  color: $ink-3;
+  font-size: 13px;
+  margin-top: 4px;
+}
 
 .position-status {
   margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 20px;
 
-  &.filled { background: $green-bg; color: $green; border: 1px solid $green-bd; }
-  &.empty  { background: $blue-50;  color: $blue-600; border: 1px solid $blue-100; }
+  padding: 7px 12px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.candidates-grid { display: flex; flex-direction: column; }
+.position-status.filled {
+  background: rgba(22,163,74,.12);
+  color: $success;
+}
+
+.position-status.empty {
+  background: rgba(220,53,69,.1);
+  color: $danger;
+}
+
+// ─────────────────────────────────────────────
+// CANDIDATES
+// ─────────────────────────────────────────────
+.candidates-grid {
+  padding: 20px;
+
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
 
 .candidate-card {
+  border: 2px solid #e2e8f7;
+  border-radius: 16px;
+
+  padding: 16px;
+
   display: flex;
   align-items: center;
-  gap: 13px;
-  padding: 12px 16px;
+  gap: 14px;
+
   cursor: pointer;
-  transition: background 0.12s;
-  border-bottom: 1px solid $border;
+  transition: 0.2s;
+}
 
-  &:last-child { border-bottom: none; }
+.candidate-card:hover {
+  border-color: $accent;
+}
 
-  &:hover:not(.selected) { background: $blue-50; }
-
-  &.selected {
-    background: $blue-50;
-    border-left: 3px solid $blue-600;
-    padding-left: 13px;
-
-    .candidate-name   { color: $blue-700; font-weight: 650; }
-    .candidate-avatar { background: $blue-600; color: #fff; }
-    .select-indicator { color: $blue-600; }
-  }
+.candidate-card.selected {
+  border-color: $accent;
+  background: rgba(61, 78, 172, 0.06);
 }
 
 .candidate-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: $blue-100;
-  color: $blue-700;
-  font-size: 12px;
-  font-weight: 700;
+  width: 50px;
+  height: 50px;
+
+  border-radius: 14px;
+
+  background: rgba(61, 78, 172, 0.12);
+  color: $accent;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  transition: background 0.13s, color 0.13s;
+
+  font-weight: 700;
 }
 
-.candidate-info { flex: 1; min-width: 0; }
-.candidate-name { font-size: 13px; font-weight: 500; color: $text; transition: color 0.12s; }
-.candidate-party { font-size: 11.5px; color: $muted; margin-top: 2px; }
-.select-indicator { flex-shrink: 0; color: $border; transition: color 0.13s; }
+.candidate-name {
+  font-weight: 700;
+}
 
-// ── Ballot footer ──────────────────────────────────────────────────────────
+.candidate-party {
+  font-size: 13px;
+  color: $ink-3;
+  margin-top: 4px;
+}
+
+.select-indicator {
+  margin-left: auto;
+  color: $accent;
+}
+
+// ─────────────────────────────────────────────
+// FOOTER
+// ─────────────────────────────────────────────
 .ballot-footer {
+  margin-top: 24px;
+
+  background: white;
+  border-radius: $r-lg;
+  border: 1px solid $border;
+
+  padding: 20px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 14px 18px;
-  background: $surface;
-  border: 1px solid $border;
-  border-radius: $r;
+
+  gap: 20px;
   flex-wrap: wrap;
 }
 
 .footer-note {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 12.5px;
-  color: $muted;
-  svg { flex-shrink: 0; }
+  gap: 10px;
 
-  &.complete { color: $green; }
+  color: $ink-3;
+  font-size: 14px;
 }
 
-.footer-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-
-.btn-secondary {
-  background: none;
-  border: 1px solid $border;
-  border-radius: 7px;
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  color: $muted;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.13s;
-
-  &:hover { background: $bg; color: $text; }
+.footer-note.complete {
+  color: $success;
 }
 
-.btn-submit {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  background: $blue-600;
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  padding: 9px 22px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.13s;
-
-  &:hover:not(:disabled) { background: $blue-700; }
-  &:disabled { opacity: 0.4; cursor: not-allowed; }
-}
-
-.btn-outline {
-  background: none;
-  border: 1.5px solid $blue-600;
-  color: $blue-600;
-  border-radius: 7px;
-  padding: 9px 20px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.13s;
-
-  &:hover { background: $blue-50; }
-}
-
-// ── Success view ───────────────────────────────────────────────────────────
-.success-page {
+.footer-actions {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 60px 24px;
-  background: $surface;
-  border: 1px solid $green-bd;
-  border-radius: $r;
+  gap: 12px;
+}
+
+// ─────────────────────────────────────────────
+// SUCCESS
+// ─────────────────────────────────────────────
+.success-page {
+  background: white;
+  border-radius: $r-lg;
+  border: 1px solid $border;
+
+  padding: 70px 30px;
+
   text-align: center;
-
-  h2 {
-    font-size: 22px;
-    font-weight: 700;
-    color: $text;
-    margin: 0;
-    letter-spacing: -0.02em;
-  }
-
-  p {
-    font-size: 13.5px;
-    color: $muted;
-    margin: 0;
-    max-width: 380px;
-    line-height: 1.6;
-    strong { color: $text; }
-  }
-}
-
-.success-graphic {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  margin-bottom: 4px;
-}
-
-.success-ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: $green-bg;
-  border: 2px solid $green-bd;
-  animation: ring-pop 0.4s ease-out;
 }
 
 .success-check {
-  position: absolute;
-  inset: 0;
+  width: 90px;
+  height: 90px;
+
+  margin: auto auto 24px;
+
+  border-radius: 50%;
+
+  background: rgba(22,163,74,.12);
+  color: $success;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  color: $green;
 }
 
-@keyframes ring-pop {
-  0%   { transform: scale(0.5); opacity: 0; }
-  70%  { transform: scale(1.1); }
-  100% { transform: scale(1); opacity: 1; }
+.success-page h2 {
+  margin-bottom: 10px;
+  font-size: 32px;
+}
+
+.success-page p {
+  color: $ink-3;
+  max-width: 520px;
+  margin: auto;
 }
 
 .success-actions {
+  margin-top: 30px;
+
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 4px;
-  flex-wrap: wrap;
   justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+// ─────────────────────────────────────────────
+// SPINNER
+// ─────────────────────────────────────────────
+.spinner {
+  width: 30px;
+  height: 30px;
+
+  border: 3px solid rgba(61, 78, 172, 0.15);
+  border-top-color: $accent;
+
+  border-radius: 50%;
+
+  animation: spin .7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ─────────────────────────────────────────────
+// RESPONSIVE
+// ─────────────────────────────────────────────
+@media (max-width: 768px) {
+
+  .ballot-page {
+    padding: 18px;
+  }
+
+  .elections-grid,
+  .candidates-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ballot-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .footer-actions {
+    width: 100%;
+  }
+
+  .footer-actions button {
+    flex: 1;
+  }
 }

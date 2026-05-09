@@ -1,8 +1,11 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ElectionService, Election } from '../../../services/election';
-import { FormsModule } from '@angular/forms';
+import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
+import { Firestore, doc, setDoc } from '@angular/fire/firestore';
+import Swal from 'sweetalert2';
 
 export interface Activity {
   type: 'user' | 'vote' | 'election' | 'candidate' | 'warning';
@@ -19,6 +22,10 @@ export interface Activity {
   styleUrl: './elecom-dashboard.scss',
 })
 export class ElecomDashboard implements OnInit, OnDestroy {
+  // ── Firebase ──────────────────────────────────────────────────
+  private firebaseAuth = inject(Auth);
+  private firestore = inject(Firestore);
+
   stats = {
     totalVoters: 0,
     voted: 0,
@@ -33,7 +40,10 @@ export class ElecomDashboard implements OnInit, OnDestroy {
   showConfirmModal = false;
   confirmAction: 'start' | 'end' | null = null;
 
-  newElection = { name: '', description: '', startDate: '', endDate: '' };
+  // ── Create student account modal ──────────────────────────────
+  showAccountModal = false;
+  accountForm = { name: '', email: '', password: '', course: '', year: '' };
+  creatingAccount = false;
 
   recentActivities: Activity[] = [
     {
@@ -91,28 +101,6 @@ export class ElecomDashboard implements OnInit, OnDestroy {
     });
   }
 
-  createElection(): void {
-    if (!this.newElection.name || !this.newElection.startDate || !this.newElection.endDate) return;
-
-    // ✅ removed markAllRead, markNotificationRead, getNotifications
-    const payload: Omit<Election, 'id'> = {
-      name: this.newElection.name,
-      description: this.newElection.description,
-      startDate: this.newElection.startDate,
-      endDate: this.newElection.endDate,
-      totalPositions: 7,
-      totalVoters: 0,
-      voted: 0,
-      status: 'upcoming',
-    };
-
-    this.svc.addElection(payload).subscribe(() => {
-      this.addActivity('election', 'Election created', payload.name, this.nowStr());
-      this.newElection = { name: '', description: '', startDate: '', endDate: '' };
-      this.loadStats();
-    });
-  }
-
   promptStart(): void {
     if (!this.upcomingElection) return;
     this.confirmAction = 'start';
@@ -142,6 +130,68 @@ export class ElecomDashboard implements OnInit, OnDestroy {
     }
     this.showConfirmModal = false;
     this.confirmAction = null;
+  }
+
+  // ── Create student account ────────────────────────────────────
+  // Same logic as admin — creates Firebase Auth + Firestore record
+  openAccountModal() {
+    this.showAccountModal = true;
+    this.accountForm = { name: '', email: '', password: '', course: '', year: '' };
+  }
+
+  closeAccountModal() {
+    this.showAccountModal = false;
+  }
+
+  async createStudentAccount() {
+    if (!this.accountForm.name || !this.accountForm.email || !this.accountForm.password) {
+      Swal.fire({ icon: 'warning', title: 'Please fill in all required fields.' });
+      return;
+    }
+
+    this.creatingAccount = true;
+
+    try {
+      // create Firebase Auth account
+      const credential = await createUserWithEmailAndPassword(
+        this.firebaseAuth,
+        this.accountForm.email,
+        this.accountForm.password,
+      );
+
+      // save to Firestore /users with role: student
+      await setDoc(doc(this.firestore, 'users', credential.user.uid), {
+        name: this.accountForm.name,
+        email: this.accountForm.email,
+        role: 'student',
+        course: this.accountForm.course,
+        year: this.accountForm.year,
+        createdAt: new Date().toISOString(),
+      });
+
+      this.creatingAccount = false;
+      this.closeAccountModal();
+
+      this.addActivity('user', 'Student account created', this.accountForm.name, this.nowStr());
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Student Account Created!',
+        text: `${this.accountForm.name} can now log in.`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (err: any) {
+      this.creatingAccount = false;
+      console.error('Account creation error:', err);
+      if (err.code === 'auth/email-already-in-use') {
+        Swal.fire({ icon: 'error', title: 'Email already exists.' });
+      } else if (err.code === 'auth/weak-password') {
+        Swal.fire({ icon: 'error', title: 'Password must be at least 6 characters.' });
+      } else {
+        Swal.fire({ icon: 'error', title: 'Failed to create account. Try again.' });
+      }
+    }
   }
 
   get participationRate(): number {

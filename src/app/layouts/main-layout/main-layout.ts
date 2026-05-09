@@ -2,12 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterModule, RouterOutlet } from '@angular/router';
 import { AuthService, User } from '../../services/auth';
+
 import Swal from 'sweetalert2';
+import { StudentNotificationService } from '../../services/student-notif';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterModule, RouterLink, RouterLinkActive],
   templateUrl: './main-layout.html',
   styleUrls: ['./main-layout.scss'],
   host: { style: 'display: block; width: 100%; height: 100vh;' },
@@ -19,6 +21,7 @@ export class MainLayout implements OnInit {
   currentUser: User | null = null;
 
   private platformId = inject(PLATFORM_ID);
+  readonly studentNotifService = inject(StudentNotificationService);
 
   constructor(
     public auth: AuthService,
@@ -32,6 +35,10 @@ export class MainLayout implements OnInit {
       this.isProfileMenuOpen = false;
       this.sidebarOpen = false;
     });
+
+    if (this.isStudent()) {
+      this.studentNotifService.loadNotifications();
+    }
   }
 
   loadUser(): void {
@@ -65,6 +72,9 @@ export class MainLayout implements OnInit {
   goToNotifications(): void {
     if (this.isElecom()) {
       this.router.navigate(['/app/elecom-notifications']);
+    }
+    if (this.isStudent()) {
+      this.router.navigate(['/app/student-notifications']);
     }
   }
 

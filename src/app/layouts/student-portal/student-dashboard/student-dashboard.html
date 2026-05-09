@@ -1,104 +1,280 @@
 <div class="dashboard-page">
 
+  <!-- ── Header ── -->
   <div class="page-header">
     <div>
       <h1>Welcome back, {{ auth.getCurrentUser()?.name || 'Student' }}</h1>
       <p class="page-sub">{{ auth.getCurrentUser()?.email }} · Student Portal</p>
     </div>
+    <button class="btn-apply" (click)="goToApply()">
+      <svg viewBox="0 0 18 18" fill="none" width="14" height="14"><rect x="3" y="2" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M6 6h6M6 9h6M6 12h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Run for Office
+    </button>
   </div>
 
-  <!-- Status banner -->
+  <!-- ── Status Banner ── -->
   <div class="status-banner" [ngClass]="isRegistered ? 'banner-green' : 'banner-amber'">
     <div class="banner-icon">
       <svg *ngIf="isRegistered" viewBox="0 0 20 20" fill="none" width="18" height="18"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <svg *ngIf="!isRegistered" viewBox="0 0 20 20" fill="none" width="18" height="18"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v5M10 13v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     </div>
     <div>
-      <div class="banner-title" *ngIf="isRegistered">You are registered to vote</div>
-      <div class="banner-title" *ngIf="!isRegistered">Not yet registered</div>
-      <div class="banner-sub" *ngIf="isRegistered && !hasVoted">Your student ID is verified. You can vote in active elections below.</div>
-      <div class="banner-sub" *ngIf="isRegistered && hasVoted">You have already cast your vote. Thank you for participating!</div>
-      <div class="banner-sub" *ngIf="!isRegistered">Please contact the Electoral Commission to register as a voter.</div>
+      <div class="banner-title" *ngIf="isRegistered && !hasVoted">You are registered — cast your vote below</div>
+      <div class="banner-title" *ngIf="isRegistered && hasVoted">✓ You have already voted. Thank you!</div>
+      <div class="banner-title" *ngIf="!isRegistered">Not yet registered as a voter</div>
+      <div class="banner-sub" *ngIf="!isRegistered">Please contact the Electoral Commission to register.</div>
     </div>
   </div>
 
-  <!-- Stat cards -->
+  <!-- ── Stat Cards ── -->
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-label">Active elections</div>
-      <div class="stat-value">{{ activeElections.length }}</div>
-      <div class="stat-sub">open for voting</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Upcoming elections</div>
-      <div class="stat-value">{{ upcomingElections.length }}</div>
-      <div class="stat-sub">scheduled</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Voting status</div>
-      <div class="stat-value status-val" [ngClass]="hasVoted ? 'voted' : 'not-voted'">
-        {{ hasVoted ? 'Voted' : 'Pending' }}
+      <div class="stat-icon teal">
+        <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><rect x="2" y="3" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M7 2v2M13 2v2M2 8h16" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
       </div>
-      <div class="stat-sub">this election</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ activeElections.length }}</div>
+        <div class="stat-label">Active elections</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue">
+        <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><circle cx="10" cy="8" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ candidates.length }}</div>
+        <div class="stat-label">Approved candidates</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" [ngClass]="hasVoted ? 'green' : 'amber'">
+        <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value status-val" [ngClass]="hasVoted ? 'voted' : 'pending'">{{ hasVoted ? 'Voted' : 'Pending' }}</div>
+        <div class="stat-label">My vote status</div>
+      </div>
     </div>
     <div class="stat-card" (click)="goToApply()" style="cursor:pointer">
-      <div class="stat-label">My application</div>
-      <div class="stat-value app-val" [ngClass]="application?.status || 'none'">
-        {{ application ? application.status : 'None' }}
+      <div class="stat-icon purple">
+        <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><rect x="3" y="2" width="14" height="16" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
       </div>
-      <div class="stat-sub">candidacy status</div>
+      <div class="stat-info">
+        <div class="stat-value app-val" [ngClass]="application?.status || 'none'">{{ application ? application.status : 'None' }}</div>
+        <div class="stat-label">My application</div>
+      </div>
     </div>
   </div>
 
-  <!-- Active elections -->
-  <div class="section" *ngIf="!loading">
-    <div class="section-head">
-      <h2>Active elections</h2>
-      <button class="link-btn" (click)="goToElections()">View all</button>
+  <!-- ── Tab Nav ── -->
+  <div class="tab-nav">
+    <button class="tab-btn" [class.active]="activeTab === 'overview'" (click)="activeTab = 'overview'">
+      <svg viewBox="0 0 18 18" fill="none" width="14" height="14"><rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="11" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="1" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>
+      Overview
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'candidates'" (click)="activeTab = 'candidates'">
+      <svg viewBox="0 0 18 18" fill="none" width="14" height="14"><circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M3 17c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Candidates
+      <span class="tab-count">{{ candidates.length }}</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'results'" (click)="activeTab = 'results'">
+      <svg viewBox="0 0 18 18" fill="none" width="14" height="14"><rect x="2" y="10" width="3" height="6" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="7" y="6" width="3" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="12" y="2" width="3" height="14" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>
+      Results
+      <span class="tab-badge live" *ngIf="activeElection">live</span>
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- TAB: OVERVIEW                                            -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div *ngIf="activeTab === 'overview'">
+
+    <!-- Active Elections -->
+    <div class="section">
+      <div class="section-head">
+        <h2>Active elections</h2>
+        <button class="link-btn" (click)="goToElections()">View all</button>
+      </div>
+
+      <div class="empty-box" *ngIf="activeElections.length === 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="32" height="32"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <p>No active elections right now.</p>
+      </div>
+
+      <div class="election-list">
+        <div class="election-card" *ngFor="let e of activeElections">
+          <div class="ec-left">
+            <div class="ec-dot"></div>
+            <div>
+              <div class="ec-name">{{ e.name }}</div>
+              <div class="ec-meta">{{ e.startDate }} — {{ e.endDate }} · {{ e.totalPositions }} positions</div>
+              <!-- turnout bar -->
+              <div class="turnout-wrap" *ngIf="e.totalVoters > 0">
+                <div class="turnout-track">
+                  <div class="turnout-fill" [style.width.%]="e.totalVoters > 0 ? (e.voted / e.totalVoters) * 100 : 0"></div>
+                </div>
+                <span class="turnout-label">{{ e.totalVoters > 0 ? ((e.voted / e.totalVoters) * 100 | number:'1.0-0') : 0 }}% turnout</span>
+              </div>
+            </div>
+          </div>
+          <button
+            class="vote-btn"
+            [ngClass]="hasVoted ? 'voted' : 'active'"
+            [disabled]="hasVoted || !isRegistered"
+            (click)="goToVote(e)">
+            {{ hasVoted ? '✓ Voted' : 'Vote Now' }}
+          </button>
+        </div>
+      </div>
     </div>
 
-    <div class="empty-state" *ngIf="activeElections.length === 0">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <p>No active elections right now.</p>
+    <!-- Quick Actions -->
+    <div class="section">
+      <div class="section-head"><h2>Quick actions</h2></div>
+      <div class="actions-grid">
+        <div class="action-card" (click)="goToElections()">
+          <svg viewBox="0 0 20 20" fill="none" width="22" height="22"><rect x="2" y="3" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M7 2v2M13 2v2M2 8h16" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <span>Browse Elections</span>
+        </div>
+        <div class="action-card" (click)="goToApply()">
+          <svg viewBox="0 0 20 20" fill="none" width="22" height="22"><rect x="3" y="2" width="14" height="16" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <span>Run for Office</span>
+        </div>
+        <div class="action-card" (click)="activeTab = 'candidates'">
+          <svg viewBox="0 0 20 20" fill="none" width="22" height="22"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <span>View Candidates</span>
+        </div>
+        <div class="action-card" (click)="activeTab = 'results'">
+          <svg viewBox="0 0 20 20" fill="none" width="22" height="22"><rect x="2" y="10" width="4" height="8" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="8" y="6" width="4" height="12" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="14" y="2" width="4" height="16" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>
+          <span>View Results</span>
+        </div>
+      </div>
     </div>
 
-    <div class="election-list">
-      <div class="election-card" *ngFor="let e of activeElections">
-        <div class="ec-left">
-          <div class="ec-dot"></div>
-          <div>
-            <div class="ec-name">{{ e.name }}</div>
-            <div class="ec-meta">{{ e.startDate }} — {{ e.endDate }} · {{ e.totalPositions }} positions</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- TAB: CANDIDATES                                          -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div *ngIf="activeTab === 'candidates'">
+
+    <div class="section">
+      <div class="section-head">
+        <h2>Approved candidates <span class="count-chip">{{ candidates.length }}</span></h2>
+        <!-- Position filter -->
+        <select class="pos-select" [(ngModel)]="selectedPosition" [ngModelOptions]="{standalone: true}">
+          <option value="all">All positions</option>
+          <option *ngFor="let p of allPositions" [value]="p">{{ p }}</option>
+        </select>
+      </div>
+
+      <div class="empty-box" *ngIf="candidates.length === 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="32" height="32"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+        <p>No approved candidates yet.</p>
+      </div>
+
+      <!-- Position groups -->
+      <div class="position-group" *ngFor="let group of resultsByPosition">
+        <div *ngIf="selectedPosition === 'all' || selectedPosition === group.position">
+          <div class="pos-label">{{ group.position }}</div>
+          <div class="candidates-grid">
+            <div class="cand-card" *ngFor="let c of group.candidates">
+              <div class="cand-avatar">{{ getInitial(c.name) }}</div>
+              <div class="cand-info">
+                <div class="cand-name">{{ c.name }}</div>
+                <div class="cand-meta">{{ c.course }} · {{ c.year }}</div>
+                <div class="cand-party" *ngIf="c.party">
+                  <svg viewBox="0 0 12 12" fill="none" width="10" height="10"><polygon points="6,1 7.5,4.5 11,5 8.5,7.5 9,11 6,9 3,11 3.5,7.5 1,5 4.5,4.5" stroke="currentColor" stroke-width="0.8" stroke-linejoin="round"/></svg>
+                  {{ c.party }}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <button
-          class="vote-btn"
-          [ngClass]="hasVoted ? 'voted' : 'active'"
-          [disabled]="hasVoted || !isRegistered"
-          (click)="goToVote(e)">
-          {{ hasVoted ? 'Voted' : 'Vote Now' }}
-        </button>
       </div>
     </div>
+
   </div>
 
-  <!-- Quick actions -->
-  <div class="section">
-    <div class="section-head"><h2>Quick actions</h2></div>
-    <div class="actions-grid">
-      <div class="action-card" (click)="goToElections()">
-        <svg viewBox="0 0 18 18" fill="none" width="20" height="20"><path d="M3 4h12M3 9h12M3 14h7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-        <span>Browse Elections</span>
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- TAB: RESULTS                                             -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div *ngIf="activeTab === 'results'">
+
+    <!-- Active election info + turnout -->
+    <div class="results-banner" *ngIf="activeElection">
+      <div class="rb-left">
+        <span class="live-chip">
+          <span class="live-dot"></span> Live
+        </span>
+        <div class="rb-name">{{ activeElection.name }}</div>
+        <div class="rb-meta">{{ activeElection.voted }} of {{ activeElection.totalVoters }} voters · {{ turnoutPercent }}% turnout</div>
       </div>
-      <div class="action-card" (click)="goToApply()">
-        <svg viewBox="0 0 18 18" fill="none" width="20" height="20"><rect x="3" y="2" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M6 6h6M6 9h6M6 12h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-        <span>Run for Office</span>
-      </div>
-      <div class="action-card" (click)="goToResults()">
-        <svg viewBox="0 0 18 18" fill="none" width="20" height="20"><rect x="2" y="10" width="4" height="6" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="7" y="6" width="4" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="12" y="2" width="4" height="14" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>
-        <span>View Results</span>
+      <div class="rb-bar-wrap">
+        <div class="rb-bar-track">
+          <div class="rb-bar-fill" [style.width.%]="turnoutPercent"></div>
+        </div>
       </div>
     </div>
+
+    <div class="no-election" *ngIf="!activeElection && resultsByPosition.length === 0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36"><rect x="2" y="10" width="4" height="10" rx="1"/><rect x="9" y="6" width="4" height="14" rx="1"/><rect x="16" y="2" width="4" height="18" rx="1"/></svg>
+      <p>No results yet. Check back once the election is underway.</p>
+    </div>
+
+    <!-- Results by position -->
+    <div class="section">
+      <div class="position-result" *ngFor="let group of resultsByPosition">
+
+        <div class="pos-result-head">
+          <span class="pos-result-name">{{ group.position }}</span>
+          <span class="pos-votes-total">{{ group.totalVotes }} votes</span>
+        </div>
+
+        <div class="result-list">
+          <div class="result-row"
+               *ngFor="let c of group.candidates; let i = index"
+               [class.winner-row]="isWinner(c, group)"
+               [class.runner-row]="i === 1">
+
+            <!-- Rank -->
+            <div class="result-rank">
+              <svg *ngIf="isWinner(c, group)" viewBox="0 0 16 16" fill="#f59e0b" width="16" height="16"><polygon points="8,1 10,6 15,6.5 11.5,9.5 12.5,14.5 8,12 3.5,14.5 4.5,9.5 1,6.5 6,6"/></svg>
+              <span *ngIf="!isWinner(c, group)">{{ i + 1 }}</span>
+            </div>
+
+            <!-- Avatar -->
+            <div class="result-avatar" [class.winner-av]="isWinner(c, group)">{{ getInitial(c.name) }}</div>
+
+            <!-- Info + bar -->
+            <div class="result-info">
+              <div class="result-name">
+                {{ c.name }}
+                <span class="winner-chip" *ngIf="isWinner(c, group)">Winner</span>
+              </div>
+              <div class="result-meta">{{ c.party || c.course }}</div>
+              <div class="result-bar-wrap">
+                <div class="result-bar-track">
+                  <div class="result-bar-fill"
+                       [style.width.%]="getPercentage(c.votes, group.totalVotes)"
+                       [class.fill-win]="isWinner(c, group)"></div>
+                </div>
+                <span class="result-pct">{{ getPercentage(c.votes, group.totalVotes) }}%</span>
+              </div>
+            </div>
+
+            <!-- Vote count -->
+            <div class="result-count">
+              <div class="rc-num">{{ c.votes }}</div>
+              <div class="rc-lbl">votes</div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 
 </div>

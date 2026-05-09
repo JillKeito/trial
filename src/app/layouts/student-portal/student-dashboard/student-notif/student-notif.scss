@@ -1,0 +1,194 @@
+// ── Palette (matches project theme) ─────────────────────────────
+$maroon:    #7B1C2E;
+$maroon-light: #a93248;
+$maroon-50: #fdf2f4;
+$maroon-100:#fce4e8;
+$blue-600:  #2952cc;
+$blue-50:   #f0f4ff;
+$blue-100:  #e8eeff;
+$surface:   #ffffff;
+$bg:        #f4f6fb;
+$border:    #e4e9f5;
+$text:      #0d1f4e;
+$muted:     #7a89b0;
+$green:     #16a34a; $green-bg:  #f0fdf4;
+$amber:     #d97706; $amber-bg:  #fffbeb;
+$purple:    #7c3aed; $purple-bg: #f5f3ff;
+$teal:      #0891b2; $teal-bg:   #ecfeff;
+$r: 10px;
+
+// ── Page layout ─────────────────────────────────────────────────
+.notif-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+// ── Header ──────────────────────────────────────────────────────
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  h1 {
+    font-size: 20px;
+    font-weight: 650;
+    color: $text;
+    margin: 0 0 3px;
+    letter-spacing: -0.01em;
+  }
+
+  .page-sub {
+    font-size: 12.5px;
+    color: $muted;
+    margin: 0;
+  }
+}
+
+.btn-mark-all {
+  background: none;
+  border: 1px solid $border;
+  border-radius: 7px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: $maroon;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.14s;
+
+  &:hover {
+    background: $maroon-50;
+    border-color: $maroon-100;
+  }
+}
+
+// ── Filter tabs ──────────────────────────────────────────────────
+.filter-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ftab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid $border;
+  background: $surface;
+  color: $muted;
+  font-family: inherit;
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+
+  &:hover {
+    background: $maroon-50;
+    color: $maroon;
+    border-color: $maroon-100;
+  }
+
+  &.active {
+    background: $maroon;
+    color: #fff;
+    border-color: $maroon;
+  }
+
+  .ftab-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: inherit;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 20px;
+
+    .active & {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    :not(.active) & {
+      background: $maroon-100;
+      color: $maroon;
+    }
+  }
+}
+
+// ── Notification list ────────────────────────────────────────────
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: $surface;
+  border: 1px solid $border;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.12s;
+
+  &:first-child { border-radius: $r $r 0 0; }
+  &:last-child  { border-radius: 0 0 $r $r; }
+  &:only-child  { border-radius: $r; }
+  & + &         { border-top: none; }
+
+  &.unread { background: $maroon-50; border-color: $maroon-100; }
+  &:hover  { background: #fce8ec; }
+}
+
+// ── Icon badge ───────────────────────────────────────────────────
+.notif-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+
+  &.election    { background: $purple-bg; color: $purple; }
+  &.vote        { background: $green-bg;  color: $green; }
+  &.candidate   { background: $blue-50;   color: $blue-600; }
+  &.announcement{ background: $amber-bg;  color: $amber; }
+  &.apply       { background: $teal-bg;   color: $teal; }
+}
+
+// ── Body text ────────────────────────────────────────────────────
+.notif-body  { flex: 1; }
+.notif-title { font-size: 13px; font-weight: 600; color: $text; }
+.notif-sub   { font-size: 12px; color: $muted; margin-top: 3px; line-height: 1.5; }
+.notif-time  { font-size: 11px; color: #9aa5c0; margin-top: 5px; }
+
+// ── Unread dot ───────────────────────────────────────────────────
+.notif-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $maroon;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+// ── Empty state ──────────────────────────────────────────────────
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 3rem;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $r;
+  color: $muted;
+
+  p { font-size: 13px; margin: 0; }
+}
