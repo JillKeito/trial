@@ -1,5 +1,6 @@
 .login-container {
   height: 100vh;
+  min-height: 100%;
   width: 100%;
   display: flex;
   align-items: center;
@@ -7,7 +8,6 @@
   padding: 0 8%;
   position: relative;
   overflow: hidden;
-
   background: linear-gradient(270deg, #0f1b35, #182d4e, #143043, #1a1a2e);
 
   &::before {

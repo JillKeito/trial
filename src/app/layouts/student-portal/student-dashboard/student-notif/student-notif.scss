@@ -1,8 +1,8 @@
 // ── Palette (matches project theme) ─────────────────────────────
-$maroon:    #7B1C2E;
-$maroon-light: #a93248;
+$maroon:    #191762;
+$maroon-light: #3a3f9e;
 $maroon-50: #fdf2f4;
-$maroon-100:#fce4e8;
+$maroon-100:#717da6;
 $blue-600:  #2952cc;
 $blue-50:   #f0f4ff;
 $blue-100:  #e8eeff;
@@ -22,6 +22,7 @@ $r: 10px;
   display: flex;
   flex-direction: column;
   gap: 18px;
+  margin: 15px;
   font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
