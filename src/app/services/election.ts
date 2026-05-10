@@ -224,10 +224,7 @@ export class ElectionService {
 
   // ── Cast Vote ────────────────────────────────────────────────
   castVote(
-    voter: Voter,
-    election: Election,
-    votes: { [position: string]: string },
-    candidates: Candidate[],
+voter: Voter, election: Election, votes: { [position: string]: string; }, allVotes: { [x: string]: string; }, candidates: Candidate[],
   ): Observable<any> {
     const record = {
       studentId: voter.studentId,

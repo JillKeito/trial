@@ -14,14 +14,14 @@
 
   <!-- Filter tabs -->
   <div class="filter-tabs">
-    <button class="ftab" [class.active]="filter === 'all'"       (click)="filter='all'">All</button>
-    <button class="ftab" [class.active]="filter === 'unread'"    (click)="filter='unread'">
+    <button class="ftab" [class.active]="filter === 'all'"    (click)="filter='all'">All</button>
+    <button class="ftab" [class.active]="filter === 'unread'" (click)="filter='unread'">
       Unread
       <span class="ftab-count" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
     </button>
-    <button class="ftab" [class.active]="filter === 'vote'"      (click)="filter='vote'">Votes</button>
-    <button class="ftab" [class.active]="filter === 'candidate'" (click)="filter='candidate'">Candidates</button>
-    <button class="ftab" [class.active]="filter === 'election'"  (click)="filter='election'">Elections</button>
+    <button class="ftab" [class.active]="filter === 'vote'"    (click)="filter='vote'">Votes</button>
+    <button class="ftab" [class.active]="filter === 'user'"    (click)="filter='user'">Users</button>
+    <button class="ftab" [class.active]="filter === 'warning'" (click)="filter='warning'">Warnings</button>
   </div>
 
   <!-- Loading spinner -->

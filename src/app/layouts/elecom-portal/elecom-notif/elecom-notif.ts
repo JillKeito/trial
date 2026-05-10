@@ -25,7 +25,7 @@ export class ElecomNotif implements OnInit, OnDestroy {
   private svc = inject(ElectionService);
   private sub?: Subscription;
 
-  filter: 'all' | 'unread' | 'vote' | 'candidate' | 'election' = 'all';
+  filter: 'all' | 'unread' | 'vote' | 'warning' | 'user' = 'all';
   notifications: ElecomNotification[] = [];
   loading = true;
 
@@ -66,12 +66,7 @@ export class ElecomNotif implements OnInit, OnDestroy {
   get filteredNotifs(): ElecomNotification[] {
     if (this.filter === 'unread') return this.notifications.filter((n) => !n.read);
     if (this.filter === 'all') return this.notifications;
-    // 'clean' and 'flagged' types belong to the 'election' filter tab
-    return this.notifications.filter(
-      (n) =>
-        n.type === this.filter ||
-        (this.filter === 'election' && (n.type === 'clean' || n.type === 'flagged')),
-    );
+    return this.notifications.filter((n) => n.type === this.filter);
   }
 
   markRead(n: ElecomNotification): void {
