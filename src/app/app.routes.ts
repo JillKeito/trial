@@ -12,9 +12,7 @@ import { MainLayout } from './layouts/main-layout/main-layout';
 ========================= */
 
 import { ElecomDashboard } from './layouts/elecom-portal/elecom-dashboard/elecom-dashboard';
-import { ElecomNotif } from './layouts/elecom-portal/elecom-notif/elecom-notif';
 import { ElecomSettings } from './layouts/elecom-portal/elecom-settings/elecom-settings';
-
 import { Candidates } from './components/pages/elecom-pages/candidates/candidates';
 import { Elections } from './components/pages/elecom-pages/election/election';
 import { Results } from './components/pages/elecom-pages/results/results';
@@ -36,10 +34,10 @@ import { AdminCandidates } from './layouts/admin-portal/admin-candidates/admin-c
 
 import { StudentDashboard } from './layouts/student-portal/student-dashboard/student-dashboard';
 import { StudentNotif } from './layouts/student-portal/student-dashboard/student-notif/student-notif';
-
 import { StudentElections } from './components/pages/student-pages/student-elections/student-elections';
 import { StudentApply } from './components/pages/student-pages/student-apply/student-apply';
 import { StudentBallot } from './components/pages/student-pages/student-ballot/student-ballot';
+import { ElecomNotif } from './layouts/elecom-portal/elecom-notif/elecom-notif';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },

@@ -4,36 +4,13 @@
   box-sizing: border-box;
 }
 
-html {
+html,
+body {
   height: 100%;
-  overflow: hidden; /* no scrollbar on html */
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 body {
-  height: 100%;
-  width: 100%;
   margin: 0;
-  padding: 0;
-  overflow: hidden; /* no scrollbar on body */
-  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-}
-
-/* thin scrollbar for inner scrollable areas */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 0px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 4px;
-}
-
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
