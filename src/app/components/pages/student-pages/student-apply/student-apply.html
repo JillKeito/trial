@@ -66,6 +66,29 @@
       </div>
     </div>
 
+
+    <!-- ── Photo Upload ── -->
+    <div class="photo-upload-row">
+      <div class="photo-preview-circle" [class.has-photo]="photoPreview">
+        <img *ngIf="photoPreview" [src]="photoPreview" alt="Photo preview" class="photo-img" />
+        <svg *ngIf="!photoPreview" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+      </div>
+      <div class="photo-upload-info">
+        <label class="btn-photo-upload">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          {{ photoPreview ? 'Change Photo' : 'Upload Photo' }}
+          <input type="file" accept="image/*" (change)="onPhotoSelected($event)" hidden />
+        </label>
+        <button *ngIf="photoPreview" type="button" class="btn-remove-photo" (click)="removePhoto()">Remove</button>
+        <span class="photo-hint">Optional · JPG, PNG · max 2MB</span>
+      </div>
+    </div>
+
     <div class="fields">
       <div class="field-row">
         <div class="field">
@@ -104,6 +127,11 @@
           <option [ngValue]="null" disabled>Select Year</option>
           <option *ngFor="let y of years" [value]="y">Year {{ y }}</option>
         </select>
+      </div>
+
+      <div class="field field-sm">
+        <label>Age <span class="req">*</span></label>
+        <input [(ngModel)]="form.age" type="number" placeholder="e.g. 20" min="15" max="35" />
       </div>
     </div>
 
@@ -340,6 +368,10 @@
         <div class="confirm-row">
           <span>Year Level</span>
           <strong>Year {{ submittedData?.year || '—' }}</strong>
+        </div>
+        <div class="confirm-row">
+          <span>Age</span>
+          <strong>{{ submittedData?.age || '—' }}</strong>
         </div>
         <div class="confirm-row">
           <span>Requirements Met</span>

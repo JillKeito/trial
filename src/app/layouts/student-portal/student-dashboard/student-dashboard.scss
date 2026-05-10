@@ -49,36 +49,6 @@
   background: #1e3fa0;
 }
 
-/* ── Status Banner ── */
-.status-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 13px 16px;
-  border-radius: 10px;
-  border: 1px solid;
-}
-
-.status-banner.banner-green {
-  background: #e1f5ee;
-  border-color: #5dcaa5;
-}
-
-.status-banner.banner-green .banner-icon { color: #0f6e56; }
-.status-banner.banner-green .banner-title { color: #085041; font-size: 13.5px; font-weight: 600; }
-.status-banner.banner-green .banner-sub { color: #0f6e56; font-size: 12.5px; margin-top: 2px; }
-
-.status-banner.banner-amber {
-  background: #faeeda;
-  border-color: #ef9f27;
-}
-
-.status-banner.banner-amber .banner-icon { color: #854f0b; }
-.status-banner.banner-amber .banner-title { color: #633806; font-size: 13.5px; font-weight: 600; }
-.status-banner.banner-amber .banner-sub { color: #854f0b; font-size: 12.5px; margin-top: 2px; }
-
-.banner-icon { flex-shrink: 0; margin-top: 1px; }
-
 /* ── Stat Cards ── */
 .stats-grid {
   display: grid;

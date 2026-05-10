@@ -13,7 +13,7 @@ import { StudentNotification, StudentNotificationService } from '../../../../ser
 export class StudentNotif implements OnInit {
   readonly notifService = inject(StudentNotificationService);
 
-  filter: 'all' | 'unread' | 'election' | 'vote' | 'apply' = 'all';
+  filter: 'all' | 'unread' | 'election' | 'vote' | 'apply' | 'admin' = 'all';
 
   ngOnInit(): void {
     this.notifService.loadNotifications();
