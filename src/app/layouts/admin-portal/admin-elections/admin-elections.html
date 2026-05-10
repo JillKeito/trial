@@ -1,0 +1,186 @@
+<div class="admin-elections">
+  <div class="page-header">
+    <div class="header-left">
+      <h1>🗳️ Elections</h1>
+      <p class="page-sub">Manage and oversee all USG Elections</p>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <h2>All Elections</h2>
+      <div class="header-actions">
+        <span class="table-count">{{ elections.length }} total</span>
+        <button class="btn-create" (click)="openCreate()">+ Create Election</button>
+      </div>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">Loading elections...</div>
+
+    <div class="empty-state" *ngIf="!loading && elections.length === 0">
+      <p>No elections yet</p>
+      <span>Click "Create Election" to get started</span>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading && elections.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Election Name</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Positions</th>
+            <th>Status</th>
+            <th>Audit</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let e of elections">
+            <td class="name-cell">{{ e.name }}</td>
+            <td class="date-cell">{{ e.startDate }}</td>
+            <td class="date-cell">{{ e.endDate }}</td>
+            <td>{{ e.totalPositions }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="statusClass(e.status)">{{ e.status }}</span>
+            </td>
+            <td>
+              <span class="audit-badge" [ngClass]="auditClass(e.auditStatus)">
+                {{ e.auditStatus || 'pending' }}
+              </span>
+            </td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-action btn-audit" (click)="openAudit(e)">🔍 Audit</button>
+                <button
+                  class="btn-action btn-start"
+                  *ngIf="e.status === 'upcoming'"
+                  (click)="start(e)"
+                >
+                  ▶ Start
+                </button>
+                <button
+                  class="btn-action btn-end-sm"
+                  *ngIf="e.status === 'active'"
+                  (click)="end(e)"
+                >
+                  ⏹ End
+                </button>
+                <button
+                  class="btn-action btn-results"
+                  *ngIf="e.status === 'completed'"
+                  routerLink="/app/admin-results"
+                >
+                  📊 Results
+                </button>
+                <button
+                  class="btn-action btn-edit"
+                  *ngIf="e.status !== 'active'"
+                  (click)="openEdit(e)"
+                >
+                  ✏️ Edit
+                </button>
+                <button
+                  class="btn-action btn-delete"
+                  *ngIf="e.status !== 'active'"
+                  (click)="delete(e)"
+                >
+                  🗑 Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CREATE / EDIT MODAL -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ isEditMode ? '✏️ Edit Election' : '🗳️ Create Election' }}</h3>
+        <button class="modal-close" (click)="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Election Name *</label>
+          <input type="text" [(ngModel)]="form.name" placeholder="e.g. USG Elections 2025" />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea
+            [(ngModel)]="form.description"
+            rows="3"
+            placeholder="Brief description..."
+          ></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Start Date *</label>
+            <input type="date" [(ngModel)]="form.startDate" />
+          </div>
+          <div class="form-group">
+            <label>End Date *</label>
+            <input type="date" [(ngModel)]="form.endDate" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Total Positions</label>
+          <input type="number" [(ngModel)]="form.totalPositions" min="1" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeModal()">Cancel</button>
+        <button class="btn-save" (click)="save()">
+          {{ isEditMode ? 'Save Changes' : '+ Create Election' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIT MODAL -->
+  <div class="modal-overlay" *ngIf="showAuditModal" (click)="closeAudit()">
+    <div class="modal-box audit-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>🔍 Election Audit Report</h3>
+        <button class="modal-close" (click)="closeAudit()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="audit-name">{{ auditElection?.name }}</div>
+        <div class="audit-loading" *ngIf="auditLoading"><span>Running audit checks...</span></div>
+        <div class="audit-checks" *ngIf="!auditLoading">
+          <div class="audit-check" *ngFor="let c of auditChecks" [ngClass]="'check-' + c.status">
+            <span class="check-icon">{{ checkIcon(c.status) }}</span>
+            <div>
+              <div class="check-label">{{ c.label }}</div>
+              <div class="check-detail">{{ c.detail }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="audit-overall" *ngIf="!auditLoading" [ngClass]="'overall-' + auditOverall">
+          <span *ngIf="auditOverall === 'clean'">✅ Election looks clean — no issues found</span>
+          <span *ngIf="auditOverall === 'warning'"
+            >⚠️ Minor issues found — review before certifying</span
+          >
+          <span *ngIf="auditOverall === 'flagged'"
+            >❌ Serious issues detected — possible manipulation</span
+          >
+        </div>
+        <div class="form-group" *ngIf="!auditLoading">
+          <label>Admin Note <span style="color: #94a3b8">(required when flagging)</span></label>
+          <textarea
+            [(ngModel)]="auditNote"
+            rows="3"
+            placeholder="Describe your findings..."
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" *ngIf="!auditLoading">
+        <button class="btn-cancel" (click)="closeAudit()">Close</button>
+        <button class="btn-flag" (click)="flag()">⚠️ Flag Election</button>
+        <button class="btn-certify" (click)="certify()">✅ Certify Election</button>
+      </div>
+    </div>
+  </div>
+</div>

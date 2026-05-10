@@ -1,0 +1,176 @@
+<div class="candidates-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Candidates</h1>
+      <p class="page-sub">Review, approve, and manage election candidates</p>
+    </div>
+    <button class="btn-primary" (click)="showCandidateModal = true">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Candidate
+    </button>
+  </div>
+
+  <!-- Stats + Filter -->
+  <div class="toolbar">
+    <div class="stats-row">
+      <div class="stat-pill">Total: <strong>{{ totalCandidates }}</strong></div>
+      <div class="stat-pill approved">Approved: <strong>{{ approvedCount }}</strong></div>
+      <div class="stat-pill pending">Pending: <strong>{{ pendingCount }}</strong></div>
+    </div>
+    <div class="filter-tabs">
+      <button [class.active]="candidateFilter === 'all'"          (click)="candidateFilter = 'all'">All</button>
+      <button [class.active]="candidateFilter === 'pending'"      (click)="candidateFilter = 'pending'">Pending</button>
+      <button [class.active]="candidateFilter === 'approved'"     (click)="candidateFilter = 'approved'">Approved</button>
+      <button [class.active]="candidateFilter === 'disqualified'" (click)="candidateFilter = 'disqualified'">Disqualified</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">Loading candidates...</div>
+
+  <!-- Cards Grid -->
+  <div class="candidates-grid" *ngIf="!loading">
+    <div class="candidate-card" *ngFor="let c of filteredCandidates" [ngClass]="c.status">
+
+      <div class="card-top">
+        <div class="avatar">
+          <img *ngIf="c.photo" [src]="c.photo" [alt]="c.name" />
+          <span *ngIf="!c.photo">{{ c.name.charAt(0) }}</span>
+        </div>
+        <div class="card-info">
+          <div class="cname">{{ c.name }}</div>
+          <div class="position">{{ c.position }}</div>
+          <div class="meta">{{ c.course }} · {{ c.year }}</div>
+        </div>
+        <span class="status-badge" [ngClass]="'badge-' + c.status">{{ c.status }}</span>
+      </div>
+
+      <div class="party-tag" *ngIf="c.party">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        {{ c.party }}
+      </div>
+
+      <!-- Requirements -->
+      <div class="requirements" *ngIf="c.requirements">
+        <div class="req-header">
+          Requirements
+          <span class="req-count" [ngClass]="reqCount(c.requirements) === 6 ? 'complete' : 'incomplete'">
+            {{ reqCount(c.requirements) }}/6
+          </span>
+        </div>
+        <div class="req-grid">
+          <div class="req-item" [ngClass]="c.requirements.enrollment ? 'met' : 'unmet'">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline *ngIf="c.requirements.enrollment" points="20 6 9 17 4 12"/><line *ngIf="!c.requirements.enrollment" x1="18" y1="6" x2="6" y2="18"/><line *ngIf="!c.requirements.enrollment" x1="6" y1="6" x2="18" y2="18"/></svg>
+            Enrollment
+          </div>
+          <div class="req-item" [ngClass]="c.requirements.goodMoral ? 'met' : 'unmet'">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline *ngIf="c.requirements.goodMoral" points="20 6 9 17 4 12"/><line *ngIf="!c.requirements.goodMoral" x1="18" y1="6" x2="6" y2="18"/><line *ngIf="!c.requirements.goodMoral" x1="6" y1="6" x2="18" y2="18"/></svg>
+            Good Moral
+          </div>
+          <div class="req-item" [ngClass]="c.requirements.residency ? 'met' : 'unmet'">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline *ngIf="c.requirements.residency" points="20 6 9 17 4 12"/><line *ngIf="!c.requirements.residency" x1="18" y1="6" x2="6" y2="18"/><line *ngIf="!c.requirements.residency" x1="6" y1="6" x2="18" y2="18"/></svg>
+            Residency
+          </div>
+          <div class="req-item" [ngClass]="c.requirements.coc ? 'met' : 'unmet'">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline *ngIf="c.requirements.coc" points="20 6 9 17 4 12"/><line *ngIf="!c.requirements.coc" x1="18" y1="6" x2="6" y2="18"/><line *ngIf="!c.requirements.coc" x1="6" y1="6" x2="18" y2="18"/></svg>
+            COC
+          </div>
+          <div class="req-item" [ngClass]="c.requirements.noViolations ? 'met' : 'unmet'">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline *ngIf="c.requirements.noViolations" points="20 6 9 17 4 12"/><line *ngIf="!c.requirements.noViolations" x1="18" y1="6" x2="6" y2="18"/><line *ngIf="!c.requirements.noViolations" x1="6" y1="6" x2="18" y2="18"/></svg>
+            No Violations
+          </div>
+          <div class="req-item" [ngClass]="c.requirements.noFailingGrades ? 'met' : 'unmet'">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline *ngIf="c.requirements.noFailingGrades" points="20 6 9 17 4 12"/><line *ngIf="!c.requirements.noFailingGrades" x1="18" y1="6" x2="6" y2="18"/><line *ngIf="!c.requirements.noFailingGrades" x1="6" y1="6" x2="18" y2="18"/></svg>
+            No Failing Grades
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="card-actions">
+        <button class="btn-approve" *ngIf="c.status === 'pending'" (click)="approveCandidate(c)">
+          Approve
+        </button>
+        <button class="btn-disqualify" *ngIf="c.status !== 'disqualified'" (click)="disqualifyCandidate(c)">
+          Disqualify
+        </button>
+        <button class="btn-delete" (click)="deleteCandidate(c)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </div>
+
+    </div>
+
+    <div class="empty-state" *ngIf="filteredCandidates.length === 0">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+      <p>No candidates found</p>
+    </div>
+  </div>
+
+  <!-- Add Candidate Modal -->
+  <div class="modal-overlay" *ngIf="showCandidateModal" (click)="showCandidateModal = false">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Add Candidate</h3>
+        <button class="btn-close" (click)="showCandidateModal = false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name <span class="req">*</span></label>
+            <input [(ngModel)]="newCandidate.name" placeholder="e.g. Maria Santos" />
+          </div>
+          <div class="form-group">
+            <label>Party</label>
+            <input [(ngModel)]="newCandidate.party" placeholder="e.g. UNITY" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Position <span class="req">*</span></label>
+            <select [(ngModel)]="newCandidate.position">
+              <option *ngFor="let p of positions">{{ p }}</option>
+            </select>
+          <div class="form-group">
+            <label>Course <span class="req">*</span></label>
+            <select [(ngModel)]="newCandidate.course">
+              <option value="" disabled selected>Select Course</option>
+              <option *ngFor="let c of courses" [value]="c">{{ c }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Year</label>
+          <select [(ngModel)]="newCandidate.year">
+            <option *ngFor="let y of years">{{ y }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Bio</label>
+          <input [(ngModel)]="newCandidate.bio" placeholder="Short bio or platform" />
+        </div>
+
+        <div class="req-section">
+          <label class="req-title">Requirements</label>
+          <div class="req-checks">
+            <label class="check-item"><input type="checkbox" [(ngModel)]="newCandidate.requirements.enrollment"> Enrollment</label>
+            <label class="check-item"><input type="checkbox" [(ngModel)]="newCandidate.requirements.goodMoral"> Good Moral</label>
+            <label class="check-item"><input type="checkbox" [(ngModel)]="newCandidate.requirements.residency"> Residency</label>
+            <label class="check-item"><input type="checkbox" [(ngModel)]="newCandidate.requirements.coc"> COC</label>
+            <label class="check-item"><input type="checkbox" [(ngModel)]="newCandidate.requirements.noViolations"> No Violations</label>
+            <label class="check-item"><input type="checkbox" [(ngModel)]="newCandidate.requirements.noFailingGrades"> No Failing Grades</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="showCandidateModal = false">Cancel</button>
+        <button class="btn-save" (click)="addCandidateSubmit()">Save Candidate</button>
+      </div>
+    </div>
+  </div>
+
+</div>

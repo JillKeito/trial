@@ -651,3 +651,120 @@ button {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+// ─────────────────────────────────────────────
+// ABSTAIN CARD
+// ─────────────────────────────────────────────
+.abstain-card {
+  border: 1.5px dashed $ink-4;
+  background: #fafbff;
+  opacity: 0.9;
+
+  &:hover {
+    border-color: #e67e22;
+    background: #fff8f0;
+    .candidate-name {
+      color: #e67e22;
+    }
+  }
+
+  &.selected {
+    border-color: #e67e22 !important;
+    background: #fff3e0 !important;
+    box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.12);
+
+    .candidate-name {
+      color: #e67e22;
+    }
+    .select-indicator {
+      color: #e67e22;
+    }
+  }
+
+  .abstain-icon-wrap {
+    background: rgba(230, 126, 34, 0.08);
+    color: #e67e22;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+  }
+}
+
+// ─────────────────────────────────────────────
+// VOTE HISTORY SUMMARY (success screen)
+// ─────────────────────────────────────────────
+.vote-history {
+  margin: 28px auto 0;
+  max-width: 520px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $r;
+  overflow: hidden;
+  text-align: left;
+}
+
+.history-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: $ink;
+  padding: 14px 18px;
+  margin: 0;
+  background: rgba(61, 78, 172, 0.05);
+  border-bottom: 1px solid $border;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 18px;
+  border-bottom: 1px solid $border;
+  font-size: 13px;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.history-position {
+  font-weight: 600;
+  color: $ink;
+  flex-shrink: 0;
+  min-width: 110px;
+}
+
+.history-choice {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  border-radius: 20px;
+  padding: 3px 10px;
+
+  &.voted {
+    background: rgba(22, 163, 74, 0.09);
+    color: #15803d;
+  }
+  &.abstained {
+    background: rgba(230, 126, 34, 0.09);
+    color: #b45309;
+  }
+}
+
+.history-party {
+  color: $ink-3;
+  font-size: 12px;
+}
