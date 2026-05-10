@@ -196,10 +196,14 @@
         <div class="form-row">
           <div class="form-group">
             <label>Course <span class="req">*</span></label>
-            <input [(ngModel)]="newVoter.course"
-                   (ngModelChange)="saveDraft()"
-                   placeholder="e.g. BSIT"
-                   [disabled]="saving" />
+            <select [(ngModel)]="newVoter.course"
+                    (ngModelChange)="saveDraft()"
+                    [disabled]="saving">
+              <option value="">Select course</option>
+              <option value="BSIT">BSIT</option>
+              <option value="EMT">EMT</option>
+              <option value="TCM">TCM</option>
+            </select>
           </div>
           <div class="form-group">
             <label>Year</label>

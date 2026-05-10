@@ -1,56 +1,64 @@
-$green:  #22c55e;
+// ── Tokens ───────────────────────────────────────────────────────
+$navy:   #1a2e5a;
+$green:  #1db954;
 $red:    #ef4444;
-$blue:   #3b82f6;
 $amber:  #f59e0b;
-$navy:   #1e3a5f;
-$indigo: #4f46e5;
-$bg:     #f0f4f8;
+$blue:   #3b82f6;
+$bg:     #eef1f7;
 $surface:#ffffff;
-$text:   #1e293b;
-$muted:  #64748b;
-$border: #e2e8f0;
+$text:   #111827;
+$muted:  #6b7280;
+$border: #e5e9f2;
+$font:   'Plus Jakarta Sans', system-ui, sans-serif;
 
-// ── Page ──────────────────────────────────────────────────────
+// ── Page ────────────────────────────────────────────────────────
 .voters-page {
   padding: 28px 32px;
   background: $bg;
   min-height: 100%;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: $font;
 }
 
-// ── Header ────────────────────────────────────────────────────
+// ── Header ──────────────────────────────────────────────────────
 .page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 
-  h1 { font-size: 22px; font-weight: 700; color: $text; margin: 0 0 4px; }
-  .page-sub { font-size: 13px; color: $muted; margin: 0; }
+  h1 { font-size: 21px; font-weight: 800; color: $text; margin: 0 0 3px; letter-spacing: -0.02em; }
+  .page-sub { font-size: 12.5px; color: $muted; margin: 0; }
 }
 
 .btn-primary {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   padding: 9px 18px;
   background: $navy;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  font-family: inherit;
-  transition: background 0.2s;
+  font-family: $font;
+  transition: all 180ms ease;
   white-space: nowrap;
-  &:hover { background: #2d5a8e; }
+  box-shadow: 0 2px 8px rgba(26,46,90,0.2);
+
+  &:hover {
+    background: #243966;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26,46,90,0.3);
+  }
+  &:active { transform: translateY(0); }
 }
 
-// ── Stats ─────────────────────────────────────────────────────
+// ── Stats ───────────────────────────────────────────────────────
 .stats-row {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 16px;
 }
@@ -65,26 +73,31 @@ $border: #e2e8f0;
   color: $muted;
   border: 1px solid $border;
   background: $surface;
-  strong { color: $text; }
+  font-weight: 500;
+  transition: all 150ms ease;
+  strong { color: $text; font-weight: 700; }
 
-  &.voted        { border-color: #bbf7d0; background: #f0fdf4; color: #166534; strong { color: #166534; } }
-  &.pending      { border-color: #fde68a; background: #fffbeb; color: #92400e; strong { color: #92400e; } }
-  &.rate         { border-color: #bfdbfe; background: #eff6ff; color: #1e40af; strong { color: #1e40af; } }
+  &.voted   { border-color: #bbf7d0; background: #f0fdf4; color: #166534; strong { color: #15803d; } }
+  &.pending { border-color: #fde68a; background: #fffbeb; color: #92400e; strong { color: #b45309; } }
+  &.rate    { border-color: #bfdbfe; background: #eff6ff; color: #1e40af; strong { color: #1d4ed8; } }
 }
 
-// ── Search ────────────────────────────────────────────────────
+// ── Search bar ──────────────────────────────────────────────────
 .search-bar {
   display: flex;
   align-items: center;
   gap: 10px;
   background: $surface;
-  border: 1px solid $border;
-  border-radius: 8px;
+  border: 1.5px solid $border;
+  border-radius: 10px;
   padding: 10px 14px;
-  margin-bottom: 16px;
-  transition: border-color 0.2s;
+  margin-bottom: 14px;
+  transition: all 180ms ease;
 
-  &:focus-within { border-color: $navy; }
+  &:focus-within {
+    border-color: $navy;
+    box-shadow: 0 0 0 3px rgba(26,46,90,0.08);
+  }
 
   svg { color: $muted; flex-shrink: 0; }
 
@@ -95,21 +108,23 @@ $border: #e2e8f0;
     font-size: 13px;
     color: $text;
     width: 100%;
-    font-family: inherit;
+    font-family: $font;
+    font-weight: 400;
     &::placeholder { color: $muted; }
   }
 }
 
-// ── Table ─────────────────────────────────────────────────────
+// ── Table ───────────────────────────────────────────────────────
 .table-container {
   background: $surface;
   border: 1px solid $border;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
 
 .loading-state {
-  padding: 40px;
+  padding: 48px;
   text-align: center;
   color: $muted;
   font-size: 13px;
@@ -120,15 +135,15 @@ table {
   border-collapse: collapse;
 
   thead {
-    background: #f8fafc;
+    background: #f8fafd;
     th {
       padding: 11px 14px;
       text-align: left;
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 10.5px;
+      font-weight: 700;
       color: $muted;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.06em;
       border-bottom: 1px solid $border;
     }
   }
@@ -136,12 +151,12 @@ table {
   tbody {
     tr {
       border-bottom: 1px solid $border;
-      transition: background 0.15s;
-      &:hover { background: #f8fafc; }
+      transition: background 120ms ease;
+      &:hover { background: #f8fafd; }
       &:last-child { border-bottom: none; }
     }
     td {
-      padding: 12px 14px;
+      padding: 13px 14px;
       font-size: 13px;
       color: $text;
       vertical-align: middle;
@@ -151,17 +166,13 @@ table {
 
 .muted { color: $muted; font-size: 12px; }
 
-// ── Voter avatar in table ─────────────────────────────────────
-.voter-avatar {
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-}
+// ── Voter avatar ─────────────────────────────────────────────────
+.voter-avatar { width: 36px; height: 36px; flex-shrink: 0; }
 
 .voter-photo {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: 10px;
   object-fit: cover;
   border: 1.5px solid $border;
   display: block;
@@ -170,93 +181,112 @@ table {
 .voter-initials {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  background: #dbeafe;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #dbeafe, #eff6ff);
   color: $navy;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
 }
 
-// ── Student ID pill ───────────────────────────────────────────
+// ── Student ID ───────────────────────────────────────────────────
 .student-id {
-  font-family: monospace;
-  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
   background: #f1f5f9;
-  padding: 2px 7px;
-  border-radius: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
   color: $navy;
+  letter-spacing: 0.02em;
 }
 
-// ── Status badges ─────────────────────────────────────────────
+// ── Badges ───────────────────────────────────────────────────────
 .badge {
-  display: inline-block;
-  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  &.badge-voted   { background: #dcfce7; color: #166534; }
-  &.badge-pending { background: #fef9c3; color: #854d0e; }
+
+  &.badge-voted {
+    background: #dcfce7;
+    color: #16a34a;
+    &::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #16a34a; }
+  }
+  &.badge-pending {
+    background: #fef9c3;
+    color: #854d0e;
+    &::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #d97706; }
+  }
 }
 
-// ── Row action buttons ────────────────────────────────────────
+// ── Action buttons ────────────────────────────────────────────────
 .action-btns { display: flex; gap: 5px; }
 
 .btn-action {
-  width: 30px;
-  height: 30px;
-  border-radius: 7px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 150ms ease;
 
-  &.mark   { background: #f0fdf4; color: $green;  &:hover { background: #dcfce7; } }
-  &.delete { background: #fff1f2; color: $red;    &:hover { background: #fee2e2; } }
+  &.mark   { background: #f0fdf4; color: $green;  &:hover { background: #dcfce7; transform: scale(1.05); } }
+  &.delete { background: #fff1f2; color: $red;    &:hover { background: #fee2e2; transform: scale(1.05); } }
 }
 
-.empty-row { text-align: center; color: $muted; padding: 40px 14px; font-size: 13px; }
+.empty-row { text-align: center; color: $muted; padding: 48px 14px; font-size: 13px; }
 
-// ── Modal overlay ─────────────────────────────────────────────
+// ── Modal overlay ─────────────────────────────────────────────────
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(10,20,40,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 16px;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 150ms ease;
 }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
 
 .modal-box {
   background: $surface;
-  border-radius: 16px;
+  border-radius: 20px;
   width: 100%;
-  max-width: 480px;
+  max-width: 490px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.25);
+  animation: slideUp 200ms var(--ease-out, cubic-bezier(0.16,1,0.3,1));
 }
 
-// ── Modal header ──────────────────────────────────────────────
+// ── Modal header ─────────────────────────────────────────────────
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 18px 22px;
+  padding: 20px 22px;
   border-bottom: 1px solid $border;
   position: sticky;
   top: 0;
   background: $surface;
   z-index: 1;
+  border-radius: 20px 20px 0 0;
 
   .modal-title-group {
-    h3 { font-size: 16px; font-weight: 700; color: $text; margin: 0 0 3px; }
+    h3 { font-size: 15.5px; font-weight: 700; color: $text; margin: 0 0 3px; letter-spacing: -0.01em; }
     .modal-subtitle { font-size: 12px; color: $muted; margin: 0; }
   }
 
@@ -266,38 +296,96 @@ table {
     cursor: pointer;
     color: $muted;
     display: flex;
-    padding: 4px;
-    border-radius: 6px;
-    transition: all 0.15s;
-    margin-top: 2px;
+    padding: 5px;
+    border-radius: 8px;
+    transition: all 150ms ease;
+    margin-top: 1px;
     &:hover { background: #fee2e2; color: $red; }
     &:disabled { opacity: 0.4; cursor: not-allowed; }
   }
 }
 
-// ── Info banner ───────────────────────────────────────────────
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+// ── Draft banner (page header — clickable pill) ───────────────────
+.draft-banner {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  background: #fffbeb;
+  border: 1.5px dashed #fbbf24;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #92400e;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, box-shadow .15s, transform .15s;
+  white-space: nowrap;
+
+  svg { flex-shrink: 0; color: #d97706; }
+
+  &:hover {
+    background: #fef3c7;
+    border-color: #d97706;
+    box-shadow: 0 2px 10px rgba(217,119,6,.18);
+    transform: translateY(-1px);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+// ── Draft notice (inside modal — restored state) ──────────────────
+.draft-notice {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 3px solid #f59e0b;
+  border-radius: 0 10px 10px 0;
+  padding: 10px 14px;
+  margin: 14px 22px 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #78350f;
+  line-height: 1.5;
+  animation: slideDown .25s ease;
+
+  svg { flex-shrink: 0; color: #d97706; }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Info banner ───────────────────────────────────────────────────
 .info-banner {
   display: flex;
   align-items: flex-start;
   gap: 9px;
   background: #eff6ff;
   border: 1px solid #bfdbfe;
-  border-radius: 8px;
-  padding: 10px 14px;
+  border-radius: 10px;
+  padding: 11px 14px;
   margin: 16px 22px 0;
   font-size: 12.5px;
   color: #1e40af;
-  line-height: 1.5;
+  line-height: 1.55;
+  font-weight: 500;
 
-  svg { flex-shrink: 0; margin-top: 2px; color: #3b82f6; }
+  svg { flex-shrink: 0; margin-top: 1px; color: #3b82f6; }
 }
 
-// ── Modal body ────────────────────────────────────────────────
-.modal-body {
-  padding: 16px 22px 20px;
-}
+// ── Modal body ───────────────────────────────────────────────────
+.modal-body { padding: 16px 22px 20px; }
 
-// ── Form groups ───────────────────────────────────────────────
+// ── Form groups ──────────────────────────────────────────────────
 .form-group { margin-bottom: 14px; }
 
 .form-row {
@@ -308,11 +396,10 @@ table {
 
 label {
   display: block;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 12.5px;
+  font-weight: 600;
   color: $text;
   margin-bottom: 6px;
-
   .req      { color: $red; }
   .optional { color: $muted; font-size: 11px; font-weight: 400; }
 }
@@ -320,40 +407,42 @@ label {
 input, select, textarea {
   width: 100%;
   padding: 9px 12px;
-  border: 1px solid $border;
-  border-radius: 8px;
+  border: 1.5px solid $border;
+  border-radius: 9px;
   font-size: 13px;
   color: $text;
   background: $surface;
-  font-family: inherit;
+  font-family: $font;
   box-sizing: border-box;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 
   &:focus {
     outline: none;
     border-color: $navy;
-    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+    box-shadow: 0 0 0 3px rgba(26,46,90,0.1);
   }
-  &:disabled { background: #f8fafc; cursor: not-allowed; opacity: 0.7; }
+  &:disabled { background: #f8fafc; cursor: not-allowed; opacity: 0.65; }
   &::placeholder { color: $muted; }
 }
 
-// ── Photo upload ──────────────────────────────────────────────
+// ── Photo upload ──────────────────────────────────────────────────
 .photo-group { margin-bottom: 16px; }
 
 .photo-upload-area {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 14px;
-  background: #f8fafc;
-  border: 1px dashed $border;
-  border-radius: 10px;
+  padding: 14px 16px;
+  background: #f8fafd;
+  border: 1.5px dashed $border;
+  border-radius: 12px;
+  transition: border-color 180ms ease;
+  &:hover { border-color: $navy; }
 }
 
 .photo-preview {
-  width: 58px;
-  height: 58px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
@@ -361,12 +450,7 @@ input, select, textarea {
   background: #e2e8f0;
 }
 
-.preview-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
+.preview-img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .preview-placeholder {
   width: 100%;
@@ -377,16 +461,11 @@ input, select, textarea {
   justify-content: center;
   gap: 2px;
   color: $muted;
-
-  svg { opacity: 0.6; }
-  span { font-size: 9px; font-weight: 600; }
+  svg { opacity: 0.55; }
+  span { font-size: 9px; font-weight: 700; letter-spacing: 0.04em; }
 }
 
-.photo-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.photo-actions { display: flex; flex-direction: column; gap: 6px; }
 
 .btn-upload {
   display: inline-flex;
@@ -395,79 +474,68 @@ input, select, textarea {
   padding: 7px 14px;
   background: $navy;
   color: white;
-  border-radius: 7px;
+  border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  font-family: inherit;
-  transition: background 0.2s;
+  font-family: $font;
+  transition: all 180ms ease;
   white-space: nowrap;
-
-  &:hover { background: #2d5a8e; }
+  &:hover { background: #243966; }
   &.disabled { opacity: 0.5; pointer-events: none; }
 }
 
 .btn-remove-photo {
-  padding: 5px 12px;
-  border: 1px solid $border;
-  border-radius: 7px;
+  padding: 6px 12px;
+  border: 1.5px solid $border;
+  border-radius: 8px;
   background: $surface;
   font-size: 12px;
   color: $red;
   cursor: pointer;
-  font-family: inherit;
-  transition: all 0.15s;
+  font-family: $font;
+  transition: all 150ms ease;
   &:hover { background: #fee2e2; border-color: #fca5a5; }
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
-// ── Hint text below inputs ────────────────────────────────────
+// ── Field hint ────────────────────────────────────────────────────
 .field-hint {
   display: block;
   margin-top: 5px;
-  font-size: 11px;
+  font-size: 11.5px;
   color: $muted;
-
   code {
     background: #f1f5f9;
-    padding: 1px 5px;
-    border-radius: 4px;
+    padding: 1px 6px;
+    border-radius: 5px;
     font-size: 11px;
-    font-family: monospace;
+    font-family: 'JetBrains Mono', monospace;
     color: $navy;
   }
 }
 
-// ── Credentials divider ───────────────────────────────────────
+// ── Divider ────────────────────────────────────────────────────────
 .form-divider {
   display: flex;
   align-items: center;
   gap: 10px;
   margin: 6px 0 16px;
-
   span {
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 10px;
+    font-weight: 700;
     color: #9ca3af;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.08em;
     white-space: nowrap;
   }
-
-  &::before, &::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: $border;
-  }
+  &::before, &::after { content: ''; flex: 1; height: 1px; background: $border; }
 }
 
-// ── Password field with toggle ────────────────────────────────
+// ── Password toggle ────────────────────────────────────────────────
 .input-password {
   position: relative;
-
-  input { padding-right: 40px; }
-
+  input { padding-right: 42px; }
   .toggle-pw {
     position: absolute;
     right: 10px;
@@ -476,27 +544,27 @@ input, select, textarea {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 3px;
+    padding: 4px;
     color: $muted;
     display: flex;
     align-items: center;
-    font-family: inherit;
-    transition: color 0.15s;
+    font-family: $font;
+    transition: color 150ms ease;
     &:hover { color: $text; }
   }
 }
 
-// ── Password match indicator ──────────────────────────────────
+// ── Password match ─────────────────────────────────────────────────
 .pw-match {
   display: block;
   margin-top: 5px;
   font-size: 11.5px;
-  font-weight: 500;
+  font-weight: 600;
   &.match    { color: #16a34a; }
   &.no-match { color: $red; }
 }
 
-// ── Modal footer ──────────────────────────────────────────────
+// ── Modal footer ────────────────────────────────────────────────────
 .modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -506,19 +574,20 @@ input, select, textarea {
   position: sticky;
   bottom: 0;
   background: $surface;
+  border-radius: 0 0 20px 20px;
 }
 
 .btn-cancel {
   padding: 9px 20px;
-  border: 1px solid $border;
-  border-radius: 8px;
+  border: 1.5px solid $border;
+  border-radius: 9px;
   background: $surface;
   font-size: 13px;
   font-weight: 600;
   color: $text;
   cursor: pointer;
-  font-family: inherit;
-  transition: background 0.15s;
+  font-family: $font;
+  transition: background 150ms ease;
   &:hover { background: #f1f5f9; }
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
@@ -531,28 +600,24 @@ input, select, textarea {
   background: $navy;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 9px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  font-family: inherit;
-  transition: background 0.2s;
+  font-family: $font;
+  transition: all 180ms ease;
+  box-shadow: 0 2px 8px rgba(26,46,90,0.2);
 
-  &:hover:not(:disabled) { background: #2d5a8e; }
+  &:hover:not(:disabled) { background: #243966; transform: translateY(-1px); }
   &:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 
-// ── Save button spinner ───────────────────────────────────────
-.saving-spinner {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
+// ── Spinner ──────────────────────────────────────────────────────
+.saving-spinner { display: flex; align-items: center; gap: 7px; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.spin { animation: spin 0.8s linear infinite; }
+.spin { animation: spin 0.75s linear infinite; }
 
-// ── Responsive ────────────────────────────────────────────────
+// ── Responsive ───────────────────────────────────────────────────
 @media (max-width: 768px) {
   .voters-page   { padding: 16px; }
   .page-header   { flex-direction: column; align-items: flex-start; gap: 12px; }

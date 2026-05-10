@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap');
+
 // ─────────────────────────────────────────────
 // COLORS
 // ─────────────────────────────────────────────
@@ -37,7 +39,7 @@ $r-lg: 18px;
   background: $page-bg;
   min-height: 100vh;
 
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   color: $ink;
   box-sizing: border-box;
 }
@@ -647,4 +649,68 @@ button {
   font-size: 11px;
   color: $ink-3;
   margin-top: 2px;
+}
+// ─────────────────────────────────────────────
+// ABSTAIN CARD
+// ─────────────────────────────────────────────
+$abstain: #64748b;
+$abstain-bg: #f1f5f9;
+$abstain-border: #cbd5e1;
+$abstain-selected-bg: rgba(100, 116, 139, 0.08);
+$abstain-selected-border: #64748b;
+
+.abstain-card {
+  border-color: $abstain-border;
+  border-style: dashed;
+  opacity: 0.85;
+  transition: border-color .2s, background .2s, opacity .2s, box-shadow .2s;
+
+  &:hover {
+    border-color: $abstain;
+    opacity: 1;
+    box-shadow: 0 2px 10px rgba(100,116,139,.12);
+  }
+
+  &.selected {
+    border-color: $abstain-selected-border;
+    border-style: solid;
+    background: $abstain-selected-bg;
+    opacity: 1;
+
+    .abstain-icon { color: $abstain; }
+    .select-indicator { color: $abstain; }
+  }
+}
+
+.abstain-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  background: $abstain-bg;
+  color: $abstain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.abstain-label {
+  color: $abstain;
+  font-weight: 600;
+}
+
+.abstain-hint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 3px;
+  font-style: italic;
+}
+
+// ─────────────────────────────────────────────
+// POSITION STATUS — ABSTAINED STATE
+// ─────────────────────────────────────────────
+.position-status.abstained {
+  background: rgba(100, 116, 139, 0.1);
+  color: $abstain;
+  border-color: $abstain-border;
 }

@@ -226,14 +226,19 @@ export class ElectionService {
 
   // ── Cast Vote ────────────────────────────────────────────────
   castVote(
-voter: Voter, election: Election, votes: { [position: string]: string; }, allVotes: { [x: string]: string; }, candidates: Candidate[],
+    voter: Voter,
+    election: Election,
+    votes: { [position: string]: string },       // real votes only (no abstains)
+    allVotes: { [position: string]: string },     // full record incl. abstains for audit
+    candidates: Candidate[],
   ): Observable<any> {
     const record = {
-      studentId: voter.studentId,
-      electionId: election.id,
-      votes,
+      studentId:   voter.studentId,
+      electionId:  election.id,
+      votes:       allVotes,          // store the full picture for results/audit
       submittedAt: new Date().toISOString(),
     };
+    // Only increment counts for real candidate selections (skip abstains)
     const candidateUpdates = Object.values(votes).map((cId) => {
       const c = candidates.find((x) => x.id === cId);
       if (!c) throw new Error(`Candidate ${cId} not found`);
