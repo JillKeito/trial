@@ -1,5 +1,4 @@
 <div class="elections-page">
-
   <div class="page-header">
     <div>
       <h1>Elections</h1>
@@ -15,11 +14,18 @@
 
   <!-- Empty -->
   <div class="empty-state" *ngIf="!loading && elections.length === 0">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <rect x="3" y="4" width="18" height="18" rx="2"/>
-      <line x1="16" y1="2" x2="16" y2="6"/>
-      <line x1="8" y1="2" x2="8" y2="6"/>
-      <line x1="3" y1="10" x2="21" y2="10"/>
+    <svg
+      width="48"
+      height="48"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+    >
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
     <h3>No elections available</h3>
     <p>Check back later for upcoming elections.</p>
@@ -28,13 +34,14 @@
   <!-- Election Cards -->
   <div class="elections-grid" *ngIf="!loading && elections.length > 0">
     <div class="election-card" *ngFor="let election of elections" [ngClass]="election.status">
-
       <!-- Status badge -->
       <div class="card-top">
-        <span class="status-badge"
-              [class.badge-active]="election.status === 'active'"
-              [class.badge-upcoming]="election.status === 'upcoming'"
-              [class.badge-completed]="election.status === 'completed'">
+        <span
+          class="status-badge"
+          [class.badge-active]="election.status === 'active'"
+          [class.badge-upcoming]="election.status === 'upcoming'"
+          [class.badge-completed]="election.status === 'completed'"
+        >
           <span class="status-dot"></span>
           {{ getStatusLabel(election.status) }}
         </span>
@@ -47,37 +54,61 @@
 
         <div class="election-meta">
           <div class="meta-row">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="4" width="18" height="18" rx="2"/>
-              <line x1="16" y1="2" x2="16" y2="6"/>
-              <line x1="8" y1="2" x2="8" y2="6"/>
-              <line x1="3" y1="10" x2="21" y2="10"/>
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
             </svg>
             {{ election.startDate }} — {{ election.endDate }}
           </div>
           <div class="meta-row">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
             {{ election.totalPositions }} positions
           </div>
         </div>
 
         <!-- Turnout bar (only for active/completed) -->
-        <div class="turnout-wrap" *ngIf="election.status !== 'upcoming' && election.totalVoters > 0">
+        <div
+          class="turnout-wrap"
+          *ngIf="election.status !== 'upcoming' && election.totalVoters > 0"
+        >
           <div class="turnout-label">
             <span>Voter Turnout</span>
             <span class="turnout-pct">
-              {{ election.totalVoters > 0 ? ((election.voted / election.totalVoters) * 100 | number:'1.0-0') : 0 }}%
+              {{
+                election.totalVoters > 0
+                  ? ((election.voted / election.totalVoters) * 100 | number: '1.0-0')
+                  : 0
+              }}%
             </span>
           </div>
           <div class="turnout-track">
-            <div class="turnout-fill"
-                 [style.width.%]="election.totalVoters > 0 ? (election.voted / election.totalVoters) * 100 : 0">
-            </div>
+            <div
+              class="turnout-fill"
+              [style.width.%]="
+                election.totalVoters > 0 ? (election.voted / election.totalVoters) * 100 : 0
+              "
+            ></div>
           </div>
           <div class="turnout-sub">{{ election.voted }} of {{ election.totalVoters }} voters</div>
         </div>
@@ -85,33 +116,50 @@
 
       <!-- Action -->
       <div class="card-footer">
-        <button class="btn-vote"
-                *ngIf="canVote(election)"
-                (click)="goToBallot(election)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="9 11 12 14 22 4"/>
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        <button class="btn-vote" *ngIf="canVote(election)" (click)="goToBallot(election)">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="9 11 12 14 22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
           </svg>
           Vote Now
         </button>
 
         <button class="btn-disabled" *ngIf="election.status === 'upcoming'" disabled>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
           </svg>
           Not Yet Open
         </button>
 
         <button class="btn-completed" *ngIf="election.status === 'completed'" disabled>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20 6 9 17 4 12"/>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="20 6 9 17 4 12" />
           </svg>
           Election Closed
         </button>
       </div>
-
     </div>
   </div>
-
 </div>

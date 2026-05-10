@@ -15,8 +15,9 @@ import {
 import { Observable, from, forkJoin } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
-// ── Interfaces ───────────────────────────────────────────────
+// -- Interfaces -----------------------------------------------
 export interface Candidate {
+  electionId?: string;
   id: string;
   name: string;
   position: string;
@@ -68,19 +69,19 @@ export interface Election {
 }
 
 export interface Application {
-  age?: number;
-  photoUrl?: string;
   id: string;
   studentId: string;
   studentName: string;
   name: string;
   course: string;
   year: string;
+  age?: number | null;
   position: string;
   party: string;
   bio: string;
   awards: string;
   photo: string;
+  photoUrl?: string;
   supportingDoc: string;
   status: 'pending' | 'approved' | 'rejected';
   submittedAt: string;
@@ -103,7 +104,7 @@ export interface VoteRecord {
   submittedAt: string;
 }
 
-// ── Service ──────────────────────────────────────────────────
+// -- Service --------------------------------------------------
 @Injectable({ providedIn: 'root' })
 export class ElectionService {
   private fs = inject(Firestore);
@@ -136,7 +137,7 @@ export class ElectionService {
     return from(deleteDoc(this.ref(name, id)));
   }
 
-  // ── Candidates ───────────────────────────────────────────────
+  // -- Candidates ----------------------------------------------
   getCandidates() {
     return this.list<Candidate>('candidates');
   }
@@ -153,7 +154,7 @@ export class ElectionService {
     return this.findWhere<Candidate>('candidates', 'electionId', electionId);
   }
 
-  // ── Voters ───────────────────────────────────────────────────
+  // -- Voters --------------------------------------------------
   getVoters() {
     return this.list<Voter>('voters');
   }
@@ -170,7 +171,7 @@ export class ElectionService {
     return this.findWhere<Voter>('voters', 'studentId', studentId);
   }
 
-  // ── Elections ────────────────────────────────────────────────
+  // -- Elections -----------------------------------------------
   getElections() {
     return this.list<Election>('elections');
   }
@@ -194,7 +195,7 @@ export class ElectionService {
     );
   }
 
-  // ── Applications ─────────────────────────────────────────────
+  // -- Applications --------------------------------------------
   getApplications() {
     return this.list<Application>('applications');
   }
@@ -208,7 +209,7 @@ export class ElectionService {
     return this.findWhere<Application>('applications', 'studentId', id);
   }
 
-  // ── Vote Records ─────────────────────────────────────────────
+  // -- Vote Records --------------------------------------------
   getVoteRecords() {
     return this.list<VoteRecord>('voteRecords');
   }
@@ -216,7 +217,7 @@ export class ElectionService {
     return this.findWhere<VoteRecord>('voteRecords', 'studentId', id);
   }
 
-  // ── Notifications ─────────────────────────────────────────────
+  // -- Notifications -------------------------------------------
   addNotification(n: any): Observable<any> {
     return this.add('notifications', n);
   }
@@ -224,26 +225,26 @@ export class ElectionService {
     return this.findWhere<any>('notifications', 'role', role);
   }
 
-  // ── Cast Vote ────────────────────────────────────────────────
+  // -- Cast Vote -----------------------------------------------
   castVote(
     voter: Voter,
     election: Election,
-    votes: { [position: string]: string },       // real votes only (no abstains)
-    allVotes: { [position: string]: string },     // full record incl. abstains for audit
+    votes: { [position: string]: string },
     candidates: Candidate[],
   ): Observable<any> {
     const record = {
-      studentId:   voter.studentId,
-      electionId:  election.id,
-      votes:       allVotes,          // store the full picture for results/audit
+      studentId: voter.studentId,
+      electionId: election.id,
+      votes,
       submittedAt: new Date().toISOString(),
     };
-    // Only increment counts for real candidate selections (skip abstains)
+
     const candidateUpdates = Object.values(votes).map((cId) => {
       const c = candidates.find((x) => x.id === cId);
       if (!c) throw new Error(`Candidate ${cId} not found`);
       return this.updateCandidate({ ...c, votes: c.votes + 1 });
     });
+
     return this.add('voteRecords', record).pipe(
       switchMap(() =>
         forkJoin([

@@ -1,18 +1,28 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ElectionService, Election, Voter, Candidate } from '../../../../services/election';
 import { AuthService } from '../../../../services/auth';
 import { FormsModule } from '@angular/forms';
-
-export const ABSTAIN_ID = '__abstain__';
+import Swal from 'sweetalert2';
 
 export interface BallotPosition {
   name: string;
   candidates: Candidate[];
 }
 
-type BallotView = 'select-election' | 'ballot' | 'success';
+type BallotView = 'ballot' | 'success';
+
+// Sentinel value for Abstain choice
+const ABSTAIN_ID = '__ABSTAIN__';
+
+// Preferred position order per org
+const POSITION_ORDER = [
+  'President', 'Vice President', 'Secretary', 'Treasurer',
+  'Auditor', 'PRO', 'Business Manager',
+  '1st Year Rep', '2nd Year Rep', '3rd Year Rep', '4th Year Rep',
+  'Sergeant-at-Arms',
+];
 
 @Component({
   selector: 'app-student-ballot',
@@ -22,128 +32,102 @@ type BallotView = 'select-election' | 'ballot' | 'success';
   styleUrl: './student-ballot.scss',
 })
 export class StudentBallot implements OnInit {
-goBack() {
-throw new Error('Method not implemented.');
-}
-  elections: Election[] = [];
   selectedElection: Election | null = null;
   positions: BallotPosition[] = [];
   voter: Voter | null = null;
   votes: Record<string, string> = {};
+  expandedPlatform: string | null = null;
 
-  studentOrgs: string[] = [];
-
-  view: BallotView = 'select-election';
+  view: BallotView = 'ballot';
   loading = true;
   ballotLoading = false;
   submitting = false;
 
-  /** Expose constant to template */
   readonly ABSTAIN_ID = ABSTAIN_ID;
 
   constructor(
+    private route: ActivatedRoute,
     private router: Router,
     private svc: ElectionService,
     public auth: AuthService,
   ) {}
 
   ngOnInit(): void {
+    const electionId = this.route.snapshot.paramMap.get('id');
     const user = this.auth.getCurrentUser();
+
+    if (!electionId) {
+      this.router.navigate(['/app/student-elections']);
+      return;
+    }
 
     if (user) {
       this.svc.getVoterByStudentId(user.id).subscribe((voters: Voter[]) => {
         this.voter = voters[0] ?? null;
-
-        const v = voters[0] as any;
-        if (v?.organizations && Array.isArray(v.organizations)) {
-          this.studentOrgs = v.organizations;
-        } else if (v?.organization) {
-          this.studentOrgs = [v.organization];
-        } else if (v?.course) {
-          this.studentOrgs = [v.course];
-        } else {
-          this.studentOrgs = [];
-        }
       });
     }
 
-    this.svc.getElections().subscribe((elections: Election[]) => {
-      this.elections = elections.filter((e) => e.status === 'active');
+    this.svc.getElectionById(electionId).subscribe((election) => {
+      if (!election) {
+        Swal.fire({ icon: 'error', title: 'Election not found.' });
+        this.router.navigate(['/app/student-elections']);
+        return;
+      }
+
+      if (election.status !== 'active') {
+        Swal.fire({ icon: 'warning', title: 'This election is not active.' });
+        this.router.navigate(['/app/student-elections']);
+        return;
+      }
+
+      this.selectedElection = election;
       this.loading = false;
+      this.loadCandidates(electionId);
     });
   }
 
-  selectElection(election: Election): void {
-    this.selectedElection = election;
-    this.votes = {};
-    this.view = 'ballot';
+  loadCandidates(electionId: string): void {
     this.ballotLoading = true;
 
-    this.svc.getCandidatesByElection(election.id).subscribe((candidates: Candidate[]) => {
-      const approved = candidates.filter((c) => c.status === 'approved');
-      const positionMap = new Map<string, Candidate[]>();
+    this.svc.getCandidates().subscribe((candidates: Candidate[]) => {
+      // Filter: approved + matching electionId
+      const filtered = candidates.filter(
+        (c) => c.status === 'approved' && c.electionId === electionId,
+      );
 
-      approved.forEach((c) => {
+      // Fallback: if none match electionId, show all approved
+      const list =
+        filtered.length > 0
+          ? filtered
+          : candidates.filter((c) => c.status === 'approved');
+
+      // Group by position
+      const positionMap = new Map<string, Candidate[]>();
+      list.forEach((c) => {
         if (!positionMap.has(c.position)) positionMap.set(c.position, []);
         positionMap.get(c.position)!.push(c);
       });
 
-      const orderedPositions: string[] = election.positions ?? [];
-      if (orderedPositions.length > 0) {
-        this.positions = orderedPositions
-          .filter((p) => positionMap.has(p))
-          .map((name) => ({ name, candidates: positionMap.get(name)! }));
-      } else {
-        this.positions = Array.from(positionMap.entries()).map(([name, cands]) => ({
-          name,
-          candidates: cands,
-        }));
-      }
+      // Sort positions by predefined order
+      this.positions = Array.from(positionMap.entries())
+        .sort(([a], [b]) => {
+          const ai = POSITION_ORDER.indexOf(a);
+          const bi = POSITION_ORDER.indexOf(b);
+          if (ai === -1 && bi === -1) return a.localeCompare(b);
+          if (ai === -1) return 1;
+          if (bi === -1) return -1;
+          return ai - bi;
+        })
+        .map(([name, cands]) => ({ name, candidates: cands }));
 
       this.ballotLoading = false;
     });
   }
 
-  backToSelection(): void {
-    this.selectedElection = null;
-    this.positions = [];
-    this.votes = {};
-    this.view = 'select-election';
-  }
-
-  getCandidatePhoto(c: Candidate): string {
-    return c.photo ?? '';
-  }
-
-  get hasVoted(): boolean { return this.voter?.hasVoted ?? false; }
-  get totalPositions(): number { return this.positions.length; }
-
-  /** Count positions where a real candidate OR abstain has been selected */
-  get answeredCount(): number { return Object.keys(this.votes).length; }
-
-  /** Count positions where student chose to abstain */
-  get abstainCount(): number {
-    return Object.values(this.votes).filter(v => v === ABSTAIN_ID).length;
-  }
-
-  /** Count positions where student picked a real candidate */
-  get votedCount(): number { return this.answeredCount - this.abstainCount; }
-
-  get progressPercent(): number {
-    return this.totalPositions ? (this.answeredCount / this.totalPositions) * 100 : 0;
-  }
-
-  get allAnswered(): boolean {
-    return this.answeredCount === this.totalPositions && this.totalPositions > 0;
-  }
-
-  getInitials(name: string): string {
-    return name.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase();
-  }
-
+  // -- Selection ------------------------------------------------
   selectCandidate(position: string, candidateId: string): void {
     if (this.hasVoted || this.view === 'success') return;
-    // Toggle off if already selected
+    // Toggle off if same choice tapped again
     if (this.votes[position] === candidateId) {
       const updated = { ...this.votes };
       delete updated[position];
@@ -153,30 +137,47 @@ throw new Error('Method not implemented.');
     }
   }
 
+  selectAbstain(position: string): void {
+    this.selectCandidate(position, ABSTAIN_ID);
+  }
+
   isSelected(position: string, candidateId: string): boolean {
     return this.votes[position] === candidateId;
   }
 
-  isAbstained(position: string): boolean {
+  isAbstainSelected(position: string): boolean {
     return this.votes[position] === ABSTAIN_ID;
   }
 
+  togglePlatform(candidateId: string): void {
+    this.expandedPlatform = this.expandedPlatform === candidateId ? null : candidateId;
+  }
+
+  // -- Progress -------------------------------------------------
+  get hasVoted(): boolean      { return this.voter?.hasVoted ?? false; }
+  get totalPositions(): number { return this.positions.length; }
+  get answeredCount(): number  { return Object.keys(this.votes).length; }
+  get progressPercent(): number {
+    return this.totalPositions ? (this.answeredCount / this.totalPositions) * 100 : 0;
+  }
+  get allAnswered(): boolean {
+    return this.answeredCount === this.totalPositions && this.totalPositions > 0;
+  }
+
+  // -- Submit ---------------------------------------------------
   submitBallot(): void {
     if (!this.allAnswered || !this.selectedElection || !this.voter) return;
     this.submitting = true;
 
-    // Only pass real votes (not abstains) to castVote so tallies are accurate
+    // Strip abstain votes — they don't add to any candidate's tally
     const realVotes: Record<string, string> = {};
     for (const [pos, cId] of Object.entries(this.votes)) {
       if (cId !== ABSTAIN_ID) realVotes[pos] = cId;
     }
 
-    // Full votes map (including abstains) saved to the vote record for audit
-    const allVotes = { ...this.votes };
+    const candidateList = this.positions.flatMap((p) => p.candidates);
 
-    const candidateList: Candidate[] = this.positions.flatMap((p) => p.candidates);
-
-    this.svc.castVote(this.voter, this.selectedElection, realVotes, allVotes, candidateList).subscribe({
+    this.svc.castVote(this.voter, this.selectedElection, realVotes, candidateList).subscribe({
       next: () => {
         this.submitting = false;
         if (this.voter) this.voter = { ...this.voter, hasVoted: true };
@@ -184,12 +185,34 @@ throw new Error('Method not implemented.');
       },
       error: (err) => {
         this.submitting = false;
-        console.error('Vote error:', err);
-        alert('Something went wrong. Please try again.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Vote Failed',
+          text: err.message || 'Something went wrong.',
+        });
       },
     });
   }
 
-  goHome(): void { this.router.navigate(['/app/student-elections']); }
-  goToResults(): void { this.router.navigate(['/app/student-elections']); }
+  // -- Helpers --------------------------------------------------
+  getInitials(name: string): string {
+    return name
+      .split(' ')
+      .slice(0, 2)
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase();
+  }
+
+  getPhoto(c: Candidate): string | null {
+    return (c as any).photo || null;
+  }
+
+  getBio(c: Candidate): string {
+    return (c as any).bio || '';
+  }
+
+  goBack(): void    { this.router.navigate(['/app/student-elections']); }
+  goToResults(): void { this.router.navigate(['/app/student-results']); }
+  goHome(): void    { this.router.navigate(['/app/student-elections']); }
 }
