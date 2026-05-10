@@ -26,7 +26,6 @@ const POSITIONS: Record<string, string[]> = {
 };
 
 const ORGANIZATIONS = Object.keys(POSITIONS);
-
 const COURSES = ['BSIT', 'BSTCM', 'BSEMT', 'BSCS', 'BSEd', 'BSED', 'BSN', 'Other'];
 const YEARS   = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
 
@@ -70,9 +69,9 @@ export class AdminCandidates implements OnInit {
   } = this.emptyForm();
 
   // ── Lookups ───────────────────────────────────────────────────
-  readonly orgs      = ORGANIZATIONS;
-  readonly courses   = COURSES;
-  readonly years     = YEARS;
+  readonly orgs    = ORGANIZATIONS;
+  readonly courses = COURSES;
+  readonly years   = YEARS;
 
   constructor(private svc: ElectionService) {}
 
@@ -95,6 +94,46 @@ export class AdminCandidates implements OnInit {
     return POSITIONS[this.form.organization] ?? [];
   }
 
+  /** Only elections that can still accept candidates */
+  get availableElections(): Election[] {
+    return this.elections.filter(e => e.status === 'upcoming' || e.status === 'active');
+  }
+
+  /** Selected election object */
+  get selectedElection(): Election | null {
+    return this.elections.find(e => e.id === this.form.electionId) ?? null;
+  }
+
+  /** Candidates already in the selected election under the same org */
+  get candidatesInSlot(): (Candidate & { electionId?: string; organization?: string })[] {
+    if (!this.form.electionId || !this.form.organization) return [];
+    return this.candidates.filter(
+      c => (c as any).electionId === this.form.electionId &&
+           (c as any).organization === this.form.organization
+    );
+  }
+
+  /** Positions already taken in the selected election + org */
+  get takenPositions(): string[] {
+    return this.candidatesInSlot.map(c => c.position);
+  }
+
+  /** True if chosen position is already filled */
+  get positionConflict(): boolean {
+    if (!this.form.position || !this.form.electionId || !this.form.organization) return false;
+    return this.takenPositions.includes(this.form.position);
+  }
+
+  /** Name of whoever holds the conflicting position */
+  get conflictHolder(): string {
+    if (!this.positionConflict) return '';
+    return this.candidatesInSlot.find(c => c.position === this.form.position)?.name ?? '';
+  }
+
+  /** Count of positions filled vs available for the selected election + org */
+  get slotsFilled(): number { return this.candidatesInSlot.length; }
+  get slotsTotal(): number  { return this.positionsForOrg.length; }
+
   get filteredCandidates() {
     return this.candidates.filter(c => {
       const matchStatus   = this.filterStatus === 'all' || c.status === this.filterStatus;
@@ -106,13 +145,13 @@ export class AdminCandidates implements OnInit {
     });
   }
 
-  get totalCount()       { return this.candidates.length; }
-  get approvedCount()    { return this.candidates.filter(c => c.status === 'approved').length; }
-  get pendingCount()     { return this.candidates.filter(c => c.status === 'pending').length; }
-  get disqualifiedCount(){ return this.candidates.filter(c => c.status === 'disqualified').length; }
+  get totalCount()        { return this.candidates.length; }
+  get approvedCount()     { return this.candidates.filter(c => c.status === 'approved').length; }
+  get pendingCount()      { return this.candidates.filter(c => c.status === 'pending').length; }
+  get disqualifiedCount() { return this.candidates.filter(c => c.status === 'disqualified').length; }
 
   electionName(id: string): string {
-    return this.elections.find(e => e.id === id)?.name ?? id ?? '—';
+    return this.elections.find(e => e.id === id)?.name ?? '—';
   }
 
   // ── Modal open/close ──────────────────────────────────────────
@@ -129,13 +168,17 @@ export class AdminCandidates implements OnInit {
     return {
       name: '', organization: '', position: '', electionId: '',
       party: '', bio: '', course: '', year: '', photo: '',
-      status: 'approved' as const,   // admin-added candidates are auto-approved
+      status: 'approved' as const,
       votes: 0,
     };
   }
 
-  // When org changes, reset position so stale values don't stay
   onOrgChange(): void {
+    this.form.position = '';
+  }
+
+  onElectionChange(): void {
+    // Reset position when election changes so user re-picks
     this.form.position = '';
   }
 
@@ -148,7 +191,7 @@ export class AdminCandidates implements OnInit {
     reader.readAsDataURL(file);
   }
 
-  // ── Save (add to Firestore candidates collection) ─────────────
+  // ── Save ──────────────────────────────────────────────────────
   save(): void {
     if (!this.form.name.trim()) {
       Swal.fire('Missing field', 'Full Name is required.', 'warning'); return;
@@ -162,6 +205,14 @@ export class AdminCandidates implements OnInit {
     if (!this.form.electionId) {
       Swal.fire('Missing field', 'Please select an Election.', 'warning'); return;
     }
+    if (this.positionConflict) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Position already filled',
+        text: `${this.form.position} in this election is already assigned to ${this.conflictHolder}.`,
+      });
+      return;
+    }
 
     this.saving = true;
 
@@ -174,19 +225,33 @@ export class AdminCandidates implements OnInit {
       bio:          this.form.bio.trim(),
       course:       this.form.course,
       year:         this.form.year,
-      status:       'approved',     // admin-registered = already accepted
-      // extra fields stored alongside but not in the TS interface
-      ...(({ organization: this.form.organization, electionId: this.form.electionId }) as any),
+      status:       'approved',
       organization: this.form.organization,
       electionId:   this.form.electionId,
       registeredAt: new Date().toISOString(),
       registeredBy: 'admin',
-    }).subscribe({
+    } as any).subscribe({
       next: () => {
+        // Also update the election's positions array so the ballot builder sees it
+        const election = this.selectedElection;
+        if (election) {
+          const existingPositions: string[] = election.positions ?? [];
+          if (!existingPositions.includes(this.form.position)) {
+            const updatedPositions = [...existingPositions, this.form.position];
+            this.svc.updateElection({ ...election, positions: updatedPositions }).subscribe();
+          }
+        }
+
         this.saving = false;
         this.closeModal();
         this.load();
-        Swal.fire({ icon: 'success', title: 'Candidate Registered!', timer: 1200, showConfirmButton: false });
+        Swal.fire({
+          icon: 'success',
+          title: 'Candidate Registered!',
+          html: `<b>${this.form.name.trim()}</b> added as <b>${this.form.position}</b>`,
+          timer: 1800,
+          showConfirmButton: false,
+        });
       },
       error: err => {
         this.saving = false;
@@ -237,6 +302,10 @@ export class AdminCandidates implements OnInit {
   // ── UI helpers ────────────────────────────────────────────────
   statusClass(s?: string) {
     return s === 'approved' ? 'badge-approved' : s === 'pending' ? 'badge-pending' : 'badge-disqualified';
+  }
+
+  isPositionTaken(pos: string): boolean {
+    return this.takenPositions.includes(pos);
   }
 
   initial(name: string): string {

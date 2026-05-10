@@ -2,14 +2,14 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ElectionService, Election } from '../../../services/election';
+import { ElectionService } from '../../../services/election';
 import { AuthService } from '../../../services/auth';
 import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
 import { Firestore, doc, setDoc } from '@angular/fire/firestore';
 import Swal from 'sweetalert2';
 
 export interface Activity {
-  type: 'user' | 'vote' | 'election' | 'candidate' | 'warning';
+  type: 'user' | 'vote' | 'warning';
   title: string;
   subtitle: string;
   time: string;
@@ -32,13 +32,7 @@ export class ElecomDashboard implements OnInit, OnDestroy {
     totalVoters: 0,
     voted: 0,
     notVoted: 0,
-    totalCandidates: 0,
-    approvedCandidates: 0,
-    pendingCandidates: 0,
   };
-
-  activeElection: Election | null = null;
-  upcomingElection: Election | null = null;
 
   // ── Create student voter account modal ────────────────────────
   showAccountModal = false;
@@ -63,17 +57,6 @@ export class ElecomDashboard implements OnInit, OnDestroy {
       this.stats.totalVoters = voters.length;
       this.stats.voted = voters.filter((v) => v.hasVoted).length;
       this.stats.notVoted = this.stats.totalVoters - this.stats.voted;
-    });
-
-    this.svc.getCandidates().subscribe((candidates) => {
-      this.stats.totalCandidates = candidates.length;
-      this.stats.approvedCandidates = candidates.filter((c) => c.status === 'approved').length;
-      this.stats.pendingCandidates = candidates.filter((c) => c.status === 'pending').length;
-    });
-
-    this.svc.getElections().subscribe((elections) => {
-      this.activeElection = elections.find((e) => e.status === 'active') || null;
-      this.upcomingElection = elections.find((e) => e.status === 'upcoming') || null;
     });
   }
 
@@ -138,18 +121,6 @@ export class ElecomDashboard implements OnInit, OnDestroy {
     return this.stats.totalVoters > 0
       ? Math.round((this.stats.voted / this.stats.totalVoters) * 100)
       : 0;
-  }
-
-  get statusLabel(): string {
-    if (this.activeElection) return 'Active';
-    if (this.upcomingElection) return 'Upcoming — Waiting for Admin';
-    return 'No Election';
-  }
-
-  get statusClass(): string {
-    if (this.activeElection) return 'status-active';
-    if (this.upcomingElection) return 'status-pending';
-    return 'status-ended';
   }
 
   // ── Helpers ───────────────────────────────────────────────────

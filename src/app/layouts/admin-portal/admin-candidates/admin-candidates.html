@@ -10,7 +10,7 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Add Candidate
+      Register Candidate
     </button>
   </div>
 
@@ -36,24 +36,20 @@
 
   <!-- ── Filters ──────────────────────────────────────────────── -->
   <div class="filter-bar">
-    <!-- Search -->
     <div class="search-wrap">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input [(ngModel)]="searchText" placeholder="Search name or position…" />
     </div>
-    <!-- Status tabs -->
     <div class="filter-tabs">
       <button [class.active]="filterStatus==='all'"          (click)="filterStatus='all'">All</button>
       <button [class.active]="filterStatus==='approved'"     (click)="filterStatus='approved'">Approved</button>
       <button [class.active]="filterStatus==='pending'"      (click)="filterStatus='pending'">Pending</button>
       <button [class.active]="filterStatus==='disqualified'" (click)="filterStatus='disqualified'">Disqualified</button>
     </div>
-    <!-- Org filter -->
     <select [(ngModel)]="filterOrg" class="filter-select">
       <option value="">All Organizations</option>
       <option *ngFor="let o of orgs" [value]="o">{{ o }}</option>
     </select>
-    <!-- Election filter -->
     <select [(ngModel)]="filterElection" class="filter-select">
       <option value="">All Elections</option>
       <option *ngFor="let e of elections" [value]="e.id">{{ e.name }}</option>
@@ -183,20 +179,61 @@
           </div>
           <div class="form-group">
             <label>Position <span class="req">*</span></label>
-            <select [(ngModel)]="form.position" [disabled]="saving || !form.organization">
-              <option value="">Select position</option>
-              <option *ngFor="let p of positionsForOrg" [value]="p">{{ p }}</option>
+            <select [(ngModel)]="form.position" [disabled]="saving || !form.organization || !form.electionId">
+              <option value="">
+                {{ !form.organization ? 'Select org first' : !form.electionId ? 'Select election first' : 'Select position' }}
+              </option>
+              <option *ngFor="let p of positionsForOrg" [value]="p" [disabled]="isPositionTaken(p)">
+                {{ p }}{{ isPositionTaken(p) ? ' — taken' : '' }}
+              </option>
             </select>
           </div>
+        </div>
+
+        <!-- Position conflict warning -->
+        <div class="conflict-banner" *ngIf="positionConflict">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span><strong>{{ form.position }}</strong> is already assigned to <strong>{{ conflictHolder }}</strong> in this election.</span>
         </div>
 
         <!-- Election -->
         <div class="form-group">
           <label>Election <span class="req">*</span></label>
-          <select [(ngModel)]="form.electionId" [disabled]="saving">
+          <select [(ngModel)]="form.electionId" (ngModelChange)="onElectionChange()" [disabled]="saving">
             <option value="">Select election</option>
-            <option *ngFor="let e of elections" [value]="e.id">{{ e.name }}</option>
+            <option *ngFor="let e of availableElections" [value]="e.id">
+              {{ e.name }} <span *ngIf="e.status === 'active'"> — Active</span>
+            </option>
           </select>
+          <span class="field-hint" *ngIf="availableElections.length === 0">
+            No upcoming or active elections available.
+          </span>
+        </div>
+
+        <!-- Election slot summary (shows after election + org are chosen) -->
+        <div class="slot-summary" *ngIf="form.electionId && form.organization && slotsTotal > 0">
+          <div class="slot-header">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span>{{ form.organization }} slots in <em>{{ selectedElection?.name }}</em></span>
+            <span class="slot-count">{{ slotsFilled }} / {{ slotsTotal }} filled</span>
+          </div>
+          <div class="slot-grid">
+            <div class="slot-item"
+                 *ngFor="let p of positionsForOrg"
+                 [class.slot-taken]="isPositionTaken(p)"
+                 [class.slot-target]="form.position === p && !isPositionTaken(p)">
+              <svg *ngIf="isPositionTaken(p)" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg *ngIf="!isPositionTaken(p) && form.position !== p" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+              <svg *ngIf="form.position === p && !isPositionTaken(p)" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>{{ p }}</span>
+            </div>
+          </div>
         </div>
 
         <!-- Course + Year -->
@@ -234,7 +271,7 @@
 
       <div class="modal-footer">
         <button class="btn-cancel" (click)="closeModal()" [disabled]="saving">Cancel</button>
-        <button class="btn-save" (click)="save()" [disabled]="saving">
+        <button class="btn-save" (click)="save()" [disabled]="saving || positionConflict">
           <span *ngIf="!saving">Save Candidate</span>
           <span *ngIf="saving" class="saving-wrap">
             <svg class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>

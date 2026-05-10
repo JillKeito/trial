@@ -13,8 +13,6 @@ import { MainLayout } from './layouts/main-layout/main-layout';
 
 import { ElecomDashboard } from './layouts/elecom-portal/elecom-dashboard/elecom-dashboard';
 import { ElecomSettings } from './layouts/elecom-portal/elecom-settings/elecom-settings';
-import { Candidates } from './components/pages/elecom-pages/candidates/candidates';
-import { Elections } from './components/pages/elecom-pages/election/election';
 import { Results } from './components/pages/elecom-pages/results/results';
 import { Voters } from './components/pages/elecom-pages/voters/voters';
 
@@ -57,10 +55,6 @@ export const routes: Routes = [
       { path: 'elecom-dashboard', component: ElecomDashboard, canActivate: [RoleGuard], data: { role: 'elecom' } },
 
       { path: 'elecom-voters', component: Voters, canActivate: [RoleGuard], data: { role: 'elecom' } },
-
-      { path: 'elecom-candidates', component: Candidates, canActivate: [RoleGuard], data: { role: 'elecom' } },
-
-      { path: 'elecom-elections', component: Elections, canActivate: [RoleGuard], data: { role: 'elecom' } },
 
       { path: 'elecom-results', component: Results, canActivate: [RoleGuard], data: { role: 'elecom' } },
 
