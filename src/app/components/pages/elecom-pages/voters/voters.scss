@@ -10,7 +10,7 @@ $text:   #1e293b;
 $muted:  #64748b;
 $border: #e2e8f0;
 
-// ── Page shell ────────────────────────────────────────────────
+// ── Page ──────────────────────────────────────────────────────
 .voters-page {
   padding: 28px 32px;
   background: $bg;
@@ -20,241 +20,533 @@ $border: #e2e8f0;
 
 // ── Header ────────────────────────────────────────────────────
 .page-header {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 20px;
+
   h1 { font-size: 22px; font-weight: 700; color: $text; margin: 0 0 4px; }
   .page-sub { font-size: 13px; color: $muted; margin: 0; }
 }
 
 .btn-primary {
-  display: flex; align-items: center; gap: 6px;
-  padding: 9px 18px; background: $navy; color: white;
-  border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
-  cursor: pointer; transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: $navy;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+  white-space: nowrap;
   &:hover { background: #2d5a8e; }
 }
 
 // ── Stats ─────────────────────────────────────────────────────
 .stats-row {
-  display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
 .stat-pill {
-  display: flex; align-items: center; gap: 6px;
-  padding: 7px 14px; border-radius: 20px;
-  font-size: 12px; color: $muted; border: 1px solid $border;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: $muted;
+  border: 1px solid $border;
   background: $surface;
   strong { color: $text; }
 
-  &.voted   { border-color: #bbf7d0; background: #f0fdf4; color: #166534; strong { color: #166534; } }
-  &.pending { border-color: #fde68a; background: #fffbeb; color: #92400e; strong { color: #92400e; } }
-  &.rate    { border-color: #bfdbfe; background: #eff6ff; color: #1e40af; strong { color: #1e40af; } }
+  &.voted        { border-color: #bbf7d0; background: #f0fdf4; color: #166534; strong { color: #166534; } }
+  &.pending      { border-color: #fde68a; background: #fffbeb; color: #92400e; strong { color: #92400e; } }
+  &.rate         { border-color: #bfdbfe; background: #eff6ff; color: #1e40af; strong { color: #1e40af; } }
 }
 
 // ── Search ────────────────────────────────────────────────────
 .search-bar {
-  display: flex; align-items: center; gap: 10px;
-  background: $surface; border: 1px solid $border;
-  border-radius: 8px; padding: 10px 14px; margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  transition: border-color 0.2s;
+
+  &:focus-within { border-color: $navy; }
+
   svg { color: $muted; flex-shrink: 0; }
+
   input {
-    border: none; outline: none; background: transparent;
-    font-size: 13px; color: $text; width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13px;
+    color: $text;
+    width: 100%;
+    font-family: inherit;
     &::placeholder { color: $muted; }
   }
 }
 
 // ── Table ─────────────────────────────────────────────────────
 .table-container {
-  background: $surface; border: 1px solid $border;
-  border-radius: 12px; overflow: hidden;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .loading-state {
-  padding: 40px; text-align: center; color: $muted; font-size: 13px;
+  padding: 40px;
+  text-align: center;
+  color: $muted;
+  font-size: 13px;
 }
 
 table {
-  width: 100%; border-collapse: collapse;
+  width: 100%;
+  border-collapse: collapse;
 
   thead {
     background: #f8fafc;
     th {
-      padding: 11px 14px; text-align: left;
-      font-size: 11px; font-weight: 600; color: $muted;
-      text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: $muted;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
       border-bottom: 1px solid $border;
     }
   }
 
   tbody {
     tr {
-      border-bottom: 1px solid $border; transition: background 0.15s;
+      border-bottom: 1px solid $border;
+      transition: background 0.15s;
       &:hover { background: #f8fafc; }
       &:last-child { border-bottom: none; }
     }
-    td { padding: 12px 14px; font-size: 13px; color: $text; vertical-align: middle; }
+    td {
+      padding: 12px 14px;
+      font-size: 13px;
+      color: $text;
+      vertical-align: middle;
+    }
   }
 }
 
 .muted { color: $muted; font-size: 12px; }
 
-.student-id {
-  font-family: monospace; font-size: 12px;
-  background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: $navy;
+// ── Voter avatar in table ─────────────────────────────────────
+.voter-avatar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
 }
 
+.voter-photo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid $border;
+  display: block;
+}
+
+.voter-initials {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: $navy;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+// ── Student ID pill ───────────────────────────────────────────
+.student-id {
+  font-family: monospace;
+  font-size: 12px;
+  background: #f1f5f9;
+  padding: 2px 7px;
+  border-radius: 4px;
+  color: $navy;
+}
+
+// ── Status badges ─────────────────────────────────────────────
 .badge {
-  display: inline-block; padding: 3px 10px; border-radius: 20px;
-  font-size: 11px; font-weight: 600;
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
   &.badge-voted   { background: #dcfce7; color: #166534; }
   &.badge-pending { background: #fef9c3; color: #854d0e; }
 }
 
+// ── Row action buttons ────────────────────────────────────────
 .action-btns { display: flex; gap: 5px; }
 
 .btn-action {
-  width: 28px; height: 28px; border-radius: 6px; border: none;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: background 0.2s;
-  &.mark   { background: #f0fdf4; color: $green; &:hover { background: #dcfce7; } }
-  &.delete { background: #fff1f2; color: $red;   &:hover { background: #fee2e2; } }
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &.mark   { background: #f0fdf4; color: $green;  &:hover { background: #dcfce7; } }
+  &.delete { background: #fff1f2; color: $red;    &:hover { background: #fee2e2; } }
 }
 
-.empty-row { text-align: center; color: $muted; padding: 40px; }
+.empty-row { text-align: center; color: $muted; padding: 40px 14px; font-size: 13px; }
 
-// ── Modal base ────────────────────────────────────────────────
+// ── Modal overlay ─────────────────────────────────────────────
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
-  display: flex; align-items: center; justify-content: center; z-index: 1000;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
 }
 
 .modal-box {
-  background: $surface; border-radius: 14px;
-  width: 100%; max-width: 460px; overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  background: $surface;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
 }
 
+// ── Modal header ──────────────────────────────────────────────
 .modal-header {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  padding: 18px 22px; border-bottom: 1px solid $border;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 18px 22px;
+  border-bottom: 1px solid $border;
+  position: sticky;
+  top: 0;
+  background: $surface;
+  z-index: 1;
 
   .modal-title-group {
-    h3 { font-size: 16px; font-weight: 600; color: $text; margin: 0 0 3px; }
-    .modal-subtitle { font-size: 12px; color: $muted; margin: 0; font-weight: 400; }
+    h3 { font-size: 16px; font-weight: 700; color: $text; margin: 0 0 3px; }
+    .modal-subtitle { font-size: 12px; color: $muted; margin: 0; }
   }
 
   .btn-close {
-    background: none; border: none; cursor: pointer;
-    color: $muted; display: flex; margin-top: 2px;
-    &:hover { color: $text; }
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $muted;
+    display: flex;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    margin-top: 2px;
+    &:hover { background: #fee2e2; color: $red; }
     &:disabled { opacity: 0.4; cursor: not-allowed; }
   }
 }
 
-.modal-body {
-  padding: 20px 22px;
-
-  .form-group { margin-bottom: 14px; }
-
-  label {
-    display: block; font-size: 13px; font-weight: 500;
-    color: $text; margin-bottom: 6px;
-  }
-  .req { color: $red; }
-
-  input, select {
-    width: 100%; padding: 9px 12px;
-    border: 1px solid $border; border-radius: 8px;
-    font-size: 13px; color: $text; background: $surface;
-    box-sizing: border-box;
-    &:focus { outline: none; border-color: $navy; }
-    &:disabled { background: #f8fafc; cursor: not-allowed; }
-  }
-}
-
-.modal-footer {
-  display: flex; justify-content: flex-end; gap: 10px;
-  padding: 14px 22px; border-top: 1px solid $border;
-
-  .btn-cancel {
-    padding: 9px 20px; border: 1px solid $border; border-radius: 8px;
-    background: $surface; font-size: 13px; cursor: pointer;
-    &:hover { background: #f1f5f9; }
-    &:disabled { opacity: 0.4; cursor: not-allowed; }
-  }
-
-  .btn-save {
-    padding: 9px 20px; background: $navy; color: white;
-    border: none; border-radius: 8px; font-size: 13px;
-    font-weight: 600; cursor: pointer;
-    display: flex; align-items: center; gap: 7px;
-    &:hover:not(:disabled) { background: #2d5a8e; }
-    &:disabled { opacity: 0.6; cursor: not-allowed; }
-  }
-}
-
-// ── Add Voter modal extras ────────────────────────────────────
-
-// Info banner inside modal
+// ── Info banner ───────────────────────────────────────────────
 .info-banner {
-  display: flex; align-items: flex-start; gap: 9px;
-  background: #eff6ff; border: 1px solid #bfdbfe;
-  border-radius: 8px; padding: 10px 14px; margin-bottom: 18px;
-  font-size: 12.5px; color: #1e40af; line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 16px 22px 0;
+  font-size: 12.5px;
+  color: #1e40af;
+  line-height: 1.5;
+
   svg { flex-shrink: 0; margin-top: 2px; color: #3b82f6; }
 }
 
-// Side-by-side course + year
+// ── Modal body ────────────────────────────────────────────────
+.modal-body {
+  padding: 16px 22px 20px;
+}
+
+// ── Form groups ───────────────────────────────────────────────
+.form-group { margin-bottom: 14px; }
+
 .form-row {
-  display: flex; gap: 12px;
+  display: flex;
+  gap: 12px;
   .form-group { flex: 1; margin-bottom: 14px; }
 }
 
-// Credentials section divider
-.form-divider {
-  display: flex; align-items: center; gap: 10px;
-  margin: 4px 0 16px;
-  span {
-    font-size: 11px; font-weight: 600; color: #9ca3af;
-    text-transform: uppercase; letter-spacing: 0.6px; white-space: nowrap;
-  }
-  &::before, &::after {
-    content: ''; flex: 1; height: 1px; background: $border;
-  }
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: $text;
+  margin-bottom: 6px;
+
+  .req      { color: $red; }
+  .optional { color: $muted; font-size: 11px; font-weight: 400; }
 }
 
-// Fake-email preview below student ID input
+input, select, textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid $border;
+  border-radius: 8px;
+  font-size: 13px;
+  color: $text;
+  background: $surface;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:focus {
+    outline: none;
+    border-color: $navy;
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+  }
+  &:disabled { background: #f8fafc; cursor: not-allowed; opacity: 0.7; }
+  &::placeholder { color: $muted; }
+}
+
+// ── Photo upload ──────────────────────────────────────────────
+.photo-group { margin-bottom: 16px; }
+
+.photo-upload-area {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px dashed $border;
+  border-radius: 10px;
+}
+
+.photo-preview {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid $border;
+  background: #e2e8f0;
+}
+
+.preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.preview-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: $muted;
+
+  svg { opacity: 0.6; }
+  span { font-size: 9px; font-weight: 600; }
+}
+
+.photo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.btn-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: $navy;
+  color: white;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+  white-space: nowrap;
+
+  &:hover { background: #2d5a8e; }
+  &.disabled { opacity: 0.5; pointer-events: none; }
+}
+
+.btn-remove-photo {
+  padding: 5px 12px;
+  border: 1px solid $border;
+  border-radius: 7px;
+  background: $surface;
+  font-size: 12px;
+  color: $red;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  &:hover { background: #fee2e2; border-color: #fca5a5; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+// ── Hint text below inputs ────────────────────────────────────
 .field-hint {
-  display: block; margin-top: 5px; font-size: 11px; color: $muted;
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  color: $muted;
+
   code {
-    background: #f1f5f9; padding: 1px 5px; border-radius: 4px;
-    font-size: 11px; font-family: monospace; color: $navy;
+    background: #f1f5f9;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: monospace;
+    color: $navy;
   }
 }
 
-// Password input with show/hide toggle
+// ── Credentials divider ───────────────────────────────────────
+.form-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 16px;
+
+  span {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    white-space: nowrap;
+  }
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: $border;
+  }
+}
+
+// ── Password field with toggle ────────────────────────────────
 .input-password {
   position: relative;
-  input { padding-right: 38px; }
+
+  input { padding-right: 40px; }
+
   .toggle-pw {
-    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-    background: none; border: none; cursor: pointer; padding: 3px;
-    color: $muted; display: flex; align-items: center;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 3px;
+    color: $muted;
+    display: flex;
+    align-items: center;
+    font-family: inherit;
+    transition: color 0.15s;
     &:hover { color: $text; }
   }
 }
 
-// Password match indicator
+// ── Password match indicator ──────────────────────────────────
 .pw-match {
-  display: block; margin-top: 5px; font-size: 11.5px; font-weight: 500;
+  display: block;
+  margin-top: 5px;
+  font-size: 11.5px;
+  font-weight: 500;
   &.match    { color: #16a34a; }
   &.no-match { color: $red; }
 }
 
-// Spinner inside save button
+// ── Modal footer ──────────────────────────────────────────────
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 22px;
+  border-top: 1px solid $border;
+  position: sticky;
+  bottom: 0;
+  background: $surface;
+}
+
+.btn-cancel {
+  padding: 9px 20px;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: $surface;
+  font-size: 13px;
+  font-weight: 600;
+  color: $text;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+  &:hover { background: #f1f5f9; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+.btn-save {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 22px;
+  background: $navy;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+
+  &:hover:not(:disabled) { background: #2d5a8e; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+// ── Save button spinner ───────────────────────────────────────
 .saving-spinner {
-  display: flex; align-items: center; gap: 7px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -262,9 +554,10 @@ table {
 
 // ── Responsive ────────────────────────────────────────────────
 @media (max-width: 768px) {
-  .voters-page { padding: 16px; }
-  .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
-  table { font-size: 12px; }
-  .form-row { flex-direction: column; gap: 0; }
-  .modal-box { max-width: calc(100vw - 32px); }
+  .voters-page   { padding: 16px; }
+  .page-header   { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .form-row      { flex-direction: column; gap: 0; }
+  .modal-box     { max-width: 100%; }
+  table          { font-size: 12px; }
+  .table-container { overflow-x: auto; }
 }

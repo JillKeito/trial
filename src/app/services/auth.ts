@@ -67,13 +67,14 @@ export class AuthService {
   //   4. Writes the voter record to Firestore voters/ collection
   //
   async registerVoter(data: {
+    photo?: string;
     studentId: string;
     name: string;
     course: string;
     year: string;
     password: string;
   }): Promise<void> {
-    const { studentId, name, course, year, password } = data;
+    const { studentId, name, course, year, password, photo = '' } = data;
 
     // 1. Build fake email from student ID
     const fakeEmail = `${studentId.trim()}@${VOTER_EMAIL_DOMAIN}`;
@@ -103,6 +104,7 @@ export class AuthService {
       year,
       hasVoted: false,
       verifiedAt: null,
+      photo: photo || null,
       uid,
       createdAt: new Date().toISOString(),
     });
