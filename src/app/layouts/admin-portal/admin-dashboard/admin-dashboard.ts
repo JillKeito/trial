@@ -1,284 +1,573 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { Chart, ArcElement, Tooltip, Legend, DoughnutController } from 'chart.js';
+import { FormsModule } from '@angular/forms';
+import { ElectionService, Election, Application, Candidate } from '../../../services/election';
+import { AuthService } from '../../../services/auth';
+import { ElecomAccount } from '../../../services/elecom-account';
+import { forkJoin } from 'rxjs';
+import Swal from 'sweetalert2';
 
-// Register Chart.js components
-Chart.register(ArcElement, Tooltip, Legend, DoughnutController);
-
-export interface Submission {
-  id: string;
-  type: 'candidates' | 'results' | 'timeline' | 'rules';
-  typeLabel: string;
-  typeClass: string;
-  submittedBy: string;
-  dateSubmitted: Date;
-  priority: 'high' | 'medium' | 'low';
-}
-
-export interface ActivityItem {
-  type: 'approved' | 'rejected' | 'submitted' | 'info';
-  message: string;
-  time: string;
-}
-
-export interface ElectionPhase {
-  name: string;
-  date: string;
-  completed: boolean;
-  active: boolean;
-}
-
-export interface CandidateResult {
-  name: string;
-  votes: number;
-  percentage: number;
-}
-
-export interface PositionResult {
-  id: string;
-  position: string;
-  totalVotes: number;
-  winner: string;
-  candidates: CandidateResult[];
+export interface AuditCheck {
+  label: string;
+  status: 'ok' | 'warning' | 'error';
+  detail: string;
 }
 
 @Component({
   selector: 'admin-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-dashboard.html',
   styleUrls: ['./admin-dashboard.scss'],
 })
-export class AdminDashboard implements OnInit, AfterViewInit {
-  // ── Stat cards ──────────────────────────────────
-  pendingCount = 2;
-  approvedCount = 11;
-  rejectedCount = 2;
-  daysLeft = 18;
-  currentCycleLabel = 'S.Y. 2024–2025';
+export class AdminDashboard implements OnInit {
+  // ── Elections ─────────────────────────────────────────────────
+  elections: Election[] = [];
+  loading = false;
 
-  // ── Results state ────────────────────────────────
-  // 'pending'   = ELECOM hasn't submitted results yet
-  // 'submitted' = ELECOM submitted, admin needs to certify
-  // 'certified' = Admin has certified
-  resultsStatus: 'pending' | 'submitted' | 'certified' = 'submitted';
-  certifiedDate: Date | null = null;
+  // ── Tabs ──────────────────────────────────────────────────────
+  activeTab: 'elections' | 'applications' | 'results' | 'accounts' = 'elections';
 
-  get resultsStatusLabel(): string {
-    const labels = {
-      pending: 'Awaiting Submission',
-      submitted: 'Pending Certification',
-      certified: 'Officially Certified',
-    };
-    return labels[this.resultsStatus];
+  // ── Applications ──────────────────────────────────────────────
+  applications: Application[] = [];
+  loadingApps = false;
+
+  // ── Results ───────────────────────────────────────────────────
+  resultsByPosition: { position: string; candidates: Candidate[]; total: number }[] = [];
+  loadingResults = false;
+  selectedResultElection: Election | null = null;
+
+  // ── Create ELECOM account modal ───────────────────────────────
+  showAccountModal = false;
+  creatingAccount = false;
+  accountForm = {
+    name: '',
+    username: '',
+    email: '',
+    password: '',
+  };
+
+  // ── Create/Edit election modal ────────────────────────────────
+  showModal = false;
+  isEditMode = false;
+  selectedElection: Partial<Election> = {};
+  form = { name: '', description: '', startDate: '', endDate: '', totalPositions: 7 };
+
+  // ── Audit modal ───────────────────────────────────────────────
+  showAuditModal = false;
+  auditElection: Election | null = null;
+  auditChecks: AuditCheck[] = [];
+  auditLoading = false;
+  auditNote = '';
+
+  constructor(
+    private svc: ElectionService,
+    private auth: AuthService,
+    private elecomAccSvc: ElecomAccount,
+  ) {}
+
+  ngOnInit() {
+    this.loadElections();
+    this.loadApplications();
   }
 
-  // ── Chart colors ─────────────────────────────────
-  chartColors = ['#0f172a', '#f59e0b', '#3b82f6', '#22c55e', '#ef4444', '#8b5cf6', '#ec4899'];
-
-  // ── Election results (mock — replace with API data) ──
-  electionResults: PositionResult[] = [
-    {
-      id: 'president',
-      position: 'SSG President',
-      totalVotes: 412,
-      winner: 'Maria Santos',
-      candidates: [
-        { name: 'Maria Santos', votes: 210, percentage: 51 },
-        { name: 'Juan Dela Cruz', votes: 132, percentage: 32 },
-        { name: 'Carlo Reyes', votes: 70, percentage: 17 },
-      ],
-    },
-    {
-      id: 'vp',
-      position: 'SSG Vice President',
-      totalVotes: 398,
-      winner: 'Ana Lim',
-      candidates: [
-        { name: 'Ana Lim', votes: 198, percentage: 50 },
-        { name: 'Rico Bautista', votes: 120, percentage: 30 },
-        { name: 'Lea Fernandez', votes: 80, percentage: 20 },
-      ],
-    },
-    {
-      id: 'secretary',
-      position: 'SSG Secretary',
-      totalVotes: 380,
-      winner: 'Paolo Cruz',
-      candidates: [
-        { name: 'Paolo Cruz', votes: 200, percentage: 53 },
-        { name: 'Nina Villanueva', votes: 180, percentage: 47 },
-      ],
-    },
-    {
-      id: 'treasurer',
-      position: 'SSG Treasurer',
-      totalVotes: 375,
-      winner: 'Sofia Tan',
-      candidates: [
-        { name: 'Sofia Tan', votes: 215, percentage: 57 },
-        { name: 'Mark Gomez', votes: 160, percentage: 43 },
-      ],
-    },
-  ];
-
-  // ── Pending submissions ──────────────────────────
-  pendingSubmissions: Submission[] = [
-    {
-      id: 'sub-001',
-      type: 'candidates',
-      typeLabel: 'Candidate List',
-      typeClass: 'icon-candidates',
-      submittedBy: 'ELECOM Chair',
-      dateSubmitted: new Date('2025-04-22'),
-      priority: 'high',
-    },
-    {
-      id: 'sub-002',
-      type: 'timeline',
-      typeLabel: 'Election Timeline',
-      typeClass: 'icon-timeline',
-      submittedBy: 'ELECOM Secretary',
-      dateSubmitted: new Date('2025-04-21'),
-      priority: 'high',
-    },
-    {
-      id: 'sub-003',
-      type: 'rules',
-      typeLabel: 'Rule Amendment',
-      typeClass: 'icon-rules',
-      submittedBy: 'ELECOM Chair',
-      dateSubmitted: new Date('2025-04-20'),
-      priority: 'medium',
-    },
-    {
-      id: 'sub-004',
-      type: 'results',
-      typeLabel: 'Preliminary Results',
-      typeClass: 'icon-results',
-      submittedBy: 'ELECOM Tally',
-      dateSubmitted: new Date('2025-04-19'),
-      priority: 'low',
-    },
-  ];
-
-  // ── Recent activity ──────────────────────────────
-  recentActivity: ActivityItem[] = [
-    { type: 'approved', message: 'Candidate list for President approved.', time: '2 hours ago' },
-    {
-      type: 'rejected',
-      message: 'Rule change returned — violates school policy.',
-      time: '5 hours ago',
-    },
-    { type: 'submitted', message: 'ELECOM submitted new election timeline.', time: 'Yesterday' },
-    { type: 'approved', message: 'Voter eligibility criteria certified.', time: '2 days ago' },
-    { type: 'info', message: 'Election cycle officially started.', time: '1 week ago' },
-  ];
-
-  // ── Election phases ──────────────────────────────
-  electionPhases: ElectionPhase[] = [
-    { name: 'Filing of Candidacy', date: 'Apr 10–14', completed: true, active: false },
-    { name: 'Candidate Qualification', date: 'Apr 15–18', completed: true, active: false },
-    { name: 'Campaigning Period', date: 'Apr 21–25', completed: false, active: true },
-    { name: 'Election Day', date: 'Apr 28', completed: false, active: false },
-    { name: 'Results Certification', date: 'Apr 30', completed: false, active: false },
-  ];
-
-  ngOnInit(): void {
-    this.pendingCount = this.pendingSubmissions.filter((s) => s.priority === 'high').length;
+  // ── Load elections ────────────────────────────────────────────
+  loadElections() {
+    this.loading = true;
+    this.svc.getElections().subscribe((e) => {
+      this.elections = e;
+      this.loading = false;
+    });
   }
 
-  ngAfterViewInit(): void {
-    // Render pie charts after DOM is ready
-    if (this.resultsStatus !== 'pending') {
-      setTimeout(() => this.renderCharts(), 100);
-    }
+  // ── Load applications ─────────────────────────────────────────
+  loadApplications() {
+    this.loadingApps = true;
+    this.svc.getApplications().subscribe((apps) => {
+      this.applications = apps;
+      this.loadingApps = false;
+    });
   }
 
-  renderCharts(): void {
-    this.electionResults.forEach((position) => {
-      const canvas = document.getElementById('chart-' + position.id) as HTMLCanvasElement;
-      if (!canvas) return;
-
-      // Destroy existing chart if any
-      const existing = Chart.getChart(canvas);
-      if (existing) existing.destroy();
-
-      new Chart(canvas, {
-        type: 'doughnut',
-        data: {
-          labels: position.candidates.map((c) => c.name),
-          datasets: [
-            {
-              data: position.candidates.map((c) => c.votes),
-              backgroundColor: this.chartColors.slice(0, position.candidates.length),
-              borderWidth: 2,
-              borderColor: '#ffffff',
-              hoverOffset: 6,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          cutout: '60%',
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => {
-                  const candidate = position.candidates[ctx.dataIndex];
-                  return ` ${candidate.name}: ${candidate.votes} votes (${candidate.percentage}%)`;
-                },
-              },
-            },
-          },
-        },
+  // ── Approve application ───────────────────────────────────────
+  approveApplication(app: Application) {
+    Swal.fire({
+      title: 'Approve candidate?',
+      text: `${app.name} for ${app.position}`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#22c55e',
+      confirmButtonText: 'Approve',
+    }).then((r) => {
+      if (!r.isConfirmed) return;
+      this.svc.updateApplication({ ...app, status: 'approved' }).subscribe(() => {
+        this.svc
+          .addCandidate({
+            name: app.name,
+            position: app.position,
+            party: app.party,
+            photo: app.photo || '',
+            votes: 0,
+            bio: app.bio || '',
+            course: app.course,
+            year: app.year,
+            status: 'approved',
+            requirements: app.requirements,
+          })
+          .subscribe(() => {
+            this.loadApplications();
+            Swal.fire({
+              icon: 'success',
+              title: 'Candidate Approved!',
+              timer: 1000,
+              showConfirmButton: false,
+            });
+          });
       });
     });
   }
 
-  // ── Actions ──────────────────────────────────────
-  onFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
-    console.log('Filter:', value);
-  }
-
-  reviewSubmission(submission: Submission): void {
-    console.log('Review:', submission.id);
-  }
-
-  quickApprove(submission: Submission): void {
-    this.pendingSubmissions = this.pendingSubmissions.filter((s) => s.id !== submission.id);
-    this.approvedCount++;
-    this.pendingCount = this.pendingSubmissions.length;
-    this.recentActivity.unshift({
-      type: 'approved',
-      message: `${submission.typeLabel} approved.`,
-      time: 'Just now',
+  // ── Reject application ────────────────────────────────────────
+  rejectApplication(app: Application) {
+    Swal.fire({
+      title: 'Reject candidate?',
+      text: `${app.name} for ${app.position}`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Reject',
+    }).then((r) => {
+      if (!r.isConfirmed) return;
+      this.svc.updateApplication({ ...app, status: 'rejected' }).subscribe(() => {
+        this.loadApplications();
+        Swal.fire({
+          icon: 'info',
+          title: 'Application Rejected',
+          timer: 1000,
+          showConfirmButton: false,
+        });
+      });
     });
   }
 
-  certifyResults(): void {
-    this.resultsStatus = 'certified';
-    this.certifiedDate = new Date();
-    this.recentActivity.unshift({
-      type: 'approved',
-      message: 'Election results officially certified.',
-      time: 'Just now',
+  // ── Load results ──────────────────────────────────────────────
+  loadResults(election: Election) {
+    this.selectedResultElection = election;
+    this.loadingResults = true;
+    this.activeTab = 'results';
+
+    this.svc.getCandidates().subscribe((candidates) => {
+      const electionCandidates = candidates.filter(
+        (c) => (c as any).electionId === election.id || !c.hasOwnProperty('electionId'),
+      );
+      const map = new Map<string, Candidate[]>();
+      for (const c of electionCandidates) {
+        if (!map.has(c.position)) map.set(c.position, []);
+        map.get(c.position)!.push(c);
+      }
+      this.resultsByPosition = Array.from(map.entries()).map(([position, cands]) => {
+        const sorted = [...cands].sort((a, b) => b.votes - a.votes);
+        return {
+          position,
+          candidates: sorted,
+          total: sorted.reduce((s, c) => s + (c.votes || 0), 0),
+        };
+      });
+      this.loadingResults = false;
     });
-    // Update phase tracker
-    this.electionPhases[4].completed = true;
-    this.electionPhases[4].active = false;
   }
 
-  returnResults(): void {
-    this.resultsStatus = 'pending';
-    this.recentActivity.unshift({
-      type: 'rejected',
-      message: 'Election results returned to ELECOM for revision.',
-      time: 'Just now',
+  getPercent(votes: number, total: number): number {
+    return total > 0 ? Math.round((votes / total) * 100) : 0;
+  }
+
+  // ── ELECOM Account Modal ──────────────────────────────────────
+  openAccountModal() {
+    this.showAccountModal = true;
+    this.accountForm = { name: '', username: '', email: '', password: '' };
+  }
+
+  closeAccountModal() {
+    this.showAccountModal = false;
+  }
+
+  // ── Create ELECOM Account ─────────────────────────────────────
+  // ACID Atomicity:   Auth + 2 Firestore docs saved together or rolled back
+  // ACID Consistency: duplicate username blocked before any write
+  // ACID Isolation:   runTransaction prevents concurrent duplicate creates
+  // ACID Durability:  Firestore guarantees permanent storage on commit
+  async createElecomAccount() {
+    const f = this.accountForm;
+
+    if (!f.name || !f.username || !f.email || !f.password) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Required Fields',
+        text: 'Name, username, email and password are required.',
+      });
+      return;
+    }
+
+    this.creatingAccount = true;
+
+    try {
+      await this.elecomAccSvc.createElecomAccount({
+        name: f.name,
+        username: f.username,
+        email: f.email,
+        password: f.password,
+      });
+
+      this.creatingAccount = false;
+      this.closeAccountModal();
+
+      Swal.fire({
+        icon: 'success',
+        title: 'ELECOM Account Created!',
+        text: `${f.name} can now log in as Election Commissioner.`,
+        timer: 2500,
+        showConfirmButton: false,
+      });
+    } catch (err: any) {
+      this.creatingAccount = false;
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed to Create Account',
+        text: err.message || 'Something went wrong. Please try again.',
+      });
+    }
+  }
+
+  // ── Getters ───────────────────────────────────────────────────
+  get activeElection() {
+    return this.elections.find((e) => e.status === 'active') || null;
+  }
+  get upcomingElections() {
+    return this.elections.filter((e) => e.status === 'upcoming');
+  }
+  get completedElections() {
+    return this.elections.filter((e) => e.status === 'completed');
+  }
+  get pendingApplications() {
+    return this.applications.filter((a) => a.status === 'pending');
+  }
+
+  // ── Create/Edit election modal ────────────────────────────────
+  openCreate() {
+    this.isEditMode = false;
+    this.form = { name: '', description: '', startDate: '', endDate: '', totalPositions: 7 };
+    this.showModal = true;
+  }
+
+  openEdit(e: Election) {
+    this.isEditMode = true;
+    this.selectedElection = e;
+    this.form = {
+      name: e.name,
+      description: e.description,
+      startDate: e.startDate,
+      endDate: e.endDate,
+      totalPositions: e.totalPositions,
+    };
+    this.showModal = true;
+  }
+
+  closeModal() {
+    this.showModal = false;
+  }
+
+  save() {
+    if (!this.form.name || !this.form.startDate || !this.form.endDate) return;
+
+    if (this.isEditMode) {
+      this.svc
+        .updateElection({ ...(this.selectedElection as Election), ...this.form })
+        .subscribe(() => {
+          this.loadElections();
+          this.closeModal();
+          Swal.fire({ icon: 'success', title: 'Updated!', timer: 1000, showConfirmButton: false });
+        });
+    } else {
+      this.svc
+        .addElection({
+          ...this.form,
+          totalVoters: 0,
+          voted: 0,
+          status: 'upcoming',
+          auditStatus: 'pending',
+          createdBy: 'admin',
+          createdAt: new Date().toISOString(),
+        })
+        .subscribe(() => {
+          this.loadElections();
+          this.closeModal();
+          Swal.fire({
+            icon: 'success',
+            title: 'Election Created!',
+            timer: 1000,
+            showConfirmButton: false,
+          });
+        });
+    }
+  }
+
+  // ── Start / End / Delete ──────────────────────────────────────
+  approveElection(e: Election): void {
+    Swal.fire({
+      title: 'Approve Election?',
+      text: `"${e.name}" will become visible to students once activated.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#48a868',
+      confirmButtonText: 'Approve',
+    }).then(r => {
+      if (r.isConfirmed) {
+        this.svc.updateElection({ ...e, approvalStatus: 'approved' }).subscribe(() => this.loadAll());
+      }
     });
+  }
+  loadAll(): void {
+    throw new Error('Method not implemented.');
+  }
+
+  start(e: Election) {
+    if (this.activeElection) {
+      Swal.fire({ icon: 'warning', title: 'An election is already active!' });
+      return;
+    }
+    Swal.fire({
+      title: 'Start Election?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#22c55e',
+      confirmButtonText: 'Yes, Start!',
+    }).then((r) => {
+      if (r.isConfirmed)
+        this.svc.updateElection({ ...e, status: 'active' }).subscribe(() => this.loadElections());
+    });
+  }
+
+  end(e: Election) {
+    Swal.fire({
+      title: 'End Election?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Yes, End!',
+    }).then((r) => {
+      if (r.isConfirmed)
+        this.svc
+          .updateElection({ ...e, status: 'completed' })
+          .subscribe(() => this.loadElections());
+    });
+  }
+
+  delete(e: Election) {
+    Swal.fire({
+      title: 'Delete?',
+      text: `Delete "${e.name}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Delete',
+    }).then((r) => {
+      if (r.isConfirmed) this.svc.deleteElection(e.id).subscribe(() => this.loadElections());
+    });
+  }
+
+  // ── Audit ─────────────────────────────────────────────────────
+  openAudit(e: Election) {
+    this.auditElection = e;
+    this.auditChecks = [];
+    this.auditNote = '';
+    this.showAuditModal = true;
+    this.runAudit(e);
+  }
+
+  closeAudit() {
+    this.showAuditModal = false;
+    this.auditElection = null;
+  }
+
+  runAudit(e: Election) {
+    this.auditLoading = true;
+    forkJoin({
+      records: this.svc.getVoteRecords(),
+      voters: this.svc.getVoters(),
+      candidates: this.svc.getCandidates(),
+    }).subscribe(({ records, voters, candidates }) => {
+      const r = records.filter((x) => x.electionId === e.id);
+      const c = candidates.filter((x) => (x as any).electionId === e.id);
+      const checks: AuditCheck[] = [];
+
+      const ids = r.map((x) => x.studentId);
+      const dupes = ids.length - new Set(ids).size;
+      checks.push(
+        dupes === 0
+          ? { label: 'Duplicate Votes', status: 'ok', detail: 'No duplicate votes found.' }
+          : {
+              label: 'Duplicate Votes',
+              status: 'error',
+              detail: `${dupes} duplicate vote(s) detected!`,
+            },
+      );
+
+      checks.push(
+        e.voted === r.length
+          ? {
+              label: 'Vote Count Integrity',
+              status: 'ok',
+              detail: `Count matches records (${e.voted}/${r.length}).`,
+            }
+          : {
+              label: 'Vote Count Integrity',
+              status: 'error',
+              detail: `Mismatch! Election: ${e.voted}, Records: ${r.length}.`,
+            },
+      );
+
+      const regIds = new Set(voters.map((v) => v.studentId));
+      const unregistered = r.filter((x) => !regIds.has(x.studentId)).length;
+      checks.push(
+        unregistered === 0
+          ? {
+              label: 'Voter Eligibility',
+              status: 'ok',
+              detail: 'All votes from registered voters.',
+            }
+          : {
+              label: 'Voter Eligibility',
+              status: 'warning',
+              detail: `${unregistered} vote(s) from unregistered voters.`,
+            },
+      );
+
+      const totalVotes = c.reduce((sum, x) => sum + (x.votes || 0), 0);
+      checks.push(
+        c.length === 0
+          ? { label: 'Candidate Totals', status: 'warning', detail: 'No candidates found.' }
+          : totalVotes >= r.length
+            ? { label: 'Candidate Totals', status: 'ok', detail: `Totals match (${totalVotes}).` }
+            : {
+                label: 'Candidate Totals',
+                status: 'error',
+                detail: `Mismatch! Candidates: ${totalVotes}, Records: ${r.length}.`,
+              },
+      );
+
+      const outside = r.filter((x) => {
+        const t = new Date(x.submittedAt).getTime();
+        return t < new Date(e.startDate).getTime() || t > new Date(e.endDate).getTime();
+      }).length;
+      checks.push(
+        outside === 0
+          ? {
+              label: 'Timeline Integrity',
+              status: 'ok',
+              detail: 'All votes within election period.',
+            }
+          : {
+              label: 'Timeline Integrity',
+              status: 'error',
+              detail: `${outside} vote(s) outside election period!`,
+            },
+      );
+
+      this.auditChecks = checks;
+      this.auditLoading = false;
+    });
+  }
+
+  get auditOverall(): 'clean' | 'warning' | 'flagged' {
+    if (this.auditChecks.some((c) => c.status === 'error')) return 'flagged';
+    if (this.auditChecks.some((c) => c.status === 'warning')) return 'warning';
+    return 'clean';
+  }
+
+  certify() {
+    if (!this.auditElection) return;
+    this.svc
+      .updateElection({
+        ...this.auditElection,
+        auditStatus: 'clean',
+        certifiedAt: new Date().toISOString(),
+      })
+      .subscribe(() => {
+        this.notify('clean');
+        this.loadElections();
+        this.closeAudit();
+        Swal.fire({
+          icon: 'success',
+          title: 'Election Certified!',
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      });
+  }
+
+  flag() {
+    if (!this.auditElection) return;
+    if (!this.auditNote.trim()) {
+      Swal.fire({ icon: 'warning', title: 'Add a note before flagging.' });
+      return;
+    }
+    this.svc
+      .updateElection({
+        ...this.auditElection,
+        auditStatus: 'flagged',
+        auditNote: this.auditNote,
+      })
+      .subscribe(() => {
+        this.notify('flagged');
+        this.loadElections();
+        this.closeAudit();
+        Swal.fire({
+          icon: 'warning',
+          title: 'Election Flagged!',
+          text: 'ELECOM has been notified.',
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      });
+  }
+
+  notify(type: 'clean' | 'flagged') {
+    if (!this.auditElection) return;
+    this.svc
+      .addNotification({
+        role: 'elecom',
+        type,
+        title: type === 'clean' ? '✅ Election Certified' : '⚠️ Election Flagged',
+        message:
+          type === 'clean'
+            ? `Admin certified "${this.auditElection.name}". Results are now official.`
+            : `Admin flagged "${this.auditElection.name}". Reason: ${this.auditNote}`,
+        electionId: this.auditElection.id,
+        createdAt: new Date().toISOString(),
+        seen: false,
+      })
+      .subscribe();
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────
+  statusClass(s: string) {
+    return s === 'active'
+      ? 'status-active'
+      : s === 'upcoming'
+        ? 'status-upcoming'
+        : 'status-completed';
+  }
+  auditClass(s?: string) {
+    return s === 'clean' ? 'audit-clean' : s === 'flagged' ? 'audit-flagged' : 'audit-pending';
+  }
+  checkIcon(s: 'ok' | 'warning' | 'error') {
+    return s === 'ok' ? '✅' : s === 'warning' ? '⚠️' : '❌';
+  }
+  appStatusClass(s: string) {
+    return s === 'approved'
+      ? 'status-active'
+      : s === 'rejected'
+        ? 'status-completed'
+        : 'status-upcoming';
   }
 }

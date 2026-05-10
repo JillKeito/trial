@@ -127,3 +127,53 @@ $border: #e2e8f0;
   .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
   .result-card { flex-wrap: wrap; }
 }
+// ── Election Selector ────────────────────────────────────
+.election-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+
+  label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #4a5568;
+    white-space: nowrap;
+  }
+
+  select {
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #2d3748;
+    background: #fff;
+    cursor: pointer;
+    min-width: 260px;
+    &:focus { outline: none; border-color: #2c5282; }
+  }
+}
+
+// ── Abstain Result Row ────────────────────────────────────
+.abstain-result {
+  opacity: 0.8;
+  border-style: dashed;
+}
+
+.abstain-rank {
+  color: #9ca3af;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.abstain-avatar-icon {
+  background: #f3f4f6;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fill-abstain {
+  background: #9ca3af !important;
+}

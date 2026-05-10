@@ -23,7 +23,8 @@ export class StudentElections implements OnInit {
 
   ngOnInit(): void {
     this.svc.getElections().subscribe((elections) => {
-      this.elections = elections;
+      // Only show elections that have been approved by admin
+      this.elections = elections.filter(e => e.approvalStatus === 'approved');
       this.loading = false;
     });
   }

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ElectionService, Candidate } from '../../../../services/election';
+import { ElectionService, Candidate, Election } from '../../../../services/election';
 import Swal from 'sweetalert2';
 
 const USG_POSITIONS = [
@@ -9,9 +9,7 @@ const USG_POSITIONS = [
   'Treasurer', 'Auditor', 'PRO / PIO', 'Senator'
 ];
 
-const COURSES = [
-  'BSIT','BSTCM', 'BSEMT'
-];
+const COURSES = ['BSIT', 'BSTCM', 'BSEMT'];
 
 @Component({
   selector: 'app-candidates',
@@ -23,12 +21,17 @@ const COURSES = [
 export class Candidates implements OnInit {
 
   candidates: Candidate[] = [];
+  elections: Election[] = [];
   showCandidateModal = false;
+  showAssignModal = false;
+  assigningCandidate: Candidate | null = null;
+  selectedElectionId = '';
   loading = false;
   candidateFilter: 'all' | 'pending' | 'approved' | 'disqualified' = 'all';
 
   positions = USG_POSITIONS;
   years = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+  courses = COURSES;
 
   newCandidate = {
     name: '', position: USG_POSITIONS[0], course: COURSES[0], year: '1st Year',
@@ -39,17 +42,26 @@ export class Candidates implements OnInit {
       coc: false, noViolations: false, noFailingGrades: false
     }
   };
-  courses = COURSES;
 
   constructor(private svc: ElectionService) {}
 
-  ngOnInit(): void { this.loadCandidates(); }
+  ngOnInit(): void {
+    this.loadCandidates();
+    this.loadElections();
+  }
 
   loadCandidates(): void {
     this.loading = true;
     this.svc.getCandidates().subscribe(c => {
       this.candidates = c;
       this.loading = false;
+    });
+  }
+
+  loadElections(): void {
+    this.svc.getElections().subscribe(e => {
+      // Only approved + upcoming elections are valid assignment targets
+      this.elections = e.filter(el => el.approvalStatus === 'approved' && el.status === 'upcoming');
     });
   }
 
@@ -70,9 +82,51 @@ export class Candidates implements OnInit {
     return req ? Object.values(req).filter(Boolean).length : 0;
   }
 
+  getElectionName(electionId: string | undefined): string {
+    if (!electionId) return '';
+    const el = this.elections.find(e => e.id === electionId) ||
+               this.allElections.find(e => e.id === electionId);
+    return el ? el.name : '';
+  }
+
+  allElections: Election[] = [];
+
   approveCandidate(c: Candidate): void {
     const updated: Candidate = { ...c, status: 'approved' };
     this.svc.updateCandidate(updated).subscribe(() => this.loadCandidates());
+  }
+
+  openAssignModal(c: Candidate): void {
+    this.assigningCandidate = c;
+    this.selectedElectionId = c.electionId || '';
+    this.showAssignModal = true;
+  }
+
+  confirmAssign(): void {
+    if (!this.assigningCandidate || !this.selectedElectionId) return;
+    const updated: Candidate = { ...this.assigningCandidate, electionId: this.selectedElectionId };
+    this.svc.updateCandidate(updated).subscribe(() => {
+      this.loadCandidates();
+      this.showAssignModal = false;
+      this.assigningCandidate = null;
+      Swal.fire({ icon: 'success', title: 'Assigned!', text: 'Candidate has been assigned to the election.', timer: 1500, showConfirmButton: false });
+    });
+  }
+
+  removeAssignment(c: Candidate): void {
+    Swal.fire({
+      title: 'Remove Assignment?',
+      text: `${c.name} will be unassigned from the election.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Remove',
+    }).then(r => {
+      if (r.isConfirmed) {
+        const updated: Candidate = { ...c, electionId: undefined };
+        this.svc.updateCandidate(updated).subscribe(() => this.loadCandidates());
+      }
+    });
   }
 
   disqualifyCandidate(c: Candidate): void {
@@ -85,7 +139,7 @@ export class Candidates implements OnInit {
       confirmButtonText: 'Disqualify'
     }).then(r => {
       if (r.isConfirmed) {
-        const updated: Candidate = { ...c, status: 'disqualified' };
+        const updated: Candidate = { ...c, status: 'disqualified', electionId: undefined };
         this.svc.updateCandidate(updated).subscribe(() => this.loadCandidates());
       }
     });
@@ -109,10 +163,7 @@ export class Candidates implements OnInit {
   addCandidateSubmit(): void {
     if (!this.newCandidate.name || !this.newCandidate.course) return;
     const allReq = this.requirementsMet(this.newCandidate.requirements);
-    const c: Omit<Candidate, 'id'> = {
-      ...this.newCandidate,
-      status: allReq ? 'approved' : 'pending',
-    };
+    const c: Omit<Candidate, 'id'> = { ...this.newCandidate, status: allReq ? 'approved' : 'pending' };
     this.svc.addCandidate(c).subscribe(() => {
       this.loadCandidates();
       this.showCandidateModal = false;

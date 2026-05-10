@@ -35,6 +35,14 @@ export class Elections implements OnInit {
     });
   }
 
+  get pendingElections(): Election[] {
+    return this.elections.filter(e => e.approvalStatus !== 'approved');
+  }
+
+  get approvedElections(): Election[] {
+    return this.elections.filter(e => e.approvalStatus === 'approved');
+  }
+
   get activeElection(): Election | null {
     return this.elections.find((e) => e.status === 'active') || null;
   }
@@ -49,11 +57,7 @@ export class Elections implements OnInit {
   }
 
   getStatusLabel(status: string): string {
-    return (
-      (
-        { upcoming: 'Upcoming', active: 'Active', completed: 'Completed' } as Record<string, string>
-      )[status] ?? status
-    );
+    return ({ upcoming: 'Upcoming', active: 'Active', completed: 'Completed' } as Record<string, string>)[status] ?? status;
   }
 
   openAddModal(): void {
@@ -73,21 +77,11 @@ export class Elections implements OnInit {
     this.showViewModal = true;
   }
 
-  closeModal(): void {
-    this.showModal = false;
-  }
-  closeViewModal(): void {
-    this.showViewModal = false;
-    this.viewingElection = null;
-  }
+  closeModal(): void { this.showModal = false; }
+  closeViewModal(): void { this.showViewModal = false; this.viewingElection = null; }
 
   saveElection(): void {
-    if (
-      !this.currentElection.name ||
-      !this.currentElection.startDate ||
-      !this.currentElection.endDate
-    )
-      return;
+    if (!this.currentElection.name || !this.currentElection.startDate || !this.currentElection.endDate) return;
 
     if (this.isEditMode && this.currentElection.id) {
       this.svc.updateElection(this.currentElection as Election).subscribe(() => {
@@ -95,7 +89,6 @@ export class Elections implements OnInit {
         this.closeModal();
       });
     } else {
-      // ✅ removed markAllRead, markNotificationRead, getNotifications
       const newElection: Omit<Election, 'id'> = {
         name: this.currentElection.name!,
         description: this.currentElection.description || '',
@@ -104,22 +97,36 @@ export class Elections implements OnInit {
         totalPositions: this.currentElection.totalPositions || 7,
         totalVoters: 0,
         voted: 0,
-        status: this.currentElection.status || 'upcoming',
+        status: 'upcoming',
+        approvalStatus: 'pending',   // always starts pending
+        title: undefined,
       };
       this.svc.addElection(newElection).subscribe(() => {
         this.loadElections();
         this.closeModal();
+        Swal.fire({ icon: 'info', title: 'Election Submitted', text: 'The election is pending admin approval before it appears to students.', confirmButtonColor: '#2c5282' });
       });
     }
   }
 
+  approveElection(e: Election): void {
+    Swal.fire({
+      title: 'Approve Election?',
+      text: `"${e.name}" will become visible to students once activated.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#48a868',
+      confirmButtonText: 'Approve',
+    }).then(r => {
+      if (r.isConfirmed) {
+        this.svc.updateElection({ ...e, approvalStatus: 'approved' }).subscribe(() => this.loadElections());
+      }
+    });
+  }
+
   startElection(e: Election): void {
     if (this.activeElection) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'An election is already active!',
-        text: 'End the current election first.',
-      });
+      Swal.fire({ icon: 'warning', title: 'An election is already active!', text: 'End the current election first.' });
       return;
     }
     this.svc.updateElection({ ...e, status: 'active' }).subscribe(() => this.loadElections());
@@ -134,10 +141,9 @@ export class Elections implements OnInit {
       confirmButtonColor: '#7B1C2E',
       confirmButtonText: 'End Election',
     }).then((r) => {
-      if (r.isConfirmed)
-        this.svc
-          .updateElection({ ...e, status: 'completed' })
-          .subscribe(() => this.loadElections());
+      if (r.isConfirmed) {
+        this.svc.updateElection({ ...e, status: 'completed' }).subscribe(() => this.loadElections());
+      }
     });
   }
 
@@ -150,18 +156,13 @@ export class Elections implements OnInit {
       confirmButtonColor: '#7B1C2E',
       confirmButtonText: 'Delete',
     }).then((r) => {
-      if (r.isConfirmed) this.svc.deleteElection(e.id).subscribe(() => this.loadElections());
+      if (r.isConfirmed) {
+        this.svc.deleteElection(e.id).subscribe(() => this.loadElections());
+      }
     });
   }
 
   private emptyElection(): Partial<Election> {
-    return {
-      name: '',
-      description: '',
-      startDate: '',
-      endDate: '',
-      totalPositions: 7,
-      status: 'upcoming',
-    };
+    return { name: '', description: '', startDate: '', endDate: '', totalPositions: 7, status: 'upcoming' };
   }
 }

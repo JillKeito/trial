@@ -4,17 +4,18 @@ import {
   collection,
   collectionData,
   doc,
-  addDoc,
   updateDoc,
   deleteDoc,
   query,
   where,
   getDocs,
-  setDoc,
+  getDoc,
+  addDoc,
 } from '@angular/fire/firestore';
 import { Observable, from, forkJoin } from 'rxjs';
-import { switchMap, map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 
+// ── Interfaces ───────────────────────────────────────────────
 export interface Candidate {
   id: string;
   name: string;
@@ -26,6 +27,7 @@ export interface Candidate {
   course?: string;
   year?: string;
   status?: 'pending' | 'approved' | 'disqualified';
+  electionId?: string;
   requirements?: {
     enrollment: boolean;
     goodMoral: boolean;
@@ -47,6 +49,7 @@ export interface Voter {
 }
 
 export interface Election {
+  title?: any;
   id: string;
   name: string;
   description: string;
@@ -56,6 +59,13 @@ export interface Election {
   totalVoters: number;
   voted: number;
   status: 'upcoming' | 'active' | 'completed';
+  approvalStatus?: 'pending' | 'approved';
+  positions?: string[];
+  createdBy?: string;
+  createdAt?: string;
+  auditStatus?: 'pending' | 'clean' | 'flagged';
+  auditNote?: string;
+  certifiedAt?: string;
 }
 
 export interface Application {
@@ -92,181 +102,133 @@ export interface VoteRecord {
   submittedAt: string;
 }
 
+// ── Service ──────────────────────────────────────────────────
 @Injectable({ providedIn: 'root' })
 export class ElectionService {
-  private firestore = inject(Firestore);
+  private fs = inject(Firestore);
 
-  // ── Candidates ──────────────────────────────────────────────────────────
-
-  getCandidates(): Observable<Candidate[]> {
-    return collectionData(collection(this.firestore, 'candidates'), {
-      idField: 'id',
-    }) as Observable<Candidate[]>;
+  // helpers
+  private col(name: string) {
+    return collection(this.fs, name);
   }
-
-  addCandidate(c: Omit<Candidate, 'id'>): Observable<Candidate> {
-    return from(addDoc(collection(this.firestore, 'candidates'), c)).pipe(
-      map((ref) => ({ id: ref.id, ...c } as Candidate))
-    );
+  private ref(name: string, id: string) {
+    return doc(this.fs, name, id);
   }
-
-  updateCandidate(c: Candidate): Observable<Candidate> {
-    const { id, ...data } = c;
-    return from(updateDoc(doc(this.firestore, 'candidates', id), data)).pipe(
-      map(() => c)
-    );
+  private list<T>(name: string): Observable<T[]> {
+    return collectionData(this.col(name), { idField: 'id' }) as Observable<T[]>;
   }
-
-  deleteCandidate(id: string): Observable<void> {
-    return from(deleteDoc(doc(this.firestore, 'candidates', id)));
-  }
-
-  // ── Voters ──────────────────────────────────────────────────────────────
-
-  getVoters(): Observable<Voter[]> {
-    return collectionData(collection(this.firestore, 'voters'), {
-      idField: 'id',
-    }) as Observable<Voter[]>;
-  }
-
-  getVoterByStudentId(studentId: string): Observable<Voter[]> {
+  private findWhere<T>(name: string, field: string, value: string): Observable<T[]> {
     return from(
-      getDocs(
-        query(
-          collection(this.firestore, 'voters'),
-          where('studentId', '==', studentId)
-        )
-      )
-    ).pipe(
-      map((snap) =>
-        snap.docs.map((d) => ({ id: d.id, ...d.data() } as Voter))
-      )
+      getDocs(query(this.col(name), where(field, '==', value))).then((s) =>
+        s.docs.map((d) => ({ id: d.id, ...d.data() }) as T),
+      ),
     );
   }
-
-  addVoter(v: Omit<Voter, 'id'>): Observable<Voter> {
-    return from(addDoc(collection(this.firestore, 'voters'), v)).pipe(
-      map((ref) => ({ id: ref.id, ...v } as Voter))
-    );
+  private add<T>(name: string, data: any): Observable<T> {
+    return from(addDoc(this.col(name), data)).pipe(map((r) => ({ id: r.id, ...data }) as T));
+  }
+  private update<T>(name: string, item: any): Observable<T> {
+    const { id, ...data } = item;
+    return from(updateDoc(this.ref(name, id), data)).pipe(map(() => item));
+  }
+  private remove(name: string, id: string): Observable<any> {
+    return from(deleteDoc(this.ref(name, id)));
   }
 
-  updateVoter(v: Voter): Observable<Voter> {
-    const { id, ...data } = v;
-    return from(updateDoc(doc(this.firestore, 'voters', id), data)).pipe(
-      map(() => v)
-    );
+  // ── Candidates ───────────────────────────────────────────────
+  getCandidates() {
+    return this.list<Candidate>('candidates');
+  }
+  addCandidate(c: Omit<Candidate, 'id'>) {
+    return this.add<Candidate>('candidates', c);
+  }
+  updateCandidate(c: Candidate) {
+    return this.update<Candidate>('candidates', c);
+  }
+  deleteCandidate(id: string) {
+    return this.remove('candidates', id);
+  }
+  getCandidatesByElection(electionId: string) {
+    return this.findWhere<Candidate>('candidates', 'electionId', electionId);
   }
 
-  deleteVoter(id: string): Observable<void> {
-    return from(deleteDoc(doc(this.firestore, 'voters', id)));
+  // ── Voters ───────────────────────────────────────────────────
+  getVoters() {
+    return this.list<Voter>('voters');
+  }
+  addVoter(v: Omit<Voter, 'id'>) {
+    return this.add<Voter>('voters', v);
+  }
+  updateVoter(v: Voter) {
+    return this.update<Voter>('voters', v);
+  }
+  deleteVoter(id: string) {
+    return this.remove('voters', id);
+  }
+  getVoterByStudentId(studentId: string) {
+    return this.findWhere<Voter>('voters', 'studentId', studentId);
   }
 
-  // ── Elections ───────────────────────────────────────────────────────────
-
-  getElections(): Observable<Election[]> {
-    return collectionData(collection(this.firestore, 'elections'), {
-      idField: 'id',
-    }) as Observable<Election[]>;
+  // ── Elections ────────────────────────────────────────────────
+  getElections() {
+    return this.list<Election>('elections');
   }
-
-  getActiveElection(): Observable<Election[]> {
+  addElection(e: Omit<Election, 'id'>) {
+    return this.add<Election>('elections', { ...e, approvalStatus: e.approvalStatus ?? 'pending' });
+  }
+  updateElection(e: Election) {
+    return this.update<Election>('elections', e);
+  }
+  deleteElection(id: string) {
+    return this.remove('elections', id);
+  }
+  getActiveElection() {
+    return this.findWhere<Election>('elections', 'status', 'active');
+  }
+  getElectionById(id: string): Observable<Election | null> {
     return from(
-      getDocs(
-        query(
-          collection(this.firestore, 'elections'),
-          where('status', '==', 'active')
-        )
-      )
-    ).pipe(
-      map((snap) =>
-        snap.docs.map((d) => ({ id: d.id, ...d.data() } as Election))
-      )
+      getDoc(this.ref('elections', id)).then((s) =>
+        s.exists() ? ({ id: s.id, ...s.data() } as Election) : null,
+      ),
     );
   }
 
-  addElection(e: Omit<Election, 'id'>): Observable<Election> {
-    return from(addDoc(collection(this.firestore, 'elections'), e)).pipe(
-      map((ref) => ({ id: ref.id, ...e } as Election))
-    );
+  // ── Applications ─────────────────────────────────────────────
+  getApplications() {
+    return this.list<Application>('applications');
+  }
+  submitApplication(a: Omit<Application, 'id'>) {
+    return this.add<Application>('applications', a);
+  }
+  updateApplication(a: Application) {
+    return this.update<Application>('applications', a);
+  }
+  getApplicationByStudentId(id: string) {
+    return this.findWhere<Application>('applications', 'studentId', id);
   }
 
-  updateElection(e: Election): Observable<Election> {
-    const { id, ...data } = e;
-    return from(updateDoc(doc(this.firestore, 'elections', id), data)).pipe(
-      map(() => e)
-    );
+  // ── Vote Records ─────────────────────────────────────────────
+  getVoteRecords() {
+    return this.list<VoteRecord>('voteRecords');
+  }
+  getVoteRecordByStudentId(id: string) {
+    return this.findWhere<VoteRecord>('voteRecords', 'studentId', id);
   }
 
-  deleteElection(id: string): Observable<void> {
-    return from(deleteDoc(doc(this.firestore, 'elections', id)));
+  // ── Notifications ─────────────────────────────────────────────
+  addNotification(n: any): Observable<any> {
+    return this.add('notifications', n);
+  }
+  getNotifications(role: string) {
+    return this.findWhere<any>('notifications', 'role', role);
   }
 
-  // ── Applications ────────────────────────────────────────────────────────
-
-  getApplications(): Observable<Application[]> {
-    return collectionData(collection(this.firestore, 'applications'), {
-      idField: 'id',
-    }) as Observable<Application[]>;
-  }
-
-  getApplicationByStudentId(studentId: string): Observable<Application[]> {
-    return from(
-      getDocs(
-        query(
-          collection(this.firestore, 'applications'),
-          where('studentId', '==', studentId)
-        )
-      )
-    ).pipe(
-      map((snap) =>
-        snap.docs.map((d) => ({ id: d.id, ...d.data() } as Application))
-      )
-    );
-  }
-
-  submitApplication(a: Omit<Application, 'id'>): Observable<Application> {
-    return from(addDoc(collection(this.firestore, 'applications'), a)).pipe(
-      map((ref) => ({ id: ref.id, ...a } as Application))
-    );
-  }
-
-  updateApplication(a: Application): Observable<Application> {
-    const { id, ...data } = a;
-    return from(updateDoc(doc(this.firestore, 'applications', id), data)).pipe(
-      map(() => a)
-    );
-  }
-
-  // ── Vote Records ────────────────────────────────────────────────────────
-
-  getVoteRecords(): Observable<VoteRecord[]> {
-    return collectionData(collection(this.firestore, 'voteRecords'), {
-      idField: 'id',
-    }) as Observable<VoteRecord[]>;
-  }
-
-  getVoteRecordByStudentId(studentId: string): Observable<VoteRecord[]> {
-    return from(
-      getDocs(
-        query(
-          collection(this.firestore, 'voteRecords'),
-          where('studentId', '==', studentId)
-        )
-      )
-    ).pipe(
-      map((snap) =>
-        snap.docs.map((d) => ({ id: d.id, ...d.data() } as VoteRecord))
-      )
-    );
-  }
-
-  // ── Cast Vote ───────────────────────────────────────────────────────────
-
+  // ── Cast Vote ────────────────────────────────────────────────
   castVote(
     voter: Voter,
     election: Election,
     votes: { [position: string]: string },
-    candidates: Candidate[]
+    candidates: Candidate[],
   ): Observable<any> {
     const record = {
       studentId: voter.studentId,
@@ -274,21 +236,19 @@ export class ElectionService {
       votes,
       submittedAt: new Date().toISOString(),
     };
-
-    const candidateUpdates = Object.values(votes).map((candidateId) => {
-      const candidate = candidates.find((c) => c.id === candidateId);
-      if (!candidate) throw new Error(`Candidate ${candidateId} not found`);
-      return this.updateCandidate({ ...candidate, votes: candidate.votes + 1 });
+    const candidateUpdates = Object.values(votes).map((cId) => {
+      const c = candidates.find((x) => x.id === cId);
+      if (!c) throw new Error(`Candidate ${cId} not found`);
+      return this.updateCandidate({ ...c, votes: c.votes + 1 });
     });
-
-    return from(addDoc(collection(this.firestore, 'voteRecords'), record)).pipe(
+    return this.add('voteRecords', record).pipe(
       switchMap(() =>
         forkJoin([
           ...candidateUpdates,
           this.updateVoter({ ...voter, hasVoted: true, verifiedAt: new Date().toISOString() }),
           this.updateElection({ ...election, voted: election.voted + 1 }),
-        ])
-      )
+        ]),
+      ),
     );
   }
 }

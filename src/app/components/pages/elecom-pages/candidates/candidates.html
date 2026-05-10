@@ -52,6 +52,19 @@
         {{ c.party }}
       </div>
 
+      <!-- Election Assignment Banner -->
+      <div class="assignment-banner" *ngIf="c.status === 'approved'">
+        <div *ngIf="c.electionId" class="assigned">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Assigned to election
+          <button class="btn-unassign" (click)="removeAssignment(c)" title="Remove assignment">✕</button>
+        </div>
+        <div *ngIf="!c.electionId" class="unassigned">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Not yet assigned to an election
+        </div>
+      </div>
+
       <!-- Requirements -->
       <div class="requirements" *ngIf="c.requirements">
         <div class="req-header">
@@ -90,12 +103,12 @@
 
       <!-- Actions -->
       <div class="card-actions">
-        <button class="btn-approve" *ngIf="c.status === 'pending'" (click)="approveCandidate(c)">
-          Approve
+        <button class="btn-approve" *ngIf="c.status === 'pending'" (click)="approveCandidate(c)">Approve</button>
+        <button class="btn-assign" *ngIf="c.status === 'approved' && !c.electionId" (click)="openAssignModal(c)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          Assign to Election
         </button>
-        <button class="btn-disqualify" *ngIf="c.status !== 'disqualified'" (click)="disqualifyCandidate(c)">
-          Disqualify
-        </button>
+        <button class="btn-disqualify" *ngIf="c.status !== 'disqualified'" (click)="disqualifyCandidate(c)">Disqualify</button>
         <button class="btn-delete" (click)="deleteCandidate(c)">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
         </button>
@@ -135,6 +148,7 @@
             <select [(ngModel)]="newCandidate.position">
               <option *ngFor="let p of positions">{{ p }}</option>
             </select>
+          </div>
           <div class="form-group">
             <label>Course <span class="req">*</span></label>
             <select [(ngModel)]="newCandidate.course">
@@ -153,7 +167,6 @@
           <label>Bio</label>
           <input [(ngModel)]="newCandidate.bio" placeholder="Short bio or platform" />
         </div>
-
         <div class="req-section">
           <label class="req-title">Requirements</label>
           <div class="req-checks">
@@ -169,6 +182,41 @@
       <div class="modal-footer">
         <button class="btn-cancel" (click)="showCandidateModal = false">Cancel</button>
         <button class="btn-save" (click)="addCandidateSubmit()">Save Candidate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assign to Election Modal -->
+  <div class="modal-overlay" *ngIf="showAssignModal" (click)="showAssignModal = false">
+    <div class="modal-box assign-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Assign to Election</h3>
+        <button class="btn-close" (click)="showAssignModal = false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="assign-candidate-preview" *ngIf="assigningCandidate">
+          <div class="preview-avatar">{{ assigningCandidate.name.charAt(0) }}</div>
+          <div>
+            <div class="preview-name">{{ assigningCandidate.name }}</div>
+            <div class="preview-pos">{{ assigningCandidate.position }} · {{ assigningCandidate.course }}</div>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:16px">
+          <label>Select Election <span class="req">*</span></label>
+          <div class="no-elections-msg" *ngIf="elections.length === 0">
+            No approved upcoming elections available. Please approve an election first.
+          </div>
+          <select [(ngModel)]="selectedElectionId" *ngIf="elections.length > 0">
+            <option value="" disabled>Choose an election…</option>
+            <option *ngFor="let e of elections" [value]="e.id">{{ e.name }} ({{ e.startDate }})</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="showAssignModal = false">Cancel</button>
+        <button class="btn-save" (click)="confirmAssign()" [disabled]="!selectedElectionId || elections.length === 0">Assign</button>
       </div>
     </div>
   </div>
