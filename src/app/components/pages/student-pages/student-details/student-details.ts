@@ -10,6 +10,15 @@ export interface VoteSummaryRow {
   abstained: boolean;
 }
 
+const ABSTAIN = '__ABSTAIN__';
+
+const POSITION_ORDER = [
+  'President', 'Vice President', 'Secretary', 'Treasurer',
+  'Auditor', 'PRO', 'Business Manager',
+  '1st Year Rep', '2nd Year Rep', '3rd Year Rep', '4th Year Rep',
+  'Sergeant-at-Arms',
+];
+
 @Component({
   selector: 'app-student-details',
   standalone: true,
@@ -41,11 +50,12 @@ export class StudentDetails implements OnInit {
       return;
     }
 
-    // Load election + vote record + candidates in parallel
+    // Use studentId (e.g. "2024-0001") — voteRecords are keyed by studentId, not uid
+    const lookupId = (user as any).studentId ?? user.id;
+
     let electionDone = false;
     let recordDone = false;
     let candidatesDone = false;
-
     let candidates: Candidate[] = [];
 
     const tryBuild = () => {
@@ -58,20 +68,29 @@ export class StudentDetails implements OnInit {
       }
 
       if (!this.record) {
-        // Student hasn't voted yet — send them to the ballot
+        // Student hasn't voted — redirect to ballot
         this.router.navigate(['/app/student-ballot', electionId]);
         return;
       }
 
-      // Build the summary rows from the vote record
-      // Collect all unique positions from candidates for this election
-      const positions = [...new Set(candidates.map((c) => c.position))];
+      // Build summary — positions from candidates list, sorted by POSITION_ORDER
+      const positions = [...new Set(candidates.map((c) => c.position))].sort((a, b) => {
+        const ai = POSITION_ORDER.indexOf(a);
+        const bi = POSITION_ORDER.indexOf(b);
+        if (ai === -1 && bi === -1) return a.localeCompare(b);
+        if (ai === -1) return 1;
+        if (bi === -1) return -1;
+        return ai - bi;
+      });
 
       this.summary = positions.map((pos) => {
         const candidateId = this.record!.votes[pos];
-        if (!candidateId) {
+
+        // Abstained if: value is __ABSTAIN__ constant, empty, or missing
+        if (!candidateId || candidateId === ABSTAIN) {
           return { position: pos, candidate: null, abstained: true };
         }
+
         const found = candidates.find((c) => c.id === candidateId) ?? null;
         return { position: pos, candidate: found, abstained: false };
       });
@@ -79,21 +98,18 @@ export class StudentDetails implements OnInit {
       this.loading = false;
     };
 
-    // 1. Fetch election
     this.svc.getElectionById(electionId).subscribe((el) => {
       this.election = el;
       electionDone = true;
       tryBuild();
     });
 
-    // 2. Fetch this student's vote record for this election
-    this.svc.getVoteRecordByStudentId(user.id).subscribe((records) => {
+    this.svc.getVoteRecordByStudentId(lookupId).subscribe((records) => {
       this.record = records.find((r) => r.electionId === electionId) ?? null;
       recordDone = true;
       tryBuild();
     });
 
-    // 3. Fetch candidates for this election
     this.svc.getCandidatesByElection(electionId).subscribe((cands) => {
       candidates = cands;
       candidatesDone = true;
@@ -102,23 +118,11 @@ export class StudentDetails implements OnInit {
   }
 
   getInitials(name: string): string {
-    return name
-      .split(' ')
-      .slice(0, 2)
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase();
+    return name.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase();
   }
 
-  get votedCount(): number {
-    return this.summary.filter((r) => !r.abstained).length;
-  }
+  get votedCount():    number { return this.summary.filter((r) => !r.abstained).length; }
+  get abstainedCount(): number { return this.summary.filter((r) => r.abstained).length; }
 
-  get abstainedCount(): number {
-    return this.summary.filter((r) => r.abstained).length;
-  }
-
-  goBack(): void {
-    this.router.navigate(['/app/student-elections']);
-  }
+  goBack(): void { this.router.navigate(['/app/student-elections']); }
 }

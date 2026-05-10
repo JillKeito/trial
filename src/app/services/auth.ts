@@ -22,6 +22,7 @@ export interface User {
   email: string;
   role: UserRole;
   name: string;
+  studentId?: string;
   createdAt?: string;
 }
 
