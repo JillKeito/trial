@@ -61,9 +61,10 @@ export class StudentApply implements OnInit {
     // check if student already applied
     const user = this.auth.getCurrentUser();
     if (user) {
-      this.svc.getApplicationByStudentId(user.email).subscribe((apps) => {
+      // use studentId field if available, fall back to id
+      const lookupId = (user as any).studentId || user.id;
+      this.svc.getApplicationByStudentId(lookupId).subscribe((apps) => {
         this.existingApplication = apps[0] || null;
-        // if already applied, jump to confirmation step
         if (this.existingApplication) {
           this.submittedData = {
             name: this.existingApplication.name,
@@ -136,11 +137,22 @@ export class StudentApply implements OnInit {
       return;
     }
 
+    // ── Prevent duplicate submissions ─────────────────────────
+    if (this.existingApplication) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Already Applied',
+        text: 'You have already submitted an application for this election.',
+      });
+      this.currentStep = 4;
+      return;
+    }
+
     this.submitting = true;
 
     // build the application object
     const application: Omit<Application, 'id'> = {
-      studentId: user.email, // use email as studentId
+      studentId: (user as any).studentId || user.id, // use studentId not email
       studentName: user.name,
       name: this.form.name,
       course: this.form.course,
