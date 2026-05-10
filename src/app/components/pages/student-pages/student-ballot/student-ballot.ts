@@ -22,6 +22,9 @@ type BallotView = 'select-election' | 'ballot' | 'success';
   styleUrl: './student-ballot.scss',
 })
 export class StudentBallot implements OnInit {
+goBack() {
+throw new Error('Method not implemented.');
+}
   elections: Election[] = [];
   selectedElection: Election | null = null;
   positions: BallotPosition[] = [];
