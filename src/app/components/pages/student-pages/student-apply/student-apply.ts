@@ -42,9 +42,10 @@ export class StudentApply implements OnInit {
     'PRO / PIO',
     'Senator',
   ];
-  years: number[] = [1, 2, 3, 4];
+  years: number[] = [1, 2, 3];
 
   form: any = this.blankForm();
+  photoPreview: string | null = null;
 
   constructor(
     private svc: ElectionService,
@@ -80,6 +81,26 @@ export class StudentApply implements OnInit {
     }
   }
 
+
+  // ── Photo upload ──────────────────────────────────────────────
+  onPhotoSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 2 * 1024 * 1024) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.photoPreview = e.target?.result as string;
+      this.form.photoUrl = this.photoPreview;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removePhoto(): void {
+    this.photoPreview = null;
+    this.form.photoUrl = '';
+  }
+
   blankForm() {
     return {
       name: '',
@@ -88,6 +109,8 @@ export class StudentApply implements OnInit {
       course: null,
       year: null,
       bio: '',
+      age: null as number | null,
+      photoUrl: '',
       status: 'pending',
       requirements: {
         enrollment: false,
@@ -167,6 +190,8 @@ export class StudentApply implements OnInit {
       submittedAt: new Date().toISOString(),
       electionId: this.activeElection?.id || '', // link to active election
       requirements: this.form.requirements,
+      age: this.form.age || null,
+      photoUrl: this.form.photoUrl || '',
     };
 
     // save to Firestore /applications collection

@@ -68,6 +68,8 @@ export interface Election {
 }
 
 export interface Application {
+  age?: number;
+  photoUrl?: string;
   id: string;
   studentId: string;
   studentName: string;

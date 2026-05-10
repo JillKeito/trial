@@ -4,7 +4,7 @@
     <div>
       <h1>Notifications</h1>
       <p class="page-sub">
-        {{ notifService.unreadCount() }} unread · {{ notifService.notifications().length }} total
+        {{ notifService.unreadCount() }} unread · {{ notifService.notifications().length }} total · from Admin
       </p>
     </div>
     <div class="header-actions">
@@ -24,6 +24,7 @@
     <button class="ftab" [class.active]="filter === 'election'" (click)="filter = 'election'">Elections</button>
     <button class="ftab" [class.active]="filter === 'vote'"     (click)="filter = 'vote'">Votes</button>
     <button class="ftab" [class.active]="filter === 'apply'"    (click)="filter = 'apply'">Applications</button>
+    <button class="ftab" [class.active]="filter === 'admin'"    (click)="filter = 'admin'">Admin</button>
   </div>
 
   <!-- No notifications at all -->
