@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterModule, RouterOutlet } from '@angular/router';
+import { Component, inject, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, RouterModule } from '@angular/router';
 import { AuthService, User } from '../../services/auth';
-
+import { ElectionService } from '../../services/election';
+import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 import { StudentNotificationService } from '../../services/student-notif';
 
@@ -14,7 +15,7 @@ import { StudentNotificationService } from '../../services/student-notif';
   styleUrls: ['./main-layout.scss'],
   host: { style: 'display: block; width: 100%; height: 100vh;' },
 })
-export class MainLayout implements OnInit {
+export class MainLayout implements OnInit, OnDestroy {
   sidebarOpen = false;
   isProfileMenuOpen = false;
   unseenCount = 0;
@@ -22,6 +23,8 @@ export class MainLayout implements OnInit {
 
   private platformId = inject(PLATFORM_ID);
   readonly studentNotifService = inject(StudentNotificationService);
+  private electionSvc = inject(ElectionService);
+  private elecomNotifSub?: Subscription;
 
   constructor(
     public auth: AuthService,
@@ -30,15 +33,35 @@ export class MainLayout implements OnInit {
 
   ngOnInit(): void {
     this.loadUser();
+
     this.router.events.subscribe(() => {
       this.loadUser();
       this.isProfileMenuOpen = false;
       this.sidebarOpen = false;
     });
 
+    // Load student notifications for badge
     if (this.isStudent()) {
       this.studentNotifService.loadNotifications();
     }
+
+    // Load ELECOM unseen badge count from Firestore
+    if (this.isElecom()) {
+      this.loadElecomUnseenCount();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.elecomNotifSub?.unsubscribe();
+  }
+
+  /** Subscribe to Firestore notifications filtered by role=elecom and count unseen ones */
+  loadElecomUnseenCount(): void {
+    this.elecomNotifSub = this.electionSvc
+      .getNotifications('elecom')
+      .subscribe((notifs: any[]) => {
+        this.unseenCount = notifs.filter((n) => !n.seen).length;
+      });
   }
 
   loadUser(): void {
@@ -71,6 +94,7 @@ export class MainLayout implements OnInit {
 
   goToNotifications(): void {
     if (this.isElecom()) {
+      this.unseenCount = 0; // Clear badge immediately on click
       this.router.navigate(['/app/elecom-notifications']);
     }
     if (this.isStudent()) {

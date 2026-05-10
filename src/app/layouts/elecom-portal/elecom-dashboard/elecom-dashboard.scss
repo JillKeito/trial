@@ -1,16 +1,17 @@
-$navy: #1e3a5f;
-$teal: #14b8a6;
-$green: #22c55e;
-$red: #ef4444;
-$amber: #f59e0b;
-$blue: #3b82f6;
+$navy:   #1e3a5f;
+$teal:   #14b8a6;
+$green:  #22c55e;
+$red:    #ef4444;
+$amber:  #f59e0b;
+$blue:   #3b82f6;
 $purple: #8b5cf6;
-$bg: #f0f4f8;
+$bg:     #f0f4f8;
 $surface: #ffffff;
-$text: #1e293b;
-$muted: #64748b;
+$text:   #1e293b;
+$muted:  #64748b;
 $border: #e2e8f0;
 
+// ── Layout ────────────────────────────────────────────────────────
 .dashboard {
   padding: 28px 32px;
   background: $bg;
@@ -18,8 +19,13 @@ $border: #e2e8f0;
   font-family: 'Segoe UI', sans-serif;
 }
 
+// ── Header ────────────────────────────────────────────────────────
 .page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   margin-bottom: 24px;
+
   h1 {
     font-size: 22px;
     font-weight: 700;
@@ -33,6 +39,26 @@ $border: #e2e8f0;
   }
 }
 
+.btn-create-voter {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  background: $navy;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.18s;
+  white-space: nowrap;
+
+  &:hover { background: #162d4a; }
+}
+
+// ── Status Banner ─────────────────────────────────────────────────
 .status-banner {
   display: flex;
   align-items: center;
@@ -42,27 +68,9 @@ $border: #e2e8f0;
   margin-bottom: 24px;
   border-left: 4px solid transparent;
 
-  &.status-active {
-    background: #f0fdf4;
-    border-left-color: $green;
-    .status-dot {
-      background: $green;
-    }
-  }
-  &.status-pending {
-    background: #fffbeb;
-    border-left-color: $amber;
-    .status-dot {
-      background: $amber;
-    }
-  }
-  &.status-ended {
-    background: #fef2f2;
-    border-left-color: $red;
-    .status-dot {
-      background: $red;
-    }
-  }
+  &.status-active  { background: #f0fdf4; border-left-color: $green; .status-dot { background: $green; } }
+  &.status-pending { background: #fffbeb; border-left-color: $amber; .status-dot { background: $amber; } }
+  &.status-ended   { background: #fef2f2; border-left-color: $red;   .status-dot { background: $red;   } }
 
   .status-left {
     display: flex;
@@ -75,7 +83,7 @@ $border: #e2e8f0;
     height: 10px;
     border-radius: 50%;
     flex-shrink: 0;
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.08);
   }
 
   .status-title {
@@ -88,36 +96,22 @@ $border: #e2e8f0;
     color: $muted;
     margin-top: 2px;
   }
-
-  .btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 9px 18px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
-
-    &.btn-start {
-      background: $green;
-      color: white;
-      &:hover {
-        background: #16a34a;
-      }
-    }
-    &.btn-end {
-      background: $red;
-      color: white;
-      &:hover {
-        background: #dc2626;
-      }
-    }
-  }
 }
 
+.status-note-wrap { display: flex; align-items: center; }
+
+.status-note {
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 20px;
+
+  &.live    { background: #fef2f2; color: $red; }
+  &.pending { background: #fffbeb; color: $amber; }
+  &.none    { background: #f1f5f9; color: $muted; }
+}
+
+// ── Stats Grid ────────────────────────────────────────────────────
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -136,87 +130,41 @@ $border: #e2e8f0;
   position: relative;
   transition: box-shadow 0.2s;
 
-  &:hover {
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  }
+  &:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
 
   .stat-icon {
-    width: 40px;
-    height: 40px;
+    width: 40px; height: 40px;
     border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
 
-    &.voters {
-      background: #eff6ff;
-      color: $blue;
-    }
-    &.voted {
-      background: #f0fdf4;
-      color: $green;
-    }
-    &.pending {
-      background: #fffbeb;
-      color: $amber;
-    }
-    &.candidates {
-      background: #f5f3ff;
-      color: $purple;
-    }
-    &.approved {
-      background: #f0fdf4;
-      color: $teal;
-    }
-    &.warning {
-      background: #fff7ed;
-      color: #f97316;
-    }
+    &.voters    { background: #eff6ff; color: $blue; }
+    &.voted     { background: #f0fdf4; color: $green; }
+    &.pending   { background: #fffbeb; color: $amber; }
+    &.candidates{ background: #f5f3ff; color: $purple; }
+    &.approved  { background: #f0fdf4; color: $teal; }
+    &.warning   { background: #fff7ed; color: #f97316; }
   }
 
-  .stat-body {
-    flex: 1;
-  }
-  .stat-value {
-    font-size: 22px;
-    font-weight: 700;
-    color: $text;
-    line-height: 1;
-  }
-  .stat-label {
-    font-size: 12px;
-    color: $muted;
-    margin-top: 2px;
-  }
+  .stat-body { flex: 1; }
+  .stat-value { font-size: 22px; font-weight: 700; color: $text; line-height: 1; }
+  .stat-label { font-size: 12px; color: $muted; margin-top: 2px; }
 
   .stat-link {
-    font-size: 11px;
-    color: $blue;
-    background: none;
-    border: none;
-    cursor: pointer;
-    position: absolute;
-    top: 10px;
-    right: 12px;
-    &:hover {
-      text-decoration: underline;
-    }
+    font-size: 11px; color: $blue;
+    background: none; border: none; cursor: pointer;
+    position: absolute; top: 10px; right: 12px;
+    &:hover { text-decoration: underline; }
   }
 
   .stat-rate {
-    position: absolute;
-    top: 10px;
-    right: 12px;
-    font-size: 11px;
-    font-weight: 700;
-    color: $green;
-    background: #f0fdf4;
-    padding: 2px 7px;
-    border-radius: 10px;
+    position: absolute; top: 10px; right: 12px;
+    font-size: 11px; font-weight: 700; color: $green;
+    background: #f0fdf4; padding: 2px 7px; border-radius: 10px;
   }
 }
 
+// ── Progress Card ─────────────────────────────────────────────────
 .progress-card {
   background: $surface;
   border: 1px solid $border;
@@ -230,10 +178,7 @@ $border: #e2e8f0;
     font-size: 13px;
     color: $muted;
     margin-bottom: 10px;
-    .pct {
-      font-weight: 700;
-      color: $navy;
-    }
+    .pct { font-weight: 700; color: $navy; }
   }
 
   .progress-track {
@@ -259,24 +204,21 @@ $border: #e2e8f0;
   }
 }
 
+// ── Bottom Row ────────────────────────────────────────────────────
 .bottom-row {
   display: grid;
   grid-template-columns: 1fr 1.5fr;
   gap: 16px;
 }
 
+// ── Quick Actions ─────────────────────────────────────────────────
 .quick-actions {
   background: $surface;
   border: 1px solid $border;
   border-radius: 12px;
   padding: 20px;
 
-  h3 {
-    font-size: 14px;
-    font-weight: 600;
-    color: $text;
-    margin: 0 0 14px;
-  }
+  h3 { font-size: 14px; font-weight: 600; color: $text; margin: 0 0 14px; }
 
   .action-grid {
     display: grid;
@@ -296,6 +238,7 @@ $border: #e2e8f0;
     font-weight: 500;
     color: $text;
     cursor: pointer;
+    font-family: inherit;
     transition: all 0.2s;
 
     &:hover {
@@ -304,30 +247,27 @@ $border: #e2e8f0;
       transform: translateY(-1px);
     }
 
-    svg {
-      color: $navy;
-    }
+    svg { color: $navy; flex-shrink: 0; }
   }
 }
 
+// ── Activity Panel ────────────────────────────────────────────────
 .activity-panel {
   background: $surface;
   border: 1px solid $border;
   border-radius: 12px;
   padding: 20px;
 
-  h3 {
-    font-size: 14px;
-    font-weight: 600;
-    color: $text;
-    margin: 0 0 14px;
-  }
+  h3 { font-size: 14px; font-weight: 600; color: $text; margin: 0 0 14px; }
 }
 
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.activity-list { display: flex; flex-direction: column; gap: 10px; }
+
+.no-activity {
+  padding: 24px;
+  text-align: center;
+  color: $muted;
+  font-size: 13px;
 }
 
 .activity-item {
@@ -336,163 +276,165 @@ $border: #e2e8f0;
   gap: 10px;
 
   .act-icon {
-    width: 28px;
-    height: 28px;
+    width: 28px; height: 28px;
     border-radius: 8px;
     flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
 
-    &.user {
-      background: #eff6ff;
-      color: $blue;
-    }
-    &.vote {
-      background: #f0fdf4;
-      color: $green;
-    }
-    &.election {
-      background: #f5f3ff;
-      color: $purple;
-    }
-    &.candidate {
-      background: #fffbeb;
-      color: $amber;
-    }
-    &.warning {
-      background: #fef2f2;
-      color: $red;
-    }
+    &.user      { background: #eff6ff; color: $blue; }
+    &.vote      { background: #f0fdf4; color: $green; }
+    &.election  { background: #f5f3ff; color: $purple; }
+    &.candidate { background: #fffbeb; color: $amber; }
+    &.warning   { background: #fef2f2; color: $red; }
   }
 
-  .act-body {
-    flex: 1;
-  }
-  .act-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: $text;
-  }
-  .act-sub {
-    font-size: 11px;
-    color: $muted;
-    margin-top: 1px;
-  }
-  .act-time {
-    font-size: 11px;
-    color: $muted;
-    white-space: nowrap;
-    padding-top: 2px;
-  }
+  .act-body { flex: 1; }
+  .act-title { font-size: 13px; font-weight: 600; color: $text; }
+  .act-sub   { font-size: 11px; color: $muted; margin-top: 1px; }
+  .act-time  { font-size: 11px; color: $muted; white-space: nowrap; padding-top: 2px; }
 }
 
+// ── Modal Overlay ─────────────────────────────────────────────────
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0,0,0,0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
 
+// ── Modal Box (form style) ────────────────────────────────────────
 .modal-box {
   background: $surface;
   border-radius: 16px;
-  padding: 32px;
-  width: 360px;
-  text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 440px;
+  max-width: calc(100vw - 32px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
 
-  .modal-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px;
-
-    &.start {
-      background: #f0fdf4;
-      color: $green;
-    }
-    &.end {
-      background: #fef2f2;
-      color: $red;
-    }
-  }
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid $border;
 
   h3 {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: $text;
-    margin: 0 0 8px;
-  }
-  p {
-    font-size: 13px;
-    color: $muted;
-    margin: 0 0 24px;
-    line-height: 1.6;
+    margin: 0;
   }
 }
 
-.modal-btns {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: $muted;
+  cursor: pointer;
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
 
-  .btn-cancel {
-    padding: 10px 24px;
+  &:hover { background: #f1f5f9; color: $text; }
+}
+
+.modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: $text;
+  }
+
+  input, textarea, select {
+    padding: 9px 12px;
     border: 1px solid $border;
     border-radius: 8px;
-    background: $surface;
-    font-size: 13px;
-    cursor: pointer;
+    font-size: 13.5px;
     color: $text;
-    &:hover {
-      background: #f1f5f9;
-    }
-  }
+    font-family: inherit;
+    background: #f8fafc;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
 
-  .btn-confirm {
-    padding: 10px 24px;
-    border: none;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    color: white;
+    &::placeholder { color: #b0bec5; }
 
-    &.green {
-      background: $green;
-      &:hover {
-        background: #16a34a;
-      }
-    }
-    &.red {
-      background: $red;
-      &:hover {
-        background: #dc2626;
-      }
+    &:focus {
+      border-color: $blue;
+      background: $surface;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
     }
   }
 }
 
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px 20px;
+  border-top: 1px solid $border;
+}
+
+.btn-cancel {
+  padding: 9px 20px;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: $surface;
+  font-size: 13px;
+  font-weight: 500;
+  color: $text;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+
+  &:hover { background: #f1f5f9; }
+}
+
+.btn-save {
+  padding: 9px 20px;
+  border: none;
+  border-radius: 8px;
+  background: $navy;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+
+  &:hover { background: #162d4a; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+// ── Responsive ────────────────────────────────────────────────────
 @media (max-width: 768px) {
-  .dashboard {
-    padding: 16px;
-  }
-  .bottom-row {
-    grid-template-columns: 1fr;
-  }
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .status-banner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
+  .dashboard { padding: 16px; }
+  .page-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+  .bottom-row { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .status-banner { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .form-row { grid-template-columns: 1fr; }
 }

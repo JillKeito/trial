@@ -16,66 +16,153 @@ $purple:   #7c3aed; $purple-bg: #f5f3ff;
 $r: 10px;
 
 .notif-page {
-  display: flex; flex-direction: column; gap: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
 .page-header {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  h1 { font-size: 20px; font-weight: 650; color: $text; margin: 0 0 3px; letter-spacing: -0.01em; }
-  .page-sub { font-size: 12.5px; color: $muted; margin: 0; }
-}
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
 
-.btn-mark-all {
-  background: none; border: 1px solid $border; border-radius: 7px;
-  padding: 7px 14px; font-size: 12.5px; font-weight: 500; color: $blue-600;
-  cursor: pointer; font-family: inherit; transition: background 0.14s;
-  &:hover { background: $blue-50; border-color: $blue-100; }
-}
+  h1 {
+    font-size: 20px;
+    font-weight: 650;
+    color: $text;
+    margin: 0 0 3px;
+    letter-spacing: -0.01em;
+  }
 
-.filter-tabs {
-  display: flex; gap: 6px; flex-wrap: wrap;
-}
-
-.ftab {
-  display: flex; align-items: center; gap: 6px;
-  padding: 6px 14px; border-radius: 20px;
-  font-size: 12.5px; font-weight: 500; cursor: pointer;
-  border: 1px solid $border; background: $surface; color: $muted;
-  font-family: inherit; transition: background 0.14s, color 0.14s, border-color 0.14s;
-
-  &:hover { background: $blue-50; color: $blue-600; border-color: $blue-100; }
-  &.active { background: $blue-600; color: #fff; border-color: $blue-600; }
-
-  .ftab-count {
-    background: rgba(255,255,255,0.25); color: inherit;
-    font-size: 10.5px; font-weight: 700;
-    padding: 1px 6px; border-radius: 20px;
-    .active & { background: rgba(255,255,255,0.22); }
-    :not(.active) & { background: $blue-100; color: $blue-700; }
+  .page-sub {
+    font-size: 12.5px;
+    color: $muted;
+    margin: 0;
   }
 }
 
-.notif-list { display: flex; flex-direction: column; gap: 0; }
+.btn-mark-all {
+  background: none;
+  border: 1px solid $border;
+  border-radius: 7px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: $blue-600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.14s;
+
+  &:hover {
+    background: $blue-50;
+    border-color: $blue-100;
+  }
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ftab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid $border;
+  background: $surface;
+  color: $muted;
+  font-family: inherit;
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+
+  &:hover {
+    background: $blue-50;
+    color: $blue-600;
+    border-color: $blue-100;
+  }
+
+  &.active {
+    background: $blue-600;
+    color: #fff;
+    border-color: $blue-600;
+  }
+
+  .ftab-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: inherit;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 20px;
+  }
+}
+
+// ── Loading state ────────────────────────────────────────────────
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 3rem;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $r;
+  color: $muted;
+
+  p { font-size: 13px; margin: 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+  color: $blue-600;
+}
+
+// ── Notification list ────────────────────────────────────────────
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
 
 .notif-item {
-  display: flex; align-items: flex-start; gap: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   padding: 14px 16px;
-  background: $surface; border: 1px solid $border;
-  cursor: pointer; position: relative;
+  background: $surface;
+  border: 1px solid $border;
+  cursor: pointer;
+  position: relative;
   transition: background 0.12s;
 
   &:first-child { border-radius: $r $r 0 0; }
   &:last-child  { border-radius: 0 0 $r $r; }
   &:only-child  { border-radius: $r; }
-  & + & { border-top: none; }
+  & + &         { border-top: none; }
 
   &.unread { background: $blue-50; border-color: $blue-100; }
-    &:hover  { background: #e8effe; }}  
+  &:hover  { background: #e8effe; }
+}
 
+// ── Icon badge ───────────────────────────────────────────────────
 .notif-icon {
-  width: 32px; height: 32px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   margin-top: 2px;
 
   &.vote      { background: $green-bg;  color: $green; }
@@ -85,19 +172,33 @@ $r: 10px;
   &.user      { background: $amber-bg;  color: $amber; }
 }
 
-.notif-body { flex: 1; }
+// ── Body text ────────────────────────────────────────────────────
+.notif-body  { flex: 1; }
 .notif-title { font-size: 13px; font-weight: 600; color: $text; }
 .notif-sub   { font-size: 12px; color: $muted; margin-top: 3px; line-height: 1.5; }
 .notif-time  { font-size: 11px; color: #9aa5c0; margin-top: 5px; }
 
+// ── Unread dot ───────────────────────────────────────────────────
 .notif-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: $blue-600; flex-shrink: 0; margin-top: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $blue-600;
+  flex-shrink: 0;
+  margin-top: 6px;
 }
 
+// ── Empty state ──────────────────────────────────────────────────
 .empty-state {
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  padding: 3rem; background: $surface; border: 1px solid $border;
-  border-radius: $r; color: $muted;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 3rem;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $r;
+  color: $muted;
+
   p { font-size: 13px; margin: 0; }
 }
