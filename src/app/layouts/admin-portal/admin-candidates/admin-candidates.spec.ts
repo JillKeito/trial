@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { BallotCreator } from './ballot-creator';
+import { AdminCandidates } from './admin-candidates';
 
-describe('BallotCreator', () => {
-  let component: BallotCreator;
-  let fixture: ComponentFixture<BallotCreator>;
+describe('AdminCandidates', () => {
+  let component: AdminCandidates;
+  let fixture: ComponentFixture<AdminCandidates>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [BallotCreator]
+      imports: [AdminCandidates]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(BallotCreator);
+    fixture = TestBed.createComponent(AdminCandidates);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

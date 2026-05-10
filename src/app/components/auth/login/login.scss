@@ -1,6 +1,5 @@
 .login-container {
   height: 100vh;
-  min-height: 100%;
   width: 100%;
   display: flex;
   align-items: center;
@@ -8,6 +7,7 @@
   padding: 0 8%;
   position: relative;
   overflow: hidden;
+
   background: linear-gradient(270deg, #0f1b35, #182d4e, #143043, #1a1a2e);
 
   &::before {
@@ -40,7 +40,7 @@
 
   .vote-title {
     font-size: clamp(42px, 6vw, 64px);
-    font-weight: 900;
+    font-weight: 1000;
     letter-spacing: -2px;
     line-height: 1.05;
     text-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
@@ -73,17 +73,18 @@
 
 .login-card {
   z-index: 1;
-  width: 500%;
-  max-width: 420px;
+  width: 420%;
+  max-width: 350px;
   padding: 50px 42px;
   border-radius: 24px;
   text-align: center;
-
+  margin-right: 15%;
   background: rgba(103, 100, 100, 0.45);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(57, 57, 57, 0.15);
   box-shadow: 0 8px 32px rgba(25, 25, 25, 0.6);
+  margin-top: 20px;
 }
 
 .logo-container {
@@ -210,7 +211,7 @@ h1 {
 .OSVE {
   position: absolute;
   top: 24px;
-  left: 50%;
+  left: 40%;
   transform: translateX(-50%);
   font-size: 14px;
   font-weight: 600;
@@ -219,4 +220,26 @@ h1 {
   color: rgba(255, 255, 255, 0.605);
   white-space: nowrap;
   z-index: 2;
+}
+
+// ── Login button spinner ──────────────────────────────────────
+.login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

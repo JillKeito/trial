@@ -12,14 +12,12 @@ import { MainLayout } from './layouts/main-layout/main-layout';
 ========================= */
 
 import { ElecomDashboard } from './layouts/elecom-portal/elecom-dashboard/elecom-dashboard';
-import { ElecomNotif } from './layouts/elecom-portal/elecom-notif/elecom-notif';
 import { ElecomSettings } from './layouts/elecom-portal/elecom-settings/elecom-settings';
-
 import { Candidates } from './components/pages/elecom-pages/candidates/candidates';
 import { Elections } from './components/pages/elecom-pages/election/election';
 import { Results } from './components/pages/elecom-pages/results/results';
 import { Voters } from './components/pages/elecom-pages/voters/voters';
-import { BallotCreator } from './components/pages/elecom-pages/ballot-creator/ballot-creator';
+
 
 /* =========================
    ADMIN
@@ -28,6 +26,7 @@ import { BallotCreator } from './components/pages/elecom-pages/ballot-creator/ba
 import { AdminDashboard } from './layouts/admin-portal/admin-dashboard/admin-dashboard';
 import { AdminNotifications } from './layouts/admin-portal/admin-notifications/admin-notifications';
 import { AdminSettings } from './layouts/admin-portal/admin-settings/admin-settings';
+import { AdminCandidates } from './layouts/admin-portal/admin-candidates/admin-candidates';
 
 /* =========================
    STUDENT
@@ -35,10 +34,10 @@ import { AdminSettings } from './layouts/admin-portal/admin-settings/admin-setti
 
 import { StudentDashboard } from './layouts/student-portal/student-dashboard/student-dashboard';
 import { StudentNotif } from './layouts/student-portal/student-dashboard/student-notif/student-notif';
-
 import { StudentElections } from './components/pages/student-pages/student-elections/student-elections';
 import { StudentApply } from './components/pages/student-pages/student-apply/student-apply';
 import { StudentBallot } from './components/pages/student-pages/student-ballot/student-ballot';
+import { ElecomNotif } from './layouts/elecom-portal/elecom-notif/elecom-notif';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -69,7 +68,6 @@ export const routes: Routes = [
 
       { path: 'elecom-settings', component: ElecomSettings, canActivate: [RoleGuard], data: { role: 'elecom' } },
 
-      { path: 'elecom-ballot-creator', component: BallotCreator, canActivate: [RoleGuard], data: { role: 'elecom' } },
 
       /* =========================
          ADMIN ROUTES
@@ -80,6 +78,8 @@ export const routes: Routes = [
       { path: 'admin-notifications', component: AdminNotifications, canActivate: [RoleGuard], data: { role: 'admin' } },
 
       { path: 'admin-settings', component: AdminSettings, canActivate: [RoleGuard], data: { role: 'admin' } },
+
+      { path: 'admin-candidates', component: AdminCandidates, canActivate: [RoleGuard], data: { role: 'admin' } },
 
       /* =========================
          STUDENT ROUTES

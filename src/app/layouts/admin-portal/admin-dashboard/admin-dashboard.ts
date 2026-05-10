@@ -1,9 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ElectionService, Election } from '../../../services/election';
+import { ElectionService, Election, Application, Candidate } from '../../../services/election';
+import { AuthService } from '../../../services/auth';
 import { forkJoin } from 'rxjs';
 import Swal from 'sweetalert2';
+import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
+import { Firestore, doc, setDoc } from '@angular/fire/firestore';
+import { inject } from '@angular/core';
 
 export interface AuditCheck {
   label: string;
@@ -19,28 +23,56 @@ export interface AuditCheck {
   styleUrls: ['./admin-dashboard.scss'],
 })
 export class AdminDashboard implements OnInit {
+  // ── Firebase ─────────────────────────────────────────────────
+  private firebaseAuth = inject(Auth);
+  private firestore = inject(Firestore);
+
+  // ── Elections ─────────────────────────────────────────────────
   elections: Election[] = [];
   loading = false;
 
-  // create/edit modal
+  // ── Tabs ──────────────────────────────────────────────────────
+  // controls which section is shown below the stats
+  activeTab: 'elections' | 'applications' | 'results' | 'accounts' = 'elections';
+
+  // ── Applications (candidate requests from students) ───────────
+  applications: Application[] = [];
+  loadingApps = false;
+
+  // ── Results ───────────────────────────────────────────────────
+  resultsByPosition: { position: string; candidates: Candidate[]; total: number }[] = [];
+  loadingResults = false;
+  selectedResultElection: Election | null = null;
+
+  // ── Create student account modal ──────────────────────────────
+  showAccountModal = false;
+  accountForm = { name: '', email: '', password: '', course: '', year: '' };
+  creatingAccount = false;
+
+  // ── Create/Edit election modal ────────────────────────────────
   showModal = false;
   isEditMode = false;
   selectedElection: Partial<Election> = {};
   form = { name: '', description: '', startDate: '', endDate: '', totalPositions: 7 };
 
-  // audit modal
+  // ── Audit modal ───────────────────────────────────────────────
   showAuditModal = false;
   auditElection: Election | null = null;
   auditChecks: AuditCheck[] = [];
   auditLoading = false;
   auditNote = '';
 
-  constructor(private svc: ElectionService) {}
+  constructor(
+    private svc: ElectionService,
+    private auth: AuthService,
+  ) {}
 
   ngOnInit() {
     this.loadElections();
+    this.loadApplications();
   }
 
+  // ── Load elections ────────────────────────────────────────────
   loadElections() {
     this.loading = true;
     this.svc.getElections().subscribe((e) => {
@@ -49,6 +81,183 @@ export class AdminDashboard implements OnInit {
     });
   }
 
+  // ── Load candidate applications ───────────────────────────────
+  // Students submit applications from student-apply page
+  // They appear here for admin to approve or reject
+  loadApplications() {
+    this.loadingApps = true;
+    this.svc.getApplications().subscribe((apps) => {
+      this.applications = apps;
+      this.loadingApps = false;
+    });
+  }
+
+  // ── Approve application ───────────────────────────────────────
+  // ACID Consistency: status only changes to valid values (approved/rejected)
+  approveApplication(app: Application) {
+    Swal.fire({
+      title: 'Approve candidate?',
+      text: `${app.name} for ${app.position}`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#22c55e',
+      confirmButtonText: 'Approve',
+    }).then((r) => {
+      if (!r.isConfirmed) return;
+
+      // update application status to approved
+      this.svc.updateApplication({ ...app, status: 'approved' }).subscribe(() => {
+        // also add to candidates collection so they appear on ballot
+        this.svc
+          .addCandidate({
+            name: app.name,
+            position: app.position,
+            party: app.party,
+            photo: app.photo || '',
+            votes: 0,
+            bio: app.bio || '',
+            course: app.course,
+            year: app.year,
+            status: 'approved',
+            requirements: app.requirements,
+          })
+          .subscribe(() => {
+            this.loadApplications();
+            Swal.fire({
+              icon: 'success',
+              title: 'Candidate Approved!',
+              timer: 1000,
+              showConfirmButton: false,
+            });
+          });
+      });
+    });
+  }
+
+  // ── Reject application ────────────────────────────────────────
+  rejectApplication(app: Application) {
+    Swal.fire({
+      title: 'Reject candidate?',
+      text: `${app.name} for ${app.position}`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Reject',
+    }).then((r) => {
+      if (!r.isConfirmed) return;
+      this.svc.updateApplication({ ...app, status: 'rejected' }).subscribe(() => {
+        this.loadApplications();
+        Swal.fire({
+          icon: 'info',
+          title: 'Application Rejected',
+          timer: 1000,
+          showConfirmButton: false,
+        });
+      });
+    });
+  }
+
+  // ── Load results for a completed election ─────────────────────
+  loadResults(election: Election) {
+    this.selectedResultElection = election;
+    this.loadingResults = true;
+    this.activeTab = 'results';
+
+    this.svc.getCandidates().subscribe((candidates) => {
+      // filter candidates by election
+      const electionCandidates = candidates.filter(
+        (c) => (c as any).electionId === election.id || !c.hasOwnProperty('electionId'),
+      );
+
+      // group by position
+      const map = new Map<string, Candidate[]>();
+      for (const c of electionCandidates) {
+        if (!map.has(c.position)) map.set(c.position, []);
+        map.get(c.position)!.push(c);
+      }
+
+      this.resultsByPosition = Array.from(map.entries()).map(([position, cands]) => {
+        const sorted = [...cands].sort((a, b) => b.votes - a.votes);
+        return {
+          position,
+          candidates: sorted,
+          total: sorted.reduce((s, c) => s + (c.votes || 0), 0),
+        };
+      });
+
+      this.loadingResults = false;
+    });
+  }
+
+  getPercent(votes: number, total: number): number {
+    return total > 0 ? Math.round((votes / total) * 100) : 0;
+  }
+
+  // ── Create student account ────────────────────────────────────
+  // Creates Firebase Auth account + saves to Firestore /users
+  // ACID Atomicity: both auth creation and Firestore write happen together
+  openAccountModal() {
+    this.showAccountModal = true;
+    this.accountForm = { name: '', email: '', password: '', course: '', year: '' };
+  }
+
+  closeAccountModal() {
+    this.showAccountModal = false;
+  }
+
+  async createStudentAccount() {
+    if (!this.accountForm.name || !this.accountForm.email || !this.accountForm.password) {
+      Swal.fire({ icon: 'warning', title: 'Please fill in all required fields.' });
+      return;
+    }
+
+    this.creatingAccount = true;
+
+    try {
+      // Step 1: create Firebase Auth account
+      const credential = await createUserWithEmailAndPassword(
+        this.firebaseAuth,
+        this.accountForm.email,
+        this.accountForm.password,
+      );
+
+      // Step 2: save user data to Firestore /users collection
+      // uses the Firebase Auth UID as the document ID
+      await setDoc(doc(this.firestore, 'users', credential.user.uid), {
+        name: this.accountForm.name,
+        email: this.accountForm.email,
+        role: 'student',
+        course: this.accountForm.course,
+        year: this.accountForm.year,
+        createdAt: new Date().toISOString(),
+      });
+
+      this.creatingAccount = false;
+      this.closeAccountModal();
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Student Account Created!',
+        text: `${this.accountForm.name} can now log in.`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (err: any) {
+      this.creatingAccount = false;
+      console.error('Account creation error:', err);
+
+      // show friendly error messages
+      if (err.code === 'auth/email-already-in-use') {
+        Swal.fire({ icon: 'error', title: 'Email already exists.' });
+      } else if (err.code === 'auth/weak-password') {
+        Swal.fire({ icon: 'error', title: 'Password must be at least 6 characters.' });
+      } else {
+        Swal.fire({ icon: 'error', title: 'Failed to create account. Try again.' });
+      }
+    }
+  }
+
+  // ── Getters ───────────────────────────────────────────────────
   get activeElection() {
     return this.elections.find((e) => e.status === 'active') || null;
   }
@@ -58,8 +267,11 @@ export class AdminDashboard implements OnInit {
   get completedElections() {
     return this.elections.filter((e) => e.status === 'completed');
   }
+  get pendingApplications() {
+    return this.applications.filter((a) => a.status === 'pending');
+  }
 
-  // ── Modal ────────────────────────────────────────────────────
+  // ── Create/Edit modal ─────────────────────────────────────────
   openCreate() {
     this.isEditMode = false;
     this.form = { name: '', description: '', startDate: '', endDate: '', totalPositions: 7 };
@@ -118,7 +330,7 @@ export class AdminDashboard implements OnInit {
     }
   }
 
-  // ── Start / End / Delete ─────────────────────────────────────
+  // ── Start / End / Delete ──────────────────────────────────────
   start(e: Election) {
     if (this.activeElection) {
       Swal.fire({ icon: 'warning', title: 'An election is already active!' });
@@ -164,7 +376,7 @@ export class AdminDashboard implements OnInit {
     });
   }
 
-  // ── Audit ────────────────────────────────────────────────────
+  // ── Audit ─────────────────────────────────────────────────────
   openAudit(e: Election) {
     this.auditElection = e;
     this.auditChecks = [];
@@ -339,6 +551,7 @@ export class AdminDashboard implements OnInit {
       .subscribe();
   }
 
+  // ── Helpers ───────────────────────────────────────────────────
   statusClass(s: string) {
     return s === 'active'
       ? 'status-active'
@@ -353,5 +566,13 @@ export class AdminDashboard implements OnInit {
 
   checkIcon(s: 'ok' | 'warning' | 'error') {
     return s === 'ok' ? '✅' : s === 'warning' ? '⚠️' : '❌';
+  }
+
+  appStatusClass(s: string) {
+    return s === 'approved'
+      ? 'status-active'
+      : s === 'rejected'
+        ? 'status-completed'
+        : 'status-upcoming';
   }
 }

@@ -20,8 +20,17 @@ $border: #e2e8f0;
 
 .page-header {
   margin-bottom: 24px;
-  h1 { font-size: 22px; font-weight: 700; color: $text; margin: 0 0 4px; }
-  .page-sub { font-size: 13px; color: $muted; margin: 0; }
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: $text;
+    margin: 0 0 4px;
+  }
+  .page-sub {
+    font-size: 13px;
+    color: $muted;
+    margin: 0;
+  }
 }
 
 .status-banner {
@@ -33,27 +42,79 @@ $border: #e2e8f0;
   margin-bottom: 24px;
   border-left: 4px solid transparent;
 
-  &.status-active  { background: #f0fdf4; border-left-color: $green; .status-dot { background: $green; } }
-  &.status-pending { background: #fffbeb; border-left-color: $amber; .status-dot { background: $amber; } }
-  &.status-ended   { background: #fef2f2; border-left-color: $red;   .status-dot { background: $red; } }
-
-  .status-left { display: flex; align-items: center; gap: 12px; }
-
-  .status-dot {
-    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-    box-shadow: 0 0 0 3px rgba(0,0,0,0.08);
+  &.status-active {
+    background: #f0fdf4;
+    border-left-color: $green;
+    .status-dot {
+      background: $green;
+    }
+  }
+  &.status-pending {
+    background: #fffbeb;
+    border-left-color: $amber;
+    .status-dot {
+      background: $amber;
+    }
+  }
+  &.status-ended {
+    background: #fef2f2;
+    border-left-color: $red;
+    .status-dot {
+      background: $red;
+    }
   }
 
-  .status-title { font-size: 14px; font-weight: 700; color: $text; }
-  .status-sub   { font-size: 12px; color: $muted; margin-top: 2px; }
+  .status-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .status-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: $text;
+  }
+  .status-sub {
+    font-size: 12px;
+    color: $muted;
+    margin-top: 2px;
+  }
 
   .btn {
-    display: flex; align-items: center; gap: 6px;
-    padding: 9px 18px; border-radius: 8px;
-    font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
 
-    &.btn-start { background: $green; color: white; &:hover { background: #16a34a; } }
-    &.btn-end   { background: $red;   color: white; &:hover { background: #dc2626; } }
+    &.btn-start {
+      background: $green;
+      color: white;
+      &:hover {
+        background: #16a34a;
+      }
+    }
+    &.btn-end {
+      background: $red;
+      color: white;
+      &:hover {
+        background: #dc2626;
+      }
+    }
   }
 }
 
@@ -75,34 +136,84 @@ $border: #e2e8f0;
   position: relative;
   transition: box-shadow 0.2s;
 
-  &:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-
-  .stat-icon {
-    width: 40px; height: 40px; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-
-    &.voters     { background: #eff6ff; color: $blue; }
-    &.voted      { background: #f0fdf4; color: $green; }
-    &.pending    { background: #fffbeb; color: $amber; }
-    &.candidates { background: #f5f3ff; color: $purple; }
-    &.approved   { background: #f0fdf4; color: $teal; }
-    &.warning    { background: #fff7ed; color: #f97316; }
+  &:hover {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   }
 
-  .stat-body  { flex: 1; }
-  .stat-value { font-size: 22px; font-weight: 700; color: $text; line-height: 1; }
-  .stat-label { font-size: 12px; color: $muted; margin-top: 2px; }
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    &.voters {
+      background: #eff6ff;
+      color: $blue;
+    }
+    &.voted {
+      background: #f0fdf4;
+      color: $green;
+    }
+    &.pending {
+      background: #fffbeb;
+      color: $amber;
+    }
+    &.candidates {
+      background: #f5f3ff;
+      color: $purple;
+    }
+    &.approved {
+      background: #f0fdf4;
+      color: $teal;
+    }
+    &.warning {
+      background: #fff7ed;
+      color: #f97316;
+    }
+  }
+
+  .stat-body {
+    flex: 1;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: $text;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: $muted;
+    margin-top: 2px;
+  }
 
   .stat-link {
-    font-size: 11px; color: $blue; background: none; border: none;
-    cursor: pointer; position: absolute; top: 10px; right: 12px;
-    &:hover { text-decoration: underline; }
+    font-size: 11px;
+    color: $blue;
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    &:hover {
+      text-decoration: underline;
+    }
   }
 
   .stat-rate {
-    position: absolute; top: 10px; right: 12px;
-    font-size: 11px; font-weight: 700; color: $green;
-    background: #f0fdf4; padding: 2px 7px; border-radius: 10px;
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: $green;
+    background: #f0fdf4;
+    padding: 2px 7px;
+    border-radius: 10px;
   }
 }
 
@@ -114,24 +225,37 @@ $border: #e2e8f0;
   margin-bottom: 20px;
 
   .progress-header {
-    display: flex; justify-content: space-between;
-    font-size: 13px; color: $muted; margin-bottom: 10px;
-    .pct { font-weight: 700; color: $navy; }
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: $muted;
+    margin-bottom: 10px;
+    .pct {
+      font-weight: 700;
+      color: $navy;
+    }
   }
 
   .progress-track {
-    height: 8px; background: $border;
-    border-radius: 4px; overflow: hidden; margin-bottom: 8px;
+    height: 8px;
+    background: $border;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
   }
 
   .progress-fill {
-    height: 100%; background: linear-gradient(90deg, $teal, $green);
-    border-radius: 4px; transition: width 0.5s ease;
+    height: 100%;
+    background: linear-gradient(90deg, $teal, $green);
+    border-radius: 4px;
+    transition: width 0.5s ease;
   }
 
   .progress-meta {
-    display: flex; justify-content: space-between;
-    font-size: 11px; color: $muted;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: $muted;
   }
 }
 
@@ -147,7 +271,12 @@ $border: #e2e8f0;
   border-radius: 12px;
   padding: 20px;
 
-  h3 { font-size: 14px; font-weight: 600; color: $text; margin: 0 0 14px; }
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: $text;
+    margin: 0 0 14px;
+  }
 
   .action-grid {
     display: grid;
@@ -156,15 +285,28 @@ $border: #e2e8f0;
   }
 
   .action-btn {
-    display: flex; align-items: center; gap: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     padding: 12px 14px;
-    background: #f8fafc; border: 1px solid $border;
-    border-radius: 10px; font-size: 13px; font-weight: 500;
-    color: $text; cursor: pointer; transition: all 0.2s;
+    background: #f8fafc;
+    border: 1px solid $border;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: $text;
+    cursor: pointer;
+    transition: all 0.2s;
 
-    &:hover { background: #f1f5f9; border-color: #cbd5e1; transform: translateY(-1px); }
+    &:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+    }
 
-    svg { color: $navy; }
+    svg {
+      color: $navy;
+    }
   }
 }
 
@@ -174,35 +316,84 @@ $border: #e2e8f0;
   border-radius: 12px;
   padding: 20px;
 
-  h3 { font-size: 14px; font-weight: 600; color: $text; margin: 0 0 14px; }
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: $text;
+    margin: 0 0 14px;
+  }
 }
 
-.activity-list { display: flex; flex-direction: column; gap: 10px; }
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
 .activity-item {
-  display: flex; align-items: flex-start; gap: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
 
   .act-icon {
-    width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    &.user      { background: #eff6ff; color: $blue; }
-    &.vote      { background: #f0fdf4; color: $green; }
-    &.election  { background: #f5f3ff; color: $purple; }
-    &.candidate { background: #fffbeb; color: $amber; }
-    &.warning   { background: #fef2f2; color: $red; }
+    &.user {
+      background: #eff6ff;
+      color: $blue;
+    }
+    &.vote {
+      background: #f0fdf4;
+      color: $green;
+    }
+    &.election {
+      background: #f5f3ff;
+      color: $purple;
+    }
+    &.candidate {
+      background: #fffbeb;
+      color: $amber;
+    }
+    &.warning {
+      background: #fef2f2;
+      color: $red;
+    }
   }
 
-  .act-body  { flex: 1; }
-  .act-title { font-size: 13px; font-weight: 600; color: $text; }
-  .act-sub   { font-size: 11px; color: $muted; margin-top: 1px; }
-  .act-time  { font-size: 11px; color: $muted; white-space: nowrap; padding-top: 2px; }
+  .act-body {
+    flex: 1;
+  }
+  .act-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: $text;
+  }
+  .act-sub {
+    font-size: 11px;
+    color: $muted;
+    margin-top: 1px;
+  }
+  .act-time {
+    font-size: 11px;
+    color: $muted;
+    white-space: nowrap;
+    padding-top: 2px;
+  }
 }
 
 .modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.45);
-  display: flex; align-items: center; justify-content: center;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 1000;
 }
 
@@ -212,42 +403,96 @@ $border: #e2e8f0;
   padding: 32px;
   width: 360px;
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
 
   .modal-icon {
-    width: 56px; height: 56px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin: 0 auto 16px;
 
-    &.start { background: #f0fdf4; color: $green; }
-    &.end   { background: #fef2f2; color: $red; }
+    &.start {
+      background: #f0fdf4;
+      color: $green;
+    }
+    &.end {
+      background: #fef2f2;
+      color: $red;
+    }
   }
 
-  h3 { font-size: 18px; font-weight: 700; color: $text; margin: 0 0 8px; }
-  p  { font-size: 13px; color: $muted; margin: 0 0 24px; line-height: 1.6; }
+  h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: $text;
+    margin: 0 0 8px;
+  }
+  p {
+    font-size: 13px;
+    color: $muted;
+    margin: 0 0 24px;
+    line-height: 1.6;
+  }
 }
 
 .modal-btns {
-  display: flex; gap: 10px; justify-content: center;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
 
   .btn-cancel {
-    padding: 10px 24px; border: 1px solid $border; border-radius: 8px;
-    background: $surface; font-size: 13px; cursor: pointer; color: $text;
-    &:hover { background: #f1f5f9; }
+    padding: 10px 24px;
+    border: 1px solid $border;
+    border-radius: 8px;
+    background: $surface;
+    font-size: 13px;
+    cursor: pointer;
+    color: $text;
+    &:hover {
+      background: #f1f5f9;
+    }
   }
 
   .btn-confirm {
-    padding: 10px 24px; border: none; border-radius: 8px;
-    font-size: 13px; font-weight: 600; cursor: pointer; color: white;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: white;
 
-    &.green { background: $green; &:hover { background: #16a34a; } }
-    &.red   { background: $red;   &:hover { background: #dc2626; } }
+    &.green {
+      background: $green;
+      &:hover {
+        background: #16a34a;
+      }
+    }
+    &.red {
+      background: $red;
+      &:hover {
+        background: #dc2626;
+      }
+    }
   }
 }
 
 @media (max-width: 768px) {
-  .dashboard { padding: 16px; }
-  .bottom-row { grid-template-columns: 1fr; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .status-banner { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .dashboard {
+    padding: 16px;
+  }
+  .bottom-row {
+    grid-template-columns: 1fr;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .status-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 }

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ElectionService, Candidate } from '../../../../services/election';
+import { ElectionService, Candidate, Election } from '../../../../services/election';
 import Swal from 'sweetalert2';
 
 const USG_POSITIONS = [
@@ -9,9 +9,7 @@ const USG_POSITIONS = [
   'Treasurer', 'Auditor', 'PRO / PIO', 'Senator'
 ];
 
-const COURSES = [
-  'BSIT','BSTCM', 'BSEMT'
-];
+const COURSES = ['BSIT', 'BSTCM', 'BSEMT'];
 
 @Component({
   selector: 'app-candidates',
@@ -23,27 +21,38 @@ const COURSES = [
 export class Candidates implements OnInit {
 
   candidates: Candidate[] = [];
+  elections: Election[] = [];
   showCandidateModal = false;
   loading = false;
   candidateFilter: 'all' | 'pending' | 'approved' | 'disqualified' = 'all';
 
   positions = USG_POSITIONS;
   years = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+  courses = COURSES;
 
   newCandidate = {
-    name: '', position: USG_POSITIONS[0], course: COURSES[0], year: '1st Year',
-    party: '', bio: '', photo: '', votes: 0,
+    name: '',
+    position: USG_POSITIONS[0],
+    course: COURSES[0],
+    year: '1st Year',
+    party: '',
+    bio: '',
+    photo: '',
+    votes: 0,
+    electionId: '' as string,
     status: 'pending' as 'pending',
     requirements: {
       enrollment: false, goodMoral: false, residency: false,
       coc: false, noViolations: false, noFailingGrades: false
     }
   };
-  courses = COURSES;
 
   constructor(private svc: ElectionService) {}
 
-  ngOnInit(): void { this.loadCandidates(); }
+  ngOnInit(): void {
+    this.loadCandidates();
+    this.svc.getElections().subscribe(e => this.elections = e);
+  }
 
   loadCandidates(): void {
     this.loading = true;
@@ -61,6 +70,11 @@ export class Candidates implements OnInit {
   get totalCandidates(): number { return this.candidates.length; }
   get approvedCount(): number   { return this.candidates.filter(c => c.status === 'approved').length; }
   get pendingCount(): number    { return this.candidates.filter(c => c.status === 'pending').length; }
+
+  getElectionName(electionId?: string): string {
+    if (!electionId) return '—';
+    return this.elections.find(e => e.id === electionId)?.name ?? '—';
+  }
 
   requirementsMet(req: Candidate['requirements']): boolean {
     return req ? Object.values(req).every(Boolean) : false;
@@ -122,8 +136,8 @@ export class Candidates implements OnInit {
 
   resetForm(): void {
     this.newCandidate = {
-      name: '', position: USG_POSITIONS[0], course: '', year: '1st Year',
-      party: '', bio: '', photo: '', votes: 0, status: 'pending',
+      name: '', position: USG_POSITIONS[0], course: COURSES[0], year: '1st Year',
+      party: '', bio: '', photo: '', votes: 0, electionId: '', status: 'pending',
       requirements: {
         enrollment: false, goodMoral: false, residency: false,
         coc: false, noViolations: false, noFailingGrades: false

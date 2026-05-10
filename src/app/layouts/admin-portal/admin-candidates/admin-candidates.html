@@ -1,0 +1,249 @@
+<div class="candidates-page">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <h1>Manage Candidates</h1>
+      <p class="page-sub">Register and manage candidates for elections</p>
+    </div>
+    <button class="btn-primary" (click)="openAdd()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Add Candidate
+    </button>
+  </div>
+
+  <!-- ── Stats row ────────────────────────────────────────────── -->
+  <div class="stats-row">
+    <div class="stat-pill">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Total: <strong>{{ totalCount }}</strong>
+    </div>
+    <div class="stat-pill approved">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      Approved: <strong>{{ approvedCount }}</strong>
+    </div>
+    <div class="stat-pill pending">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Pending: <strong>{{ pendingCount }}</strong>
+    </div>
+    <div class="stat-pill disqualified">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      Disqualified: <strong>{{ disqualifiedCount }}</strong>
+    </div>
+  </div>
+
+  <!-- ── Filters ──────────────────────────────────────────────── -->
+  <div class="filter-bar">
+    <!-- Search -->
+    <div class="search-wrap">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input [(ngModel)]="searchText" placeholder="Search name or position…" />
+    </div>
+    <!-- Status tabs -->
+    <div class="filter-tabs">
+      <button [class.active]="filterStatus==='all'"          (click)="filterStatus='all'">All</button>
+      <button [class.active]="filterStatus==='approved'"     (click)="filterStatus='approved'">Approved</button>
+      <button [class.active]="filterStatus==='pending'"      (click)="filterStatus='pending'">Pending</button>
+      <button [class.active]="filterStatus==='disqualified'" (click)="filterStatus='disqualified'">Disqualified</button>
+    </div>
+    <!-- Org filter -->
+    <select [(ngModel)]="filterOrg" class="filter-select">
+      <option value="">All Organizations</option>
+      <option *ngFor="let o of orgs" [value]="o">{{ o }}</option>
+    </select>
+    <!-- Election filter -->
+    <select [(ngModel)]="filterElection" class="filter-select">
+      <option value="">All Elections</option>
+      <option *ngFor="let e of elections" [value]="e.id">{{ e.name }}</option>
+    </select>
+  </div>
+
+  <!-- ── Table ────────────────────────────────────────────────── -->
+  <div class="table-card">
+    <div class="loading-state" *ngIf="loading">Loading candidates…</div>
+
+    <table *ngIf="!loading">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Candidate</th>
+          <th>Organization</th>
+          <th>Position</th>
+          <th>Election</th>
+          <th>Party</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of filteredCandidates; let i = index">
+          <td class="muted">{{ i + 1 }}</td>
+          <td>
+            <div class="cand-cell">
+              <div class="avatar" *ngIf="!c.photo">{{ initial(c.name) }}</div>
+              <img class="avatar-img" *ngIf="c.photo" [src]="c.photo" [alt]="c.name" />
+              <div>
+                <div class="cand-name">{{ c.name }}</div>
+                <div class="cand-meta" *ngIf="c.course">{{ c.course }} · {{ c.year }}</div>
+              </div>
+            </div>
+          </td>
+          <td>{{ $any(c).organization || '—' }}</td>
+          <td><strong>{{ c.position }}</strong></td>
+          <td class="election-cell">{{ electionName($any(c).electionId) }}</td>
+          <td class="muted">{{ c.party || '—' }}</td>
+          <td>
+            <span class="badge" [ngClass]="statusClass(c.status)">
+              {{ c.status || 'pending' }}
+            </span>
+          </td>
+          <td>
+            <div class="action-btns">
+              <button class="btn-action approve"
+                      *ngIf="c.status !== 'approved'"
+                      (click)="setStatus(c, 'approved')"
+                      title="Approve">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+              <button class="btn-action disqualify"
+                      *ngIf="c.status !== 'disqualified'"
+                      (click)="setStatus(c, 'disqualified')"
+                      title="Disqualify">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              </button>
+              <button class="btn-action delete-btn"
+                      (click)="delete(c)"
+                      title="Delete">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredCandidates.length === 0 && !loading">
+          <td colspan="8" class="empty-row">No candidates found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!--  REGISTER CANDIDATE MODAL                                  -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <div>
+          <h3>Register Candidate</h3>
+          <p class="modal-sub">Candidate is automatically set to <strong>Approved</strong></p>
+        </div>
+        <button class="btn-close" (click)="closeModal()" [disabled]="saving">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- Photo upload -->
+        <div class="photo-upload-area">
+          <div class="photo-preview" [class.has-photo]="form.photo">
+            <img *ngIf="form.photo" [src]="form.photo" alt="Preview" />
+            <svg *ngIf="!form.photo" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </div>
+          <div class="photo-info">
+            <label class="btn-upload" for="photoInput">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload Photo
+            </label>
+            <input id="photoInput" type="file" accept="image/*" (change)="onPhotoSelected($event)" style="display:none" />
+            <span class="photo-hint">JPG, PNG · optional</span>
+          </div>
+        </div>
+
+        <!-- Full Name -->
+        <div class="form-group">
+          <label>Full Name <span class="req">*</span></label>
+          <input [(ngModel)]="form.name" placeholder="e.g. Juan dela Cruz" [disabled]="saving" />
+        </div>
+
+        <!-- Organization + Position -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Organization <span class="req">*</span></label>
+            <select [(ngModel)]="form.organization" (ngModelChange)="onOrgChange()" [disabled]="saving">
+              <option value="">Select organization</option>
+              <option *ngFor="let o of orgs" [value]="o">{{ o }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Position <span class="req">*</span></label>
+            <select [(ngModel)]="form.position" [disabled]="saving || !form.organization">
+              <option value="">Select position</option>
+              <option *ngFor="let p of positionsForOrg" [value]="p">{{ p }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Election -->
+        <div class="form-group">
+          <label>Election <span class="req">*</span></label>
+          <select [(ngModel)]="form.electionId" [disabled]="saving">
+            <option value="">Select election</option>
+            <option *ngFor="let e of elections" [value]="e.id">{{ e.name }}</option>
+          </select>
+        </div>
+
+        <!-- Course + Year -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Course</label>
+            <select [(ngModel)]="form.course" [disabled]="saving">
+              <option value="">Select course</option>
+              <option *ngFor="let c of courses" [value]="c">{{ c }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Year Level</label>
+            <select [(ngModel)]="form.year" [disabled]="saving">
+              <option value="">Select year</option>
+              <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Party / Team -->
+        <div class="form-group">
+          <label>Party / Team</label>
+          <input [(ngModel)]="form.party" placeholder="e.g. PINLAK" [disabled]="saving" />
+        </div>
+
+        <!-- Platform / Goals -->
+        <div class="form-group">
+          <label>Platform / Goals</label>
+          <textarea [(ngModel)]="form.bio" placeholder="Enter platform or goals…" rows="3" [disabled]="saving" maxlength="500"></textarea>
+          <span class="char-count">{{ form.bio.length }}/500 characters</span>
+        </div>
+
+      </div><!-- /modal-body -->
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeModal()" [disabled]="saving">Cancel</button>
+        <button class="btn-save" (click)="save()" [disabled]="saving">
+          <span *ngIf="!saving">Save Candidate</span>
+          <span *ngIf="saving" class="saving-wrap">
+            <svg class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            Saving…
+          </span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

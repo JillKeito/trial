@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ElectionService, Voter } from '../../../../services/election';
+import { AuthService } from '../../../../services/auth';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -17,11 +18,27 @@ export class Voters implements OnInit {
   showVoterModal = false;
   voterSearch = '';
   loading = false;
+  saving = false;
 
-  newVoter = { studentId: '', name: '', course: '', year: '1st' };
+  newVoter = {
+    studentId: '',
+    name: '',
+    course: '',
+    year: '1st',
+    password: '',
+    confirmPassword: '',
+  };
+
   voterYears = ['1st', '2nd', '3rd', '4th'];
 
-  constructor(private svc: ElectionService) {}
+  // Exposed for the template
+  showPassword = false;
+  showConfirmPassword = false;
+
+  constructor(
+    private svc: ElectionService,
+    private authService: AuthService,
+  ) {}
 
   ngOnInit(): void { this.loadVoters(); }
 
@@ -51,6 +68,17 @@ export class Voters implements OnInit {
       ? Math.round((this.votedCount / this.totalVoters) * 100) : 0;
   }
 
+  openModal(): void {
+    this.newVoter = { studentId: '', name: '', course: '', year: '1st', password: '', confirmPassword: '' };
+    this.showPassword = false;
+    this.showConfirmPassword = false;
+    this.showVoterModal = true;
+  }
+
+  closeModal(): void {
+    this.showVoterModal = false;
+  }
+
   markVoted(voter: Voter): void {
     const updated: Voter = {
       ...voter,
@@ -75,20 +103,66 @@ export class Voters implements OnInit {
     });
   }
 
-  addVoterSubmit(): void {
-    if (!this.newVoter.studentId || !this.newVoter.name || !this.newVoter.course) return;
-    const v: Omit<Voter, 'id'> = {
-      studentId:  this.newVoter.studentId,
-      name:       this.newVoter.name,
-      course:     this.newVoter.course,
-      year:       this.newVoter.year,
-      hasVoted:   false,
-      verifiedAt: null
-    };
-    this.svc.addVoter(v).subscribe(() => {
+  // ── Add Voter (with Firebase Auth registration) ──────────────
+  async addVoterSubmit(): Promise<void> {
+    const { studentId, name, course, year, password, confirmPassword } = this.newVoter;
+
+    // Basic validation
+    if (!studentId.trim() || !name.trim() || !course.trim()) {
+      Swal.fire('Missing fields', 'Student ID, Name, and Course are required.', 'warning');
+      return;
+    }
+
+    if (!password) {
+      Swal.fire('No password', 'Please set a login password for this voter.', 'warning');
+      return;
+    }
+
+    if (password.length < 6) {
+      Swal.fire('Weak password', 'Password must be at least 6 characters.', 'warning');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Swal.fire('Password mismatch', 'Passwords do not match.', 'warning');
+      return;
+    }
+
+    this.saving = true;
+
+    try {
+      // This creates Firebase Auth account + users/ doc + voters/ doc
+      await this.authService.registerVoter({ studentId, name, course, year, password });
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Voter Added!',
+        html: `
+          <p><strong>${name}</strong> has been registered.</p>
+          <p style="margin-top:8px; font-size:13px; color:#555;">
+            They can now log in using:<br/>
+            <strong>Student ID:</strong> ${studentId}
+          </p>
+        `,
+        confirmButtonColor: '#4f46e5',
+      });
+
+      this.closeModal();
       this.loadVoters();
-      this.showVoterModal = false;
-      this.newVoter = { studentId: '', name: '', course: '', year: '1st' };
-    });
+
+    } catch (err: any) {
+      // Firebase Auth error codes
+      const msg =
+        err?.code === 'auth/email-already-in-use'
+          ? `Student ID <strong>${studentId}</strong> is already registered.`
+          : err?.code === 'auth/invalid-email'
+          ? 'The Student ID contains invalid characters.'
+          : err?.message || 'Something went wrong. Please try again.';
+
+      Swal.fire({ icon: 'error', title: 'Registration Failed', html: msg });
+
+    } finally {
+      this.saving = false;
+    }
   }
 }
