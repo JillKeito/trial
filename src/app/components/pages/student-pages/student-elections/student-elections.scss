@@ -47,7 +47,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Empty ── */
@@ -250,7 +252,9 @@
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.15s, transform 0.15s;
+  transition:
+    background 0.15s,
+    transform 0.15s;
 }
 
 .btn-vote:hover {

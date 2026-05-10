@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap');
-
 // ─────────────────────────────────────────────
 // COLORS
 // ─────────────────────────────────────────────
@@ -39,7 +37,7 @@ $r-lg: 18px;
   background: $page-bg;
   min-height: 100vh;
 
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-family: 'DM Sans', sans-serif;
   color: $ink;
   box-sizing: border-box;
 }
@@ -170,7 +168,7 @@ $r-lg: 18px;
 
 .election-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
 .card-header,
@@ -399,12 +397,12 @@ button {
 }
 
 .position-status.filled {
-  background: rgba(22,163,74,.12);
+  background: rgba(22, 163, 74, 0.12);
   color: $success;
 }
 
 .position-status.empty {
-  background: rgba(220,53,69,.1);
+  background: rgba(220, 53, 69, 0.1);
   color: $danger;
 }
 
@@ -532,7 +530,7 @@ button {
 
   border-radius: 50%;
 
-  background: rgba(22,163,74,.12);
+  background: rgba(22, 163, 74, 0.12);
   color: $success;
 
   display: flex;
@@ -572,7 +570,7 @@ button {
 
   border-radius: 50%;
 
-  animation: spin .7s linear infinite;
+  animation: spin 0.7s linear infinite;
 }
 
 @keyframes spin {
@@ -585,7 +583,6 @@ button {
 // RESPONSIVE
 // ─────────────────────────────────────────────
 @media (max-width: 768px) {
-
   .ballot-page {
     padding: 18px;
   }
@@ -608,109 +605,49 @@ button {
     flex: 1;
   }
 }
-// ── Org tags shown on election card ──────────────────────────
-.org-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 14px;
-}
 
-.org-tag {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 20px;
-  background: rgba(61, 78, 172, 0.10);
-  color: $accent;
-  letter-spacing: 0.3px;
-}
-
-// ── Candidate photo (when uploaded) ──────────────────────────
 .candidate-photo {
-  width: 50px;
-  height: 50px;
-  border-radius: 14px;
-  object-fit: cover;
   flex-shrink: 0;
-  border: 1.5px solid rgba(61, 78, 172, 0.15);
-}
 
-// ── Extra candidate metadata ──────────────────────────────────
-.candidate-org {
-  font-size: 11px;
-  font-weight: 700;
-  color: $accent;
-  margin-top: 3px;
-  letter-spacing: 0.3px;
-}
-
-.candidate-course {
-  font-size: 11px;
-  color: $ink-3;
-  margin-top: 2px;
-}
-// ─────────────────────────────────────────────
-// ABSTAIN CARD
-// ─────────────────────────────────────────────
-$abstain: #64748b;
-$abstain-bg: #f1f5f9;
-$abstain-border: #cbd5e1;
-$abstain-selected-bg: rgba(100, 116, 139, 0.08);
-$abstain-selected-border: #64748b;
-
-.abstain-card {
-  border-color: $abstain-border;
-  border-style: dashed;
-  opacity: 0.85;
-  transition: border-color .2s, background .2s, opacity .2s, box-shadow .2s;
-
-  &:hover {
-    border-color: $abstain;
-    opacity: 1;
-    box-shadow: 0 2px 10px rgba(100,116,139,.12);
-  }
-
-  &.selected {
-    border-color: $abstain-selected-border;
-    border-style: solid;
-    background: $abstain-selected-bg;
-    opacity: 1;
-
-    .abstain-icon { color: $abstain; }
-    .select-indicator { color: $abstain; }
+  img {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    object-fit: cover;
   }
 }
 
-.abstain-icon {
-  width: 50px;
-  height: 50px;
+.candidate-avatar {
+  width: 60px;
+  height: 60px;
   border-radius: 14px;
-  background: $abstain-bg;
-  color: $abstain;
+  background: rgba(61, 78, 172, 0.12);
+  color: $accent;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 18px;
 }
 
-.abstain-label {
-  color: $abstain;
-  font-weight: 600;
-}
-
-.abstain-hint {
+.candidate-position-label {
   font-size: 12px;
-  color: #94a3b8;
-  margin-top: 3px;
-  font-style: italic;
+  color: $ink-3;
+  margin-top: 2px;
 }
 
-// ─────────────────────────────────────────────
-// POSITION STATUS — ABSTAINED STATE
-// ─────────────────────────────────────────────
-.position-status.abstained {
-  background: rgba(100, 116, 139, 0.1);
-  color: $abstain;
-  border-color: $abstain-border;
+.candidate-course {
+  font-size: 12px;
+  color: $ink-3;
+  margin-top: 2px;
+}
+
+.candidate-bio {
+  font-size: 12px;
+  color: $ink-3;
+  margin-top: 6px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
