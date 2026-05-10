@@ -14,14 +14,7 @@
 
   <!-- Empty -->
   <div class="empty-state" *ngIf="!loading && elections.length === 0">
-    <svg
-      width="48"
-      height="48"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1.5"
-    >
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <rect x="3" y="4" width="18" height="18" rx="2" />
       <line x1="16" y1="2" x2="16" y2="6" />
       <line x1="8" y1="2" x2="8" y2="6" />
@@ -34,6 +27,7 @@
   <!-- Election Cards -->
   <div class="elections-grid" *ngIf="!loading && elections.length > 0">
     <div class="election-card" *ngFor="let election of elections" [ngClass]="election.status">
+
       <!-- Status badge -->
       <div class="card-top">
         <span
@@ -54,14 +48,7 @@
 
         <div class="election-meta">
           <div class="meta-row">
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="4" width="18" height="18" rx="2" />
               <line x1="16" y1="2" x2="16" y2="6" />
               <line x1="8" y1="2" x2="8" y2="6" />
@@ -70,14 +57,7 @@
             {{ election.startDate }} — {{ election.endDate }}
           </div>
           <div class="meta-row">
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
               <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -87,27 +67,18 @@
           </div>
         </div>
 
-        <!-- Turnout bar (only for active/completed) -->
-        <div
-          class="turnout-wrap"
-          *ngIf="election.status !== 'upcoming' && election.totalVoters > 0"
-        >
+        <!-- Turnout bar -->
+        <div class="turnout-wrap" *ngIf="election.status !== 'upcoming' && election.totalVoters > 0">
           <div class="turnout-label">
             <span>Voter Turnout</span>
             <span class="turnout-pct">
-              {{
-                election.totalVoters > 0
-                  ? ((election.voted / election.totalVoters) * 100 | number: '1.0-0')
-                  : 0
-              }}%
+              {{ election.totalVoters > 0 ? ((election.voted / election.totalVoters) * 100 | number:'1.0-0') : 0 }}%
             </span>
           </div>
           <div class="turnout-track">
             <div
               class="turnout-fill"
-              [style.width.%]="
-                election.totalVoters > 0 ? (election.voted / election.totalVoters) * 100 : 0
-              "
+              [style.width.%]="election.totalVoters > 0 ? (election.voted / election.totalVoters) * 100 : 0"
             ></div>
           </div>
           <div class="turnout-sub">{{ election.voted }} of {{ election.totalVoters }} voters</div>
@@ -116,50 +87,113 @@
 
       <!-- Action -->
       <div class="card-footer">
+
+        <!-- ACTIVE + not yet voted → Vote Now -->
         <button class="btn-vote" *ngIf="canVote(election)" (click)="goToBallot(election)">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="9 11 12 14 22 4" />
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
           </svg>
           Vote Now
         </button>
 
+        <!-- ACTIVE + already voted → View Details (opens history modal) -->
+        <button class="btn-history" *ngIf="hasVotedIn(election)" (click)="openHistory(election)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9" />
+            <polyline points="12 7 12 12 15 14" />
+          </svg>
+          View Details
+        </button>
+
+        <!-- UPCOMING → Not Yet Open -->
         <button class="btn-disabled" *ngIf="election.status === 'upcoming'" disabled>
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
           Not Yet Open
         </button>
 
-        <button class="btn-completed" *ngIf="election.status === 'completed'" disabled>
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          Election Closed
-        </button>
+        <!-- COMPLETED → Election Closed + View My Votes -->
+        <div class="completed-actions" *ngIf="election.status === 'completed'">
+          <button class="btn-completed" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Election Closed
+          </button>
+          <button class="btn-history" (click)="openHistory(election)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9" />
+              <polyline points="12 7 12 12 15 14" />
+            </svg>
+            View My Votes
+          </button>
+        </div>
+
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Voting History Modal ── -->
+<div class="modal-overlay" *ngIf="historyModal" (click)="closeHistory()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
+          <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5" />
+          <path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+        <div>
+          <div class="modal-title">My Voting History</div>
+          <div class="modal-subtitle">{{ historyModal.election.name }}</div>
+        </div>
+      </div>
+      <button class="modal-close" (click)="closeHistory()">
+        <svg viewBox="0 0 18 18" fill="none" width="16" height="16">
+          <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-loading" *ngIf="historyLoading">
+        <div class="spinner-sm"></div>
+        <span>Loading your votes…</span>
+      </div>
+
+      <div class="history-table" *ngIf="!historyLoading && historyModal.items.length > 0">
+        <div class="ht-row ht-head">
+          <div class="ht-col">Position</div>
+          <div class="ht-col">Your Choice</div>
+        </div>
+        <div class="ht-row" *ngFor="let item of historyModal.items">
+          <div class="ht-col ht-position">{{ item.position }}</div>
+          <div class="ht-col">
+            <span class="choice-chip" [ngClass]="item.abstained ? 'chip-abstain' : 'chip-voted'">
+              <svg *ngIf="item.abstained" viewBox="0 0 16 16" fill="none" width="12" height="12">
+                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.4" />
+                <line x1="5" y1="8" x2="11" y2="8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              </svg>
+              <svg *ngIf="!item.abstained" viewBox="0 0 16 16" fill="none" width="12" height="12">
+                <path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              {{ item.abstained ? 'Abstained' : item.candidateName }}
+              <span class="chip-party" *ngIf="!item.abstained && item.party">· {{ item.party }}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-empty" *ngIf="!historyLoading && historyModal.items.length === 0">
+        <p>No voting record found for this election.</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-modal-close" (click)="closeHistory()">Close</button>
     </div>
   </div>
 </div>

@@ -13,10 +13,9 @@ export interface BallotPosition {
 
 type BallotView = 'ballot' | 'success';
 
-// Sentinel value for Abstain choice
-const ABSTAIN_ID = '__ABSTAIN__';
+const ABSTAIN = '__ABSTAIN__';
 
-// Preferred position order per org
+// Preferred position order
 const POSITION_ORDER = [
   'President', 'Vice President', 'Secretary', 'Treasurer',
   'Auditor', 'PRO', 'Business Manager',
@@ -36,14 +35,16 @@ export class StudentBallot implements OnInit {
   positions: BallotPosition[] = [];
   voter: Voter | null = null;
   votes: Record<string, string> = {};
-  expandedPlatform: string | null = null;
+
+  /** Resolved candidate objects shown in the success summary */
+  voteSummary: { position: string; candidate: Candidate | null; abstained: boolean }[] = [];
 
   view: BallotView = 'ballot';
   loading = true;
   ballotLoading = false;
   submitting = false;
 
-  readonly ABSTAIN_ID = ABSTAIN_ID;
+  readonly ABSTAIN = ABSTAIN;
 
   constructor(
     private route: ActivatedRoute,
@@ -90,18 +91,13 @@ export class StudentBallot implements OnInit {
     this.ballotLoading = true;
 
     this.svc.getCandidates().subscribe((candidates: Candidate[]) => {
-      // Filter: approved + matching electionId
       const filtered = candidates.filter(
         (c) => c.status === 'approved' && c.electionId === electionId,
       );
 
-      // Fallback: if none match electionId, show all approved
       const list =
-        filtered.length > 0
-          ? filtered
-          : candidates.filter((c) => c.status === 'approved');
+        filtered.length > 0 ? filtered : candidates.filter((c) => c.status === 'approved');
 
-      // Group by position
       const positionMap = new Map<string, Candidate[]>();
       list.forEach((c) => {
         if (!positionMap.has(c.position)) positionMap.set(c.position, []);
@@ -124,37 +120,12 @@ export class StudentBallot implements OnInit {
     });
   }
 
-  // -- Selection ------------------------------------------------
-  selectCandidate(position: string, candidateId: string): void {
-    if (this.hasVoted || this.view === 'success') return;
-    // Toggle off if same choice tapped again
-    if (this.votes[position] === candidateId) {
-      const updated = { ...this.votes };
-      delete updated[position];
-      this.votes = updated;
-    } else {
-      this.votes = { ...this.votes, [position]: candidateId };
-    }
-  }
+  // ── Getters ───────────────────────────────────────────────
 
-  selectAbstain(position: string): void {
-    this.selectCandidate(position, ABSTAIN_ID);
+  /** True if this voter's hasVoted flag is set — blocks re-voting */
+  get hasVoted(): boolean {
+    return this.voter?.hasVoted ?? false;
   }
-
-  isSelected(position: string, candidateId: string): boolean {
-    return this.votes[position] === candidateId;
-  }
-
-  isAbstainSelected(position: string): boolean {
-    return this.votes[position] === ABSTAIN_ID;
-  }
-
-  togglePlatform(candidateId: string): void {
-    this.expandedPlatform = this.expandedPlatform === candidateId ? null : candidateId;
-  }
-
-  // -- Progress -------------------------------------------------
-  get hasVoted(): boolean      { return this.voter?.hasVoted ?? false; }
   get totalPositions(): number { return this.positions.length; }
   get answeredCount(): number  { return Object.keys(this.votes).length; }
   get progressPercent(): number {
@@ -164,15 +135,63 @@ export class StudentBallot implements OnInit {
     return this.answeredCount === this.totalPositions && this.totalPositions > 0;
   }
 
-  // -- Submit ---------------------------------------------------
+  // ── Selection ─────────────────────────────────────────────
+
+  selectCandidate(position: string, candidateId: string): void {
+    if (this.hasVoted || this.view === 'success') return;
+    if (this.votes[position] === candidateId) {
+      const updated = { ...this.votes };
+      delete updated[position];
+      this.votes = updated;
+    } else {
+      this.votes = { ...this.votes, [position]: candidateId };
+    }
+  }
+
+  toggleAbstain(position: string): void {
+    if (this.hasVoted || this.view === 'success') return;
+    if (this.votes[position] === ABSTAIN) {
+      const updated = { ...this.votes };
+      delete updated[position];
+      this.votes = updated;
+    } else {
+      this.votes = { ...this.votes, [position]: ABSTAIN };
+    }
+  }
+
+  isAbstained(position: string): boolean {
+    return this.votes[position] === ABSTAIN;
+  }
+
+  // ── Submit ────────────────────────────────────────────────
+
+  buildSummary(): void {
+    const allCandidates = this.positions.flatMap((p) => p.candidates);
+    this.voteSummary = this.positions.map((p) => {
+      const val = this.votes[p.name];
+      if (!val || val === ABSTAIN) {
+        return { position: p.name, candidate: null, abstained: true };
+      }
+      const found = allCandidates.find((c) => c.id === val) ?? null;
+      return { position: p.name, candidate: found, abstained: false };
+    });
+  }
+
   submitBallot(): void {
     if (!this.allAnswered || !this.selectedElection || !this.voter) return;
+
+    // Double-guard: if voter already voted, do not proceed
+    if (this.hasVoted) {
+      Swal.fire({ icon: 'warning', title: 'You have already submitted your ballot.' });
+      return;
+    }
+
     this.submitting = true;
 
-    // Strip abstain votes — they don't add to any candidate's tally
+    // Strip abstains — only real votes increment candidate tallies
     const realVotes: Record<string, string> = {};
-    for (const [pos, cId] of Object.entries(this.votes)) {
-      if (cId !== ABSTAIN_ID) realVotes[pos] = cId;
+    for (const [pos, val] of Object.entries(this.votes)) {
+      if (val !== ABSTAIN) realVotes[pos] = val;
     }
 
     const candidateList = this.positions.flatMap((p) => p.candidates);
@@ -181,6 +200,7 @@ export class StudentBallot implements OnInit {
       next: () => {
         this.submitting = false;
         if (this.voter) this.voter = { ...this.voter, hasVoted: true };
+        this.buildSummary();
         this.view = 'success';
       },
       error: (err) => {
@@ -194,7 +214,8 @@ export class StudentBallot implements OnInit {
     });
   }
 
-  // -- Helpers --------------------------------------------------
+  // ── Helpers ───────────────────────────────────────────────
+
   getInitials(name: string): string {
     return name
       .split(' ')
@@ -204,15 +225,7 @@ export class StudentBallot implements OnInit {
       .toUpperCase();
   }
 
-  getPhoto(c: Candidate): string | null {
-    return (c as any).photo || null;
-  }
-
-  getBio(c: Candidate): string {
-    return (c as any).bio || '';
-  }
-
-  goBack(): void    { this.router.navigate(['/app/student-elections']); }
-  goToResults(): void { this.router.navigate(['/app/student-results']); }
-  goHome(): void    { this.router.navigate(['/app/student-elections']); }
+  goBack(): void      { this.router.navigate(['/app/student-elections']); }
+  goToResults(): void { this.router.navigate(['/app/student-elections']); }
+  goHome(): void      { this.router.navigate(['/app/student-elections']); }
 }

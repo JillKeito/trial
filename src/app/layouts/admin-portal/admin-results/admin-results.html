@@ -1,0 +1,136 @@
+<div class="admin-results">
+  <div class="page-header">
+    <div class="header-left">
+      <h1>📊 Election Results</h1>
+      <p class="page-sub">View and certify completed election results</p>
+    </div>
+    <button
+      class="btn-secondary"
+      *ngIf="selectedResultElection"
+      (click)="selectedResultElection = null"
+    >
+      ← Back
+    </button>
+  </div>
+
+  <!-- No completed elections -->
+  <div class="empty-state" *ngIf="completedElections.length === 0 && !selectedResultElection">
+    <p>No completed elections yet</p>
+    <span>Results will appear here once an election ends</span>
+  </div>
+
+  <!-- Pick a completed election -->
+  <div class="election-selector" *ngIf="completedElections.length > 0 && !selectedResultElection">
+    <p class="selector-label">Select a completed election to view results:</p>
+    <div class="election-pick-list">
+      <button class="btn-pick" *ngFor="let e of completedElections" (click)="loadResults(e)">
+        {{ e.name }}
+        <span class="pick-date">{{ e.endDate }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="loadingResults">Loading results...</div>
+
+  <!-- Results view -->
+  <div *ngIf="!loadingResults && selectedResultElection">
+    <!-- Summary cards -->
+    <div class="results-summary">
+      <div class="summary-card">
+        <div class="summary-icon">🗳️</div>
+        <div class="summary-value">{{ getTotalVotes() }}</div>
+        <div class="summary-label">Total Votes Cast</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon">👤</div>
+        <div class="summary-value">{{ resultsByPosition.length }}</div>
+        <div class="summary-label">Positions</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon">🏆</div>
+        <div class="summary-value">{{ getTotalCandidates() }}</div>
+        <div class="summary-label">Candidates</div>
+      </div>
+    </div>
+
+    <!-- Per-position results with pie chart -->
+    <div class="results-grid" *ngIf="resultsByPosition.length > 0">
+      <div class="result-position-card" *ngFor="let group of resultsByPosition">
+        <div class="position-header">
+          <div class="position-title">{{ group.position }}</div>
+          <div class="position-total">{{ group.total }} votes total</div>
+        </div>
+
+        <div class="position-content">
+          <!-- Pie Chart -->
+          <div class="pie-wrap" *ngIf="group.total > 0">
+            <svg viewBox="0 0 120 120" width="130" height="130">
+              <g *ngFor="let slice of getPieSlices(group); let i = index">
+                <path
+                  [attr.d]="slice.d"
+                  [attr.fill]="getColor(i)"
+                  stroke="#fff"
+                  stroke-width="1.5"
+                />
+              </g>
+              <!-- Center hole -->
+              <circle cx="60" cy="60" r="30" fill="white" />
+              <text x="60" y="55" text-anchor="middle" font-size="8" fill="#64748b">Total</text>
+              <text
+                x="60"
+                y="67"
+                text-anchor="middle"
+                font-size="11"
+                font-weight="bold"
+                fill="#1e293b"
+              >
+                {{ group.total }}
+              </text>
+            </svg>
+            <!-- Legend -->
+            <div class="pie-legend">
+              <div class="legend-item" *ngFor="let c of group.candidates; let i = index">
+                <span class="legend-dot" [style.background]="getColor(i)"></span>
+                <span class="legend-name">{{ c.name }}</span>
+                <span class="legend-pct">{{ getPercent(c.votes, group.total) }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bar list -->
+          <div class="candidate-list">
+            <div
+              class="candidate-result"
+              *ngFor="let c of group.candidates; let i = index"
+              [class.winner]="i === 0 && c.votes > 0"
+            >
+              <div class="candidate-rank">
+                {{ i === 0 && c.votes > 0 ? '🥇' : '#' + (i + 1) }}
+              </div>
+              <div class="candidate-info">
+                <div class="candidate-name">{{ c.name }}</div>
+                <div class="candidate-party">{{ c.party }}</div>
+              </div>
+              <div class="candidate-votes">
+                <div class="vote-bar-track">
+                  <div
+                    class="vote-bar-fill"
+                    [style.width.%]="getPercent(c.votes, group.total)"
+                    [style.background]="getColor(i)"
+                  ></div>
+                </div>
+                <span class="vote-count">
+                  {{ c.votes }} votes ({{ getPercent(c.votes, group.total) }}%)
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="!loadingResults && resultsByPosition.length === 0">
+      <p>No results yet for this election</p>
+    </div>
+  </div>
+</div>
