@@ -32,10 +32,9 @@ export class AdminDashboard implements OnInit {
   loading = false;
 
   // ── Tabs ──────────────────────────────────────────────────────
-  // controls which section is shown below the stats
   activeTab: 'elections' | 'applications' | 'results' | 'accounts' = 'elections';
 
-  // ── Applications (candidate requests from students) ───────────
+  // ── Applications ──────────────────────────────────────────────
   applications: Application[] = [];
   loadingApps = false;
 
@@ -44,9 +43,9 @@ export class AdminDashboard implements OnInit {
   loadingResults = false;
   selectedResultElection: Election | null = null;
 
-  // ── Create student account modal ──────────────────────────────
+  // ── Create ELECOM account modal ───────────────────────────────
   showAccountModal = false;
-  accountForm = { name: '', email: '', password: '', course: '', year: '' };
+  accountForm = { name: '', email: '', password: '' };
   creatingAccount = false;
 
   // ── Create/Edit election modal ────────────────────────────────
@@ -82,8 +81,6 @@ export class AdminDashboard implements OnInit {
   }
 
   // ── Load candidate applications ───────────────────────────────
-  // Students submit applications from student-apply page
-  // They appear here for admin to approve or reject
   loadApplications() {
     this.loadingApps = true;
     this.svc.getApplications().subscribe((apps) => {
@@ -93,7 +90,6 @@ export class AdminDashboard implements OnInit {
   }
 
   // ── Approve application ───────────────────────────────────────
-  // ACID Consistency: status only changes to valid values (approved/rejected)
   approveApplication(app: Application) {
     Swal.fire({
       title: 'Approve candidate?',
@@ -105,9 +101,7 @@ export class AdminDashboard implements OnInit {
     }).then((r) => {
       if (!r.isConfirmed) return;
 
-      // update application status to approved
       this.svc.updateApplication({ ...app, status: 'approved' }).subscribe(() => {
-        // also add to candidates collection so they appear on ballot
         this.svc
           .addCandidate({
             name: app.name,
@@ -123,36 +117,26 @@ export class AdminDashboard implements OnInit {
           })
           .subscribe(() => {
             this.loadApplications();
-            Swal.fire({
-              icon: 'success',
-              title: 'Candidate Approved!',
-              timer: 1000,
-              showConfirmButton: false,
-            });
+            Swal.fire({ icon: 'success', title: 'Candidate Approved!', timer: 1000, showConfirmButton: false });
           });
       });
     });
   }
 
-  // ── Reject application ────────────────────────────────────────
+  // ── Reject / Disqualify application ──────────────────────────
   rejectApplication(app: Application) {
     Swal.fire({
-      title: 'Reject candidate?',
+      title: 'Disqualify candidate?',
       text: `${app.name} for ${app.position}`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
-      confirmButtonText: 'Reject',
+      confirmButtonText: 'Disqualify',
     }).then((r) => {
       if (!r.isConfirmed) return;
       this.svc.updateApplication({ ...app, status: 'rejected' }).subscribe(() => {
         this.loadApplications();
-        Swal.fire({
-          icon: 'info',
-          title: 'Application Rejected',
-          timer: 1000,
-          showConfirmButton: false,
-        });
+        Swal.fire({ icon: 'info', title: 'Application Disqualified', timer: 1000, showConfirmButton: false });
       });
     });
   }
@@ -164,12 +148,10 @@ export class AdminDashboard implements OnInit {
     this.activeTab = 'results';
 
     this.svc.getCandidates().subscribe((candidates) => {
-      // filter candidates by election
       const electionCandidates = candidates.filter(
         (c) => (c as any).electionId === election.id || !c.hasOwnProperty('electionId'),
       );
 
-      // group by position
       const map = new Map<string, Candidate[]>();
       for (const c of electionCandidates) {
         if (!map.has(c.position)) map.set(c.position, []);
@@ -178,11 +160,7 @@ export class AdminDashboard implements OnInit {
 
       this.resultsByPosition = Array.from(map.entries()).map(([position, cands]) => {
         const sorted = [...cands].sort((a, b) => b.votes - a.votes);
-        return {
-          position,
-          candidates: sorted,
-          total: sorted.reduce((s, c) => s + (c.votes || 0), 0),
-        };
+        return { position, candidates: sorted, total: sorted.reduce((s, c) => s + (c.votes || 0), 0) };
       });
 
       this.loadingResults = false;
@@ -193,20 +171,20 @@ export class AdminDashboard implements OnInit {
     return total > 0 ? Math.round((votes / total) * 100) : 0;
   }
 
-  // ── Create student account ────────────────────────────────────
-  // Creates Firebase Auth account + saves to Firestore /users
-  // ACID Atomicity: both auth creation and Firestore write happen together
+  // ── Create ELECOM account ─────────────────────────────────────
+  // ADMIN creates ELECOM accounts only — students are created by ELECOM.
   openAccountModal() {
     this.showAccountModal = true;
-    this.accountForm = { name: '', email: '', password: '', course: '', year: '' };
+    this.accountForm = { name: '', email: '', password: '' };
   }
 
   closeAccountModal() {
     this.showAccountModal = false;
   }
 
-  async createStudentAccount() {
-    if (!this.accountForm.name || !this.accountForm.email || !this.accountForm.password) {
+  async createElecomAccount() {
+    const { name, email, password } = this.accountForm;
+    if (!name || !email || !password) {
       Swal.fire({ icon: 'warning', title: 'Please fill in all required fields.' });
       return;
     }
@@ -214,21 +192,12 @@ export class AdminDashboard implements OnInit {
     this.creatingAccount = true;
 
     try {
-      // Step 1: create Firebase Auth account
-      const credential = await createUserWithEmailAndPassword(
-        this.firebaseAuth,
-        this.accountForm.email,
-        this.accountForm.password,
-      );
+      const credential = await createUserWithEmailAndPassword(this.firebaseAuth, email, password);
 
-      // Step 2: save user data to Firestore /users collection
-      // uses the Firebase Auth UID as the document ID
       await setDoc(doc(this.firestore, 'users', credential.user.uid), {
-        name: this.accountForm.name,
-        email: this.accountForm.email,
-        role: 'student',
-        course: this.accountForm.course,
-        year: this.accountForm.year,
+        name,
+        email,
+        role: 'elecom',          // ← always ELECOM, never student
         createdAt: new Date().toISOString(),
       });
 
@@ -237,18 +206,15 @@ export class AdminDashboard implements OnInit {
 
       Swal.fire({
         icon: 'success',
-        title: 'Student Account Created!',
-        text: `${this.accountForm.name} can now log in.`,
+        title: 'ELECOM Account Created!',
+        text: `${name} can now log in as Election Committee.`,
         timer: 2000,
         showConfirmButton: false,
       });
     } catch (err: any) {
       this.creatingAccount = false;
-      console.error('Account creation error:', err);
-
-      // show friendly error messages
       if (err.code === 'auth/email-already-in-use') {
-        Swal.fire({ icon: 'error', title: 'Email already exists.' });
+        Swal.fire({ icon: 'error', title: 'Email already in use.' });
       } else if (err.code === 'auth/weak-password') {
         Swal.fire({ icon: 'error', title: 'Password must be at least 6 characters.' });
       } else {
@@ -258,18 +224,10 @@ export class AdminDashboard implements OnInit {
   }
 
   // ── Getters ───────────────────────────────────────────────────
-  get activeElection() {
-    return this.elections.find((e) => e.status === 'active') || null;
-  }
-  get upcomingElections() {
-    return this.elections.filter((e) => e.status === 'upcoming');
-  }
-  get completedElections() {
-    return this.elections.filter((e) => e.status === 'completed');
-  }
-  get pendingApplications() {
-    return this.applications.filter((a) => a.status === 'pending');
-  }
+  get activeElection() { return this.elections.find((e) => e.status === 'active') || null; }
+  get upcomingElections() { return this.elections.filter((e) => e.status === 'upcoming'); }
+  get completedElections() { return this.elections.filter((e) => e.status === 'completed'); }
+  get pendingApplications() { return this.applications.filter((a) => a.status === 'pending'); }
 
   // ── Create/Edit modal ─────────────────────────────────────────
   openCreate() {
@@ -291,21 +249,17 @@ export class AdminDashboard implements OnInit {
     this.showModal = true;
   }
 
-  closeModal() {
-    this.showModal = false;
-  }
+  closeModal() { this.showModal = false; }
 
   save() {
     if (!this.form.name || !this.form.startDate || !this.form.endDate) return;
 
     if (this.isEditMode) {
-      this.svc
-        .updateElection({ ...(this.selectedElection as Election), ...this.form })
-        .subscribe(() => {
-          this.loadElections();
-          this.closeModal();
-          Swal.fire({ icon: 'success', title: 'Updated!', timer: 1000, showConfirmButton: false });
-        });
+      this.svc.updateElection({ ...(this.selectedElection as Election), ...this.form }).subscribe(() => {
+        this.loadElections();
+        this.closeModal();
+        Swal.fire({ icon: 'success', title: 'Updated!', timer: 1000, showConfirmButton: false });
+      });
     } else {
       this.svc
         .addElection({
@@ -320,12 +274,7 @@ export class AdminDashboard implements OnInit {
         .subscribe(() => {
           this.loadElections();
           this.closeModal();
-          Swal.fire({
-            icon: 'success',
-            title: 'Election Created!',
-            timer: 1000,
-            showConfirmButton: false,
-          });
+          Swal.fire({ icon: 'success', title: 'Election Created!', timer: 1000, showConfirmButton: false });
         });
     }
   }
@@ -357,9 +306,7 @@ export class AdminDashboard implements OnInit {
       confirmButtonText: 'Yes, End!',
     }).then((r) => {
       if (r.isConfirmed)
-        this.svc
-          .updateElection({ ...e, status: 'completed' })
-          .subscribe(() => this.loadElections());
+        this.svc.updateElection({ ...e, status: 'completed' }).subscribe(() => this.loadElections());
     });
   }
 
@@ -401,82 +348,45 @@ export class AdminDashboard implements OnInit {
       const c = candidates.filter((x) => (x as any).electionId === e.id);
       const checks: AuditCheck[] = [];
 
-      // check 1: duplicate votes
       const ids = r.map((x) => x.studentId);
       const dupes = ids.length - new Set(ids).size;
       checks.push(
         dupes === 0
           ? { label: 'Duplicate Votes', status: 'ok', detail: 'No duplicate votes found.' }
-          : {
-              label: 'Duplicate Votes',
-              status: 'error',
-              detail: `${dupes} duplicate vote(s) detected!`,
-            },
+          : { label: 'Duplicate Votes', status: 'error', detail: `${dupes} duplicate vote(s) detected!` },
       );
 
-      // check 2: vote count matches
       checks.push(
         e.voted === r.length
-          ? {
-              label: 'Vote Count Integrity',
-              status: 'ok',
-              detail: `Count matches records (${e.voted}/${r.length}).`,
-            }
-          : {
-              label: 'Vote Count Integrity',
-              status: 'error',
-              detail: `Mismatch! Election: ${e.voted}, Records: ${r.length}.`,
-            },
+          ? { label: 'Vote Count Integrity', status: 'ok', detail: `Count matches records (${e.voted}/${r.length}).` }
+          : { label: 'Vote Count Integrity', status: 'error', detail: `Mismatch! Election: ${e.voted}, Records: ${r.length}.` },
       );
 
-      // check 3: unregistered voters
       const regIds = new Set(voters.map((v) => v.studentId));
       const unregistered = r.filter((x) => !regIds.has(x.studentId)).length;
       checks.push(
         unregistered === 0
-          ? {
-              label: 'Voter Eligibility',
-              status: 'ok',
-              detail: 'All votes from registered voters.',
-            }
-          : {
-              label: 'Voter Eligibility',
-              status: 'warning',
-              detail: `${unregistered} vote(s) from unregistered voters.`,
-            },
+          ? { label: 'Voter Eligibility', status: 'ok', detail: 'All votes from registered voters.' }
+          : { label: 'Voter Eligibility', status: 'warning', detail: `${unregistered} vote(s) from unregistered voters.` },
       );
 
-      // check 4: candidate totals
       const totalVotes = c.reduce((sum, x) => sum + (x.votes || 0), 0);
       checks.push(
         c.length === 0
           ? { label: 'Candidate Totals', status: 'warning', detail: 'No candidates found.' }
           : totalVotes >= r.length
             ? { label: 'Candidate Totals', status: 'ok', detail: `Totals match (${totalVotes}).` }
-            : {
-                label: 'Candidate Totals',
-                status: 'error',
-                detail: `Mismatch! Candidates: ${totalVotes}, Records: ${r.length}.`,
-              },
+            : { label: 'Candidate Totals', status: 'error', detail: `Mismatch! Candidates: ${totalVotes}, Records: ${r.length}.` },
       );
 
-      // check 5: timeline
       const outside = r.filter((x) => {
         const t = new Date(x.submittedAt).getTime();
         return t < new Date(e.startDate).getTime() || t > new Date(e.endDate).getTime();
       }).length;
       checks.push(
         outside === 0
-          ? {
-              label: 'Timeline Integrity',
-              status: 'ok',
-              detail: 'All votes within election period.',
-            }
-          : {
-              label: 'Timeline Integrity',
-              status: 'error',
-              detail: `${outside} vote(s) outside election period!`,
-            },
+          ? { label: 'Timeline Integrity', status: 'ok', detail: 'All votes within election period.' }
+          : { label: 'Timeline Integrity', status: 'error', detail: `${outside} vote(s) outside election period!` },
       );
 
       this.auditChecks = checks;
@@ -493,21 +403,12 @@ export class AdminDashboard implements OnInit {
   certify() {
     if (!this.auditElection) return;
     this.svc
-      .updateElection({
-        ...this.auditElection,
-        auditStatus: 'clean',
-        certifiedAt: new Date().toISOString(),
-      })
+      .updateElection({ ...this.auditElection, auditStatus: 'clean', certifiedAt: new Date().toISOString() })
       .subscribe(() => {
         this.notify('clean');
         this.loadElections();
         this.closeAudit();
-        Swal.fire({
-          icon: 'success',
-          title: 'Election Certified!',
-          timer: 1500,
-          showConfirmButton: false,
-        });
+        Swal.fire({ icon: 'success', title: 'Election Certified!', timer: 1500, showConfirmButton: false });
       });
   }
 
@@ -523,13 +424,7 @@ export class AdminDashboard implements OnInit {
         this.notify('flagged');
         this.loadElections();
         this.closeAudit();
-        Swal.fire({
-          icon: 'warning',
-          title: 'Election Flagged!',
-          text: 'ELECOM has been notified.',
-          timer: 1500,
-          showConfirmButton: false,
-        });
+        Swal.fire({ icon: 'warning', title: 'Election Flagged!', text: 'ELECOM has been notified.', timer: 1500, showConfirmButton: false });
       });
   }
 
@@ -553,11 +448,7 @@ export class AdminDashboard implements OnInit {
 
   // ── Helpers ───────────────────────────────────────────────────
   statusClass(s: string) {
-    return s === 'active'
-      ? 'status-active'
-      : s === 'upcoming'
-        ? 'status-upcoming'
-        : 'status-completed';
+    return s === 'active' ? 'status-active' : s === 'upcoming' ? 'status-upcoming' : 'status-completed';
   }
 
   auditClass(s?: string) {
@@ -569,10 +460,6 @@ export class AdminDashboard implements OnInit {
   }
 
   appStatusClass(s: string) {
-    return s === 'approved'
-      ? 'status-active'
-      : s === 'rejected'
-        ? 'status-completed'
-        : 'status-upcoming';
+    return s === 'approved' ? 'status-active' : s === 'rejected' ? 'status-completed' : 'status-upcoming';
   }
 }

@@ -1,13 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ElectionService } from '../../../services/election';
+import { Subscription } from 'rxjs';
 
-export interface Notification {
+export interface ElecomNotification {
   id: string;
-  type: 'vote' | 'candidate' | 'election' | 'warning' | 'user';
+  type: 'vote' | 'candidate' | 'election' | 'warning' | 'user' | 'clean' | 'flagged';
   title: string;
   message: string;
   time: string;
+  createdAt: string;
   read: boolean;
+  seen: boolean;
 }
 
 @Component({
@@ -17,37 +21,75 @@ export interface Notification {
   templateUrl: './elecom-notif.html',
   styleUrl: './elecom-notif.scss',
 })
-export class ElecomNotif implements OnInit {
+export class ElecomNotif implements OnInit, OnDestroy {
+  private svc = inject(ElectionService);
+  private sub?: Subscription;
+
   filter: 'all' | 'unread' | 'vote' | 'candidate' | 'election' = 'all';
+  notifications: ElecomNotification[] = [];
+  loading = true;
 
-  notifications: Notification[] = [
-    { id: '1', type: 'vote',      title: 'New vote cast',          message: 'A registered voter has submitted their ballot.',          time: '5 min ago',  read: false },
-    { id: '2', type: 'candidate', title: 'Candidate pending review', message: 'Maria Santos applied for President — awaiting approval.', time: '18 min ago', read: false },
-    { id: '3', type: 'vote',      title: 'New vote cast',          message: 'A registered voter has submitted their ballot.',          time: '32 min ago', read: false },
-    { id: '4', type: 'election',  title: 'Election started',        message: 'USC General Elections 2025 is now active.',               time: '2 hrs ago',  read: true  },
-    { id: '5', type: 'candidate', title: 'Candidate approved',      message: 'Juan dela Cruz was approved for Vice President.',         time: '3 hrs ago',  read: true  },
-    { id: '6', type: 'user',      title: 'Voter registered',        message: 'Student ID 2024-0041 was verified and registered.',       time: 'Yesterday',  read: true  },
-    { id: '7', type: 'warning',   title: 'Low voter turnout',       message: 'Only 23% of registered voters have voted so far.',        time: 'Yesterday',  read: true  },
-    { id: '8', type: 'election',  title: 'Election configured',     message: '7 positions were set up for the upcoming election.',      time: '2 days ago', read: true  },
-  ];
+  ngOnInit(): void {
+    // Pull real notifications from Firestore where role === 'elecom'
+    this.sub = this.svc.getNotifications('elecom').subscribe((data: any[]) => {
+      this.notifications = data
+        .map((n) => ({
+          id: n.id,
+          type: n.type ?? 'election',
+          title: n.title ?? '',
+          message: n.message ?? '',
+          time: n.createdAt
+            ? new Date(n.createdAt).toLocaleString('en-PH', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+            : '',
+          createdAt: n.createdAt ?? '',
+          read: n.seen ?? false,
+          seen: n.seen ?? false,
+        }))
+        .sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+      this.loading = false;
+    });
+  }
 
-  ngOnInit(): void {}
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+  }
 
   get unreadCount(): number {
-    return this.notifications.filter(n => !n.read).length;
+    return this.notifications.filter((n) => !n.read).length;
   }
 
-  get filteredNotifs(): Notification[] {
-    if (this.filter === 'unread') return this.notifications.filter(n => !n.read);
-    if (this.filter === 'all')    return this.notifications;
-    return this.notifications.filter(n => n.type === this.filter);
+  get filteredNotifs(): ElecomNotification[] {
+    if (this.filter === 'unread') return this.notifications.filter((n) => !n.read);
+    if (this.filter === 'all') return this.notifications;
+    // 'clean' and 'flagged' types belong to the 'election' filter tab
+    return this.notifications.filter(
+      (n) =>
+        n.type === this.filter ||
+        (this.filter === 'election' && (n.type === 'clean' || n.type === 'flagged')),
+    );
   }
 
-  markRead(n: Notification): void {
+  markRead(n: ElecomNotification): void {
     n.read = true;
+    n.seen = true;
   }
 
   markAllRead(): void {
-    this.notifications.forEach(n => n.read = true);
+    this.notifications.forEach((n) => {
+      n.read = true;
+      n.seen = true;
+    });
+  }
+
+  /** Maps DB types to one of the five icon buckets */
+  iconType(n: ElecomNotification): 'vote' | 'candidate' | 'election' | 'warning' | 'user' {
+    if (n.type === 'clean' || n.type === 'flagged') return 'election';
+    if (['vote', 'candidate', 'warning', 'user'].includes(n.type)) return n.type as any;
+    return 'election';
   }
 }

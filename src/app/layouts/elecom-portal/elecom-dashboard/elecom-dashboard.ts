@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ElectionService, Election } from '../../../services/election';
+import { AuthService } from '../../../services/auth';
 import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
 import { Firestore, doc, setDoc } from '@angular/fire/firestore';
 import Swal from 'sweetalert2';
@@ -25,6 +26,7 @@ export class ElecomDashboard implements OnInit, OnDestroy {
   // ── Firebase ──────────────────────────────────────────────────
   private firebaseAuth = inject(Auth);
   private firestore = inject(Firestore);
+  private authSvc = inject(AuthService);
 
   stats = {
     totalVoters: 0,
@@ -37,40 +39,13 @@ export class ElecomDashboard implements OnInit, OnDestroy {
 
   activeElection: Election | null = null;
   upcomingElection: Election | null = null;
-  showConfirmModal = false;
-  confirmAction: 'start' | 'end' | null = null;
 
-  // ── Create student account modal ──────────────────────────────
+  // ── Create student voter account modal ────────────────────────
   showAccountModal = false;
   accountForm = { name: '', email: '', password: '', course: '', year: '' };
   creatingAccount = false;
 
-  recentActivities: Activity[] = [
-    {
-      type: 'vote',
-      title: 'New vote cast',
-      subtitle: 'Anonymous voter — ballot submitted',
-      time: '11:30 AM',
-    },
-    {
-      type: 'candidate',
-      title: 'Candidate approved',
-      subtitle: 'Maria Santos — President',
-      time: '10:45 AM',
-    },
-    {
-      type: 'user',
-      title: 'Voter verified',
-      subtitle: 'Student ID 2023-0005 cleared',
-      time: '10:02 AM',
-    },
-    {
-      type: 'election',
-      title: 'Election configured',
-      subtitle: '7 positions set up by ELECOM',
-      time: '08:00 AM',
-    },
-  ];
+  recentActivities: Activity[] = [];
 
   constructor(
     private svc: ElectionService,
@@ -80,6 +55,7 @@ export class ElecomDashboard implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadStats();
   }
+
   ngOnDestroy(): void {}
 
   loadStats(): void {
@@ -101,39 +77,8 @@ export class ElecomDashboard implements OnInit, OnDestroy {
     });
   }
 
-  promptStart(): void {
-    if (!this.upcomingElection) return;
-    this.confirmAction = 'start';
-    this.showConfirmModal = true;
-  }
-
-  promptEnd(): void {
-    if (!this.activeElection) return;
-    this.confirmAction = 'end';
-    this.showConfirmModal = true;
-  }
-
-  confirmElectionAction(): void {
-    if (this.confirmAction === 'start' && this.upcomingElection) {
-      const updated: Election = { ...this.upcomingElection, status: 'active' };
-      this.svc.updateElection(updated).subscribe(() => {
-        this.addActivity('election', 'Election started', updated.name, this.nowStr());
-        this.loadStats();
-      });
-    }
-    if (this.confirmAction === 'end' && this.activeElection) {
-      const updated: Election = { ...this.activeElection, status: 'completed' };
-      this.svc.updateElection(updated).subscribe(() => {
-        this.addActivity('election', 'Election ended', updated.name, this.nowStr());
-        this.loadStats();
-      });
-    }
-    this.showConfirmModal = false;
-    this.confirmAction = null;
-  }
-
-  // ── Create student account ────────────────────────────────────
-  // Same logic as admin — creates Firebase Auth + Firestore record
+  // ── Create student voter account ──────────────────────────────
+  // ELECOM creates student voter accounts (per spec).
   openAccountModal() {
     this.showAccountModal = true;
     this.accountForm = { name: '', email: '', password: '', course: '', year: '' };
@@ -144,7 +89,8 @@ export class ElecomDashboard implements OnInit, OnDestroy {
   }
 
   async createStudentAccount() {
-    if (!this.accountForm.name || !this.accountForm.email || !this.accountForm.password) {
+    const { name, email, password, course, year } = this.accountForm;
+    if (!name || !email || !password) {
       Swal.fire({ icon: 'warning', title: 'Please fill in all required fields.' });
       return;
     }
@@ -152,40 +98,33 @@ export class ElecomDashboard implements OnInit, OnDestroy {
     this.creatingAccount = true;
 
     try {
-      // create Firebase Auth account
-      const credential = await createUserWithEmailAndPassword(
-        this.firebaseAuth,
-        this.accountForm.email,
-        this.accountForm.password,
-      );
+      const credential = await createUserWithEmailAndPassword(this.firebaseAuth, email, password);
 
-      // save to Firestore /users with role: student
       await setDoc(doc(this.firestore, 'users', credential.user.uid), {
-        name: this.accountForm.name,
-        email: this.accountForm.email,
-        role: 'student',
-        course: this.accountForm.course,
-        year: this.accountForm.year,
+        name,
+        email,
+        role: 'student',        // ← ELECOM creates student accounts
+        course,
+        year,
         createdAt: new Date().toISOString(),
       });
 
       this.creatingAccount = false;
       this.closeAccountModal();
 
-      this.addActivity('user', 'Student account created', this.accountForm.name, this.nowStr());
+      this.addActivity('user', 'Student account created', name, this.nowStr());
 
       Swal.fire({
         icon: 'success',
         title: 'Student Account Created!',
-        text: `${this.accountForm.name} can now log in.`,
+        text: `${name} can now log in to the student portal.`,
         timer: 2000,
         showConfirmButton: false,
       });
     } catch (err: any) {
       this.creatingAccount = false;
-      console.error('Account creation error:', err);
       if (err.code === 'auth/email-already-in-use') {
-        Swal.fire({ icon: 'error', title: 'Email already exists.' });
+        Swal.fire({ icon: 'error', title: 'Email already in use.' });
       } else if (err.code === 'auth/weak-password') {
         Swal.fire({ icon: 'error', title: 'Password must be at least 6 characters.' });
       } else {
@@ -194,6 +133,7 @@ export class ElecomDashboard implements OnInit, OnDestroy {
     }
   }
 
+  // ── Computed getters ──────────────────────────────────────────
   get participationRate(): number {
     return this.stats.totalVoters > 0
       ? Math.round((this.stats.voted / this.stats.totalVoters) * 100)
@@ -202,7 +142,7 @@ export class ElecomDashboard implements OnInit, OnDestroy {
 
   get statusLabel(): string {
     if (this.activeElection) return 'Active';
-    if (this.upcomingElection) return 'Ready to Start';
+    if (this.upcomingElection) return 'Upcoming — Waiting for Admin';
     return 'No Election';
   }
 
@@ -212,6 +152,7 @@ export class ElecomDashboard implements OnInit, OnDestroy {
     return 'status-ended';
   }
 
+  // ── Helpers ───────────────────────────────────────────────────
   addActivity(type: Activity['type'], title: string, subtitle: string, time: string): void {
     this.recentActivities.unshift({ type, title, subtitle, time });
     if (this.recentActivities.length > 10) this.recentActivities.pop();
