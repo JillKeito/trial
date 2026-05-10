@@ -43,11 +43,14 @@ export class StudentDashboard implements OnInit, OnDestroy {
       this.activeElection = elections.find(e => e.status === 'active') || null;
     });
 
-    this.svc.getVoterByStudentId(user.email).subscribe((voters: Voter[]) => {
+    // Use studentId for voter/application lookups (email is a fake domain email)
+    const studentId = user.studentId || user.email.split('@')[0];
+
+    this.svc.getVoterByStudentId(studentId).subscribe((voters: Voter[]) => {
       this.voter = voters[0] || null;
     });
 
-    this.svc.getApplicationByStudentId(user.email).subscribe((apps: Application[]) => {
+    this.svc.getApplicationByStudentId(studentId).subscribe((apps: Application[]) => {
       this.application = apps[0] || null;
       this.loading = false;
     });
