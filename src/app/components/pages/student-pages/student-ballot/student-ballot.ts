@@ -26,6 +26,9 @@ export class StudentBallot implements OnInit {
   voter: Voter | null = null;
   votes: Record<string, string> = {};
 
+  // ✅ Student's organizations — used to filter candidates and display org tags
+  studentOrgs: string[] = [];
+
   view: BallotView = 'select-election';
   loading = true;
   ballotLoading = false;
@@ -40,10 +43,22 @@ export class StudentBallot implements OnInit {
   ngOnInit(): void {
     const user = this.auth.getCurrentUser();
 
-    // Use user.id (not email) to match studentId stored in Firestore voters collection
     if (user) {
       this.svc.getVoterByStudentId(user.id).subscribe((voters: Voter[]) => {
         this.voter = voters[0] ?? null;
+
+        // ✅ Pull org(s) from the voter/student record if available
+        const v = voters[0] as any;
+        if (v?.organizations && Array.isArray(v.organizations)) {
+          this.studentOrgs = v.organizations;
+        } else if (v?.organization) {
+          this.studentOrgs = [v.organization];
+        } else if (v?.course) {
+          // Fallback: use course as the org label
+          this.studentOrgs = [v.course];
+        } else {
+          this.studentOrgs = [];
+        }
       });
     }
 
@@ -60,7 +75,8 @@ export class StudentBallot implements OnInit {
     this.view = 'ballot';
     this.ballotLoading = true;
 
-    this.svc.getCandidates().subscribe((candidates: Candidate[]) => {
+    // Load only candidates linked to this specific election
+    this.svc.getCandidatesByElection(election.id).subscribe((candidates: Candidate[]) => {
       const approved = candidates.filter((c) => c.status === 'approved');
       const positionMap = new Map<string, Candidate[]>();
 
@@ -69,10 +85,18 @@ export class StudentBallot implements OnInit {
         positionMap.get(c.position)!.push(c);
       });
 
-      this.positions = Array.from(positionMap.entries()).map(([name, cands]) => ({
-        name,
-        candidates: cands,
-      }));
+      // Preserve position order as defined in the election document
+      const orderedPositions: string[] = election.positions ?? [];
+      if (orderedPositions.length > 0) {
+        this.positions = orderedPositions
+          .filter((p) => positionMap.has(p))
+          .map((name) => ({ name, candidates: positionMap.get(name)! }));
+      } else {
+        this.positions = Array.from(positionMap.entries()).map(([name, cands]) => ({
+          name,
+          candidates: cands,
+        }));
+      }
 
       this.ballotLoading = false;
     });
@@ -83,6 +107,11 @@ export class StudentBallot implements OnInit {
     this.positions = [];
     this.votes = {};
     this.view = 'select-election';
+  }
+
+  // ✅ Returns candidate photo URL or empty string (used in HTML *ngIf)
+  getCandidatePhoto(c: Candidate): string {
+    return c.photo ?? '';
   }
 
   get hasVoted(): boolean { return this.voter?.hasVoted ?? false; }
@@ -134,13 +163,6 @@ export class StudentBallot implements OnInit {
     });
   }
 
-  getStatusLabel(status: string): string {
-    const map: Record<string, string> = {
-      active: 'Active', upcoming: 'Upcoming', completed: 'Completed',
-    };
-    return map[status] ?? status;
-  }
-
-  goToResults(): void { this.router.navigate(['/app/student-results']); }
   goHome(): void { this.router.navigate(['/app/student-elections']); }
+  goToResults(): void { this.router.navigate(['/app/student-elections']); }
 }

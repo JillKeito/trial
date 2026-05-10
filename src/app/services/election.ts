@@ -26,6 +26,7 @@ export interface Candidate {
   bio: string;
   course?: string;
   year?: string;
+  electionId?: string;
   status?: 'pending' | 'approved' | 'disqualified';
   requirements?: {
     enrollment: boolean;
@@ -219,6 +220,26 @@ export class ElectionService {
   }
   getNotifications(role: string) {
     return this.findWhere<any>('notifications', 'role', role);
+  }
+
+  // ── Publish Ballot ───────────────────────────────────────────
+  // Saves positions list to the election doc AND updates each candidate's electionId + position
+  publishBallot(
+    election: Election,
+    positions: string[],
+    assignments: Record<string, string>, // candidateId → position
+    candidates: Candidate[],
+  ): Observable<any> {
+    // 1. Update election with its positions
+    const electionUpdate = this.updateElection({ ...election, positions, totalPositions: positions.length });
+
+    // 2. Update each candidate: set electionId and their assigned position
+    const candidateUpdates = candidates.map((c) => {
+      const assignedPosition = assignments[c.id];
+      return this.updateCandidate({ ...c, electionId: election.id, position: assignedPosition ?? c.position });
+    });
+
+    return forkJoin([electionUpdate, ...candidateUpdates]);
   }
 
   // ── Cast Vote ────────────────────────────────────────────────

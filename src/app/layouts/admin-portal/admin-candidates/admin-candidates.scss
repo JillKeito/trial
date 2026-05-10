@@ -1,0 +1,275 @@
+$navy:   #1e3a5f;
+$green:  #22c55e;
+$red:    #ef4444;
+$amber:  #f59e0b;
+$bg:     #f0f4f8;
+$surface:#ffffff;
+$text:   #1e293b;
+$muted:  #64748b;
+$border: #e2e8f0;
+
+.candidates-page {
+  padding: 28px 32px;
+  background: $bg;
+  min-height: 100%;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+// ── Header ────────────────────────────────────────────────────
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+  h1 { font-size: 22px; font-weight: 700; color: $text; margin: 0 0 4px; }
+  .page-sub { font-size: 13px; color: $muted; margin: 0; }
+}
+
+.btn-primary {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 18px; background: $navy; color: white;
+  border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background .2s; white-space: nowrap;
+  &:hover { background: #2d5a8e; }
+}
+
+// ── Stats ─────────────────────────────────────────────────────
+.stats-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+
+.stat-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 20px; font-size: 12px;
+  color: $muted; border: 1px solid $border; background: $surface;
+  strong { color: $text; }
+
+  &.approved     { border-color: #bbf7d0; background: #f0fdf4; color: #166534; strong { color: #166534; } }
+  &.pending      { border-color: #fde68a; background: #fffbeb; color: #92400e; strong { color: #92400e; } }
+  &.disqualified { border-color: #fecaca; background: #fff1f2; color: #991b1b; strong { color: #991b1b; } }
+}
+
+// ── Filter bar ────────────────────────────────────────────────
+.filter-bar {
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap; margin-bottom: 16px;
+}
+
+.search-wrap {
+  display: flex; align-items: center; gap: 9px;
+  background: $surface; border: 1px solid $border;
+  border-radius: 8px; padding: 9px 13px; flex: 1; min-width: 200px;
+  svg { color: $muted; flex-shrink: 0; }
+  input {
+    border: none; outline: none; background: transparent;
+    font-size: 13px; color: $text; width: 100%;
+    &::placeholder { color: $muted; }
+  }
+}
+
+.filter-tabs {
+  display: flex; gap: 4px;
+  background: $surface; border: 1px solid $border;
+  border-radius: 8px; padding: 4px;
+  button {
+    padding: 6px 14px; border-radius: 6px; border: none;
+    background: transparent; font-size: 12px; font-weight: 600;
+    color: $muted; cursor: pointer; transition: all .15s;
+    &:hover { background: #f1f5f9; color: $text; }
+    &.active { background: $navy; color: white; }
+  }
+}
+
+.filter-select {
+  padding: 9px 12px; border: 1px solid $border; border-radius: 8px;
+  background: $surface; font-size: 13px; color: $text; outline: none;
+  cursor: pointer;
+  &:focus { border-color: $navy; }
+}
+
+// ── Table card ────────────────────────────────────────────────
+.table-card {
+  background: $surface; border: 1px solid $border;
+  border-radius: 12px; overflow: hidden;
+}
+
+.loading-state { padding: 44px; text-align: center; color: $muted; font-size: 13px; }
+.empty-row     { text-align: center; color: $muted; padding: 40px 14px; font-size: 13px; }
+
+table {
+  width: 100%; border-collapse: collapse;
+
+  thead {
+    background: #f8fafc;
+    th {
+      padding: 11px 14px; text-align: left;
+      font-size: 11px; font-weight: 600; color: $muted;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      border-bottom: 1px solid $border;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid $border; transition: background .13s;
+      &:hover { background: #f8fafc; }
+      &:last-child { border-bottom: none; }
+    }
+    td { padding: 12px 14px; font-size: 13px; color: $text; vertical-align: middle; }
+  }
+}
+
+.muted { color: $muted; font-size: 12px; }
+
+// ── Candidate cell ────────────────────────────────────────────
+.cand-cell {
+  display: flex; align-items: center; gap: 10px;
+
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #dbeafe; color: $navy;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; flex-shrink: 0;
+  }
+  .avatar-img {
+    width: 36px; height: 36px; border-radius: 50%;
+    object-fit: cover; flex-shrink: 0; border: 1px solid $border;
+  }
+  .cand-name { font-size: 13px; font-weight: 600; color: $text; }
+  .cand-meta { font-size: 11px; color: $muted; margin-top: 1px; }
+}
+
+.election-cell { font-size: 12px; color: $muted; max-width: 140px; }
+
+// ── Badges ────────────────────────────────────────────────────
+.badge {
+  display: inline-block; padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; text-transform: capitalize;
+  &.badge-approved     { background: #dcfce7; color: #166534; }
+  &.badge-pending      { background: #fef9c3; color: #854d0e; }
+  &.badge-disqualified { background: #fee2e2; color: #991b1b; }
+}
+
+// ── Action buttons ────────────────────────────────────────────
+.action-btns { display: flex; gap: 5px; }
+
+.btn-action {
+  width: 30px; height: 30px; border-radius: 7px; border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background .15s;
+
+  &.approve     { background: #f0fdf4; color: $green;  &:hover { background: #dcfce7; } }
+  &.disqualify  { background: #fff7ed; color: $amber;  &:hover { background: #ffedd5; } }
+  &.delete-btn  { background: #fff1f2; color: $red;    &:hover { background: #fee2e2; } }
+}
+
+// ── Modal ─────────────────────────────────────────────────────
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 16px;
+}
+
+.modal-box {
+  background: $surface; border-radius: 16px;
+  width: 100%; max-width: 500px;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 20px 22px 16px; border-bottom: 1px solid $border; position: sticky; top: 0; background: $surface; z-index: 1;
+  h3 { font-size: 16px; font-weight: 700; color: $text; margin: 0 0 3px; }
+  .modal-sub { font-size: 12px; color: $muted; margin: 0; }
+  .btn-close {
+    background: none; border: none; cursor: pointer; color: $muted; display: flex;
+    padding: 3px; border-radius: 6px; transition: background .15s;
+    &:hover { background: #f1f5f9; }
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+  }
+}
+
+.modal-body { padding: 20px 22px; }
+
+// ── Photo upload ──────────────────────────────────────────────
+.photo-upload-area {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 18px;
+  padding: 14px 16px; background: #f8fafc;
+  border: 1px dashed $border; border-radius: 10px;
+}
+
+.photo-preview {
+  width: 60px; height: 60px; border-radius: 50%;
+  border: 2px solid $border; overflow: hidden; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: #e2e8f0; color: $muted;
+  img { width: 100%; height: 100%; object-fit: cover; }
+  &.has-photo { border-color: $navy; }
+}
+
+.photo-info { display: flex; flex-direction: column; gap: 5px; }
+.btn-upload {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; background: $navy; color: white;
+  border-radius: 7px; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: background .2s;
+  &:hover { background: #2d5a8e; }
+}
+.photo-hint { font-size: 11px; color: $muted; }
+
+// ── Form fields ───────────────────────────────────────────────
+.form-group { margin-bottom: 14px; }
+.form-row { display: flex; gap: 12px; .form-group { flex: 1; } }
+
+label {
+  display: block; font-size: 13px; font-weight: 500;
+  color: $text; margin-bottom: 6px;
+  .req { color: $red; }
+}
+
+input, select, textarea {
+  width: 100%; padding: 9px 12px;
+  border: 1px solid $border; border-radius: 8px;
+  font-size: 13px; color: $text; background: $surface;
+  font-family: inherit; box-sizing: border-box;
+  transition: border-color .15s;
+  &:focus { outline: none; border-color: $navy; }
+  &:disabled { background: #f8fafc; cursor: not-allowed; opacity: 0.7; }
+}
+
+textarea { resize: vertical; min-height: 80px; }
+
+.char-count { font-size: 11px; color: $muted; display: block; margin-top: 4px; text-align: right; }
+
+// ── Modal footer ──────────────────────────────────────────────
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 14px 22px; border-top: 1px solid $border;
+  position: sticky; bottom: 0; background: $surface;
+}
+
+.btn-cancel {
+  padding: 9px 20px; border: 1px solid $border; border-radius: 8px;
+  background: $surface; font-size: 13px; cursor: pointer; color: $text;
+  &:hover { background: #f1f5f9; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+.btn-save {
+  padding: 9px 22px; background: $navy; color: white;
+  border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 7px;
+  &:hover:not(:disabled) { background: #2d5a8e; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.saving-wrap { display: flex; align-items: center; gap: 7px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin .8s linear infinite; }
+
+// ── Responsive ────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .candidates-page { padding: 16px; }
+  .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .filter-bar  { flex-direction: column; align-items: stretch; }
+  .form-row    { flex-direction: column; gap: 0; }
+  .filter-tabs { width: 100%; overflow-x: auto; }
+  .modal-box   { max-width: 100%; }
+}

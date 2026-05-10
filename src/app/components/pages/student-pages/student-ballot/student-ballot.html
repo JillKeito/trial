@@ -1,8 +1,8 @@
 <div class="ballot-page">
 
-  <!-- ══════════════════════════════════════════════
-       VIEW 1: ELECTION SELECTION
-  ══════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════
+       VIEW 1 — ELECTION SELECTION
+  ══════════════════════════════════════════ -->
   <ng-container *ngIf="view === 'select-election'">
 
     <div class="page-header">
@@ -24,7 +24,7 @@
       <p>Loading elections…</p>
     </div>
 
-    <!-- Already Voted Notice -->
+    <!-- Already Voted -->
     <div class="state-card state-voted" *ngIf="!loading && hasVoted">
       <div class="state-icon voted-icon">
         <svg viewBox="0 0 24 24" fill="none" width="28" height="28">
@@ -33,11 +33,11 @@
         </svg>
       </div>
       <h3>You've already voted</h3>
-      <p>Your ballot has been successfully submitted. Thank you for participating in the election!</p>
-      <button class="btn-outline" (click)="goToResults()">View Election Results</button>
+      <p>Your ballot has been successfully submitted. Thank you for participating!</p>
+      <button class="btn-outline" (click)="goToResults()">View Elections</button>
     </div>
 
-    <!-- No Elections Notice -->
+    <!-- No Active Elections -->
     <div class="state-card state-empty" *ngIf="!loading && !hasVoted && elections.length === 0">
       <div class="state-icon empty-icon">
         <svg viewBox="0 0 24 24" fill="none" width="28" height="28">
@@ -45,34 +45,21 @@
           <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="1.8"/>
-          <path d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
       </div>
       <h3>No Active Elections</h3>
-      <p>There are no elections open for voting at this time. Check back later or contact your election committee for updates.</p>
-      <div class="empty-hint">
-        <svg viewBox="0 0 16 16" fill="none" width="13" height="13">
-          <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/>
-          <path d="M8 5v3.5M8 10.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-        </svg>
-        Elections created by the committee will appear here automatically
-      </div>
+      <p>There are no elections open for voting at this time. Check back later.</p>
     </div>
 
-    <!-- Election Cards Grid -->
+    <!-- Election Cards -->
     <div class="elections-grid" *ngIf="!loading && !hasVoted && elections.length > 0">
-      <div
-        class="election-card"
-        *ngFor="let election of elections"
-        (click)="selectElection(election)"
-        role="button"
-        tabindex="0"
-        (keydown.enter)="selectElection(election)">
+      <div class="election-card" *ngFor="let election of elections"
+           (click)="selectElection(election)" role="button" tabindex="0"
+           (keydown.enter)="selectElection(election)">
 
         <div class="card-header">
           <span class="status-badge badge-active">
-            <span class="status-dot"></span>
-            Active
+            <span class="status-dot"></span> Active
           </span>
           <span class="card-positions">{{ election.totalPositions }} positions</span>
         </div>
@@ -85,36 +72,15 @@
             <div class="meta-row">
               <svg viewBox="0 0 24 24" fill="none" width="13" height="13" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="4" width="18" height="18" rx="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
+                <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
               </svg>
               {{ election.startDate }} — {{ election.endDate }}
             </div>
-            <div class="meta-row" *ngIf="election.totalVoters > 0">
-              <svg viewBox="0 0 24 24" fill="none" width="13" height="13" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-              {{ election.voted }} / {{ election.totalVoters }} voted
-            </div>
           </div>
 
-          <!-- Turnout bar -->
-          <div class="turnout-wrap" *ngIf="election.totalVoters > 0">
-            <div class="turnout-header">
-              <span>Voter Turnout</span>
-              <span class="turnout-pct">
-                {{ ((election.voted / election.totalVoters) * 100 | number:'1.0-0') }}%
-              </span>
-            </div>
-            <div class="turnout-track">
-              <div class="turnout-fill"
-                   [style.width.%]="(election.voted / election.totalVoters) * 100">
-              </div>
-            </div>
+          <!-- Org tags the student will vote for -->
+          <div class="org-tags">
+            <span class="org-tag" *ngFor="let org of studentOrgs">{{ org }}</span>
           </div>
         </div>
 
@@ -126,9 +92,6 @@
             </svg>
             Open Ballot
           </button>
-          <svg class="card-arrow" viewBox="0 0 20 20" fill="none" width="18" height="18">
-            <path d="M7 10h6M10 7l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
         </div>
 
       </div>
@@ -137,9 +100,9 @@
   </ng-container>
 
 
-  <!-- ══════════════════════════════════════════════
-       VIEW 2: BALLOT FORM
-  ══════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════
+       VIEW 2 — BALLOT FORM
+  ══════════════════════════════════════════ -->
   <ng-container *ngIf="view === 'ballot'">
 
     <!-- Ballot Header -->
@@ -153,7 +116,7 @@
         </button>
         <div>
           <h1>{{ selectedElection?.name }}</h1>
-          <p class="ballot-sub">{{ selectedElection?.startDate }} — {{ selectedElection?.endDate }} · Select one candidate per position</p>
+          <p class="ballot-sub">Select one candidate per position · {{ studentOrgs.join(' & ') }}</p>
         </div>
       </div>
       <div class="ballot-progress" *ngIf="!ballotLoading && positions.length > 0">
@@ -164,20 +127,37 @@
       </div>
     </div>
 
-    <!-- Ballot Loading -->
+    <!-- Loading ballot -->
     <div class="state-card" *ngIf="ballotLoading">
       <div class="spinner"></div>
-      <p>Loading ballot…</p>
+      <p>Loading candidates…</p>
     </div>
 
-    <!-- Positions List -->
-    <div class="positions-list" *ngIf="!ballotLoading">
+    <!-- No candidates found for this student -->
+    <div class="state-card state-empty" *ngIf="!ballotLoading && positions.length === 0">
+      <div class="state-icon empty-icon">
+        <svg viewBox="0 0 24 24" fill="none" width="28" height="28">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h3>No Candidates Yet</h3>
+      <p>No approved candidates have been registered for this election under your organizations
+        <strong>({{ studentOrgs.join(', ') }})</strong>.
+        Please check back later.
+      </p>
+      <button class="btn-outline" (click)="backToSelection()">Go Back</button>
+    </div>
+
+    <!-- Positions list -->
+    <div class="positions-list" *ngIf="!ballotLoading && positions.length > 0">
+
       <div class="position-card" *ngFor="let position of positions; let i = index">
         <div class="position-head">
           <div class="position-num">{{ i + 1 }}</div>
           <div>
             <div class="position-name">{{ position.name }}</div>
-            <div class="position-meta">Vote for 1 · {{ position.candidates.length }} candidates</div>
+            <div class="position-meta">Vote for 1 · {{ position.candidates.length }} candidate{{ position.candidates.length !== 1 ? 's' : '' }}</div>
           </div>
           <div class="position-status" [ngClass]="votes[position.name] ? 'filled' : 'empty'">
             <svg *ngIf="votes[position.name]" viewBox="0 0 16 16" fill="none" width="11" height="11">
@@ -188,28 +168,42 @@
         </div>
 
         <div class="candidates-grid">
-          <div
-            class="candidate-card"
-            *ngFor="let c of position.candidates"
-            [ngClass]="{ selected: votes[position.name] === c.id }"
-            (click)="selectCandidate(position.name, c.id)">
-            <div class="candidate-avatar">{{ getInitials(c.name) }}</div>
+          <div class="candidate-card"
+               *ngFor="let c of position.candidates"
+               [ngClass]="{ selected: isSelected(position.name, c.id) }"
+               (click)="selectCandidate(position.name, c.id)">
+
+            <!-- Photo or initials avatar -->
+            <div class="candidate-avatar" *ngIf="!getCandidatePhoto(c)">
+              {{ getInitials(c.name) }}
+            </div>
+            <img class="candidate-photo" *ngIf="getCandidatePhoto(c)"
+                 [src]="getCandidatePhoto(c)" [alt]="c.name" />
+
             <div class="candidate-info">
               <div class="candidate-name">{{ c.name }}</div>
-              <div class="candidate-party">{{ c.party }}</div>
+              <div class="candidate-party" *ngIf="c.party">{{ c.party }}</div>
+              <div class="candidate-org" *ngIf="$any(c).organization">
+                {{ $any(c).organization }}
+              </div>
+              <div class="candidate-course" *ngIf="c.course">
+                {{ c.course }} {{ c.year ? '· ' + c.year : '' }}
+              </div>
             </div>
+
             <div class="select-indicator">
-              <svg *ngIf="votes[position.name] === c.id" viewBox="0 0 16 16" fill="none" width="16" height="16">
+              <svg *ngIf="isSelected(position.name, c.id)" viewBox="0 0 16 16" fill="none" width="18" height="18">
                 <circle cx="8" cy="8" r="7" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.5"/>
                 <path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              <svg *ngIf="votes[position.name] !== c.id" viewBox="0 0 16 16" fill="none" width="16" height="16">
+              <svg *ngIf="!isSelected(position.name, c.id)" viewBox="0 0 16 16" fill="none" width="18" height="18">
                 <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
               </svg>
             </div>
           </div>
         </div>
       </div>
+
     </div>
 
     <!-- Submit Footer -->
@@ -224,16 +218,14 @@
           <path d="M6 9l2 2 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span *ngIf="!allAnswered">
-          {{ totalPositions - answeredCount }} position{{ totalPositions - answeredCount !== 1 ? 's' : '' }} still need{{ totalPositions - answeredCount === 1 ? 's' : '' }} a selection
+          {{ totalPositions - answeredCount }} position{{ totalPositions - answeredCount !== 1 ? 's' : '' }}
+          still need{{ totalPositions - answeredCount === 1 ? 's' : '' }} a selection
         </span>
         <span *ngIf="allAnswered">All positions filled — ready to submit</span>
       </div>
       <div class="footer-actions">
         <button class="btn-secondary" (click)="backToSelection()">Cancel</button>
-        <button
-          class="btn-submit"
-          [disabled]="!allAnswered || submitting"
-          (click)="submitBallot()">
+        <button class="btn-submit" [disabled]="!allAnswered || submitting" (click)="submitBallot()">
           <svg *ngIf="!submitting" viewBox="0 0 18 18" fill="none" width="13" height="13">
             <path d="M3 9l5 5 7-8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -245,24 +237,20 @@
   </ng-container>
 
 
-  <!-- ══════════════════════════════════════════════
-       VIEW 3: SUCCESS
-  ══════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════
+       VIEW 3 — SUCCESS
+  ══════════════════════════════════════════ -->
   <ng-container *ngIf="view === 'success'">
     <div class="success-page">
-      <div class="success-graphic">
-        <div class="success-ring"></div>
-        <div class="success-check">
-          <svg viewBox="0 0 32 32" fill="none" width="36" height="36">
-            <path d="M8 16l6 6 10-12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
+      <div class="success-check">
+        <svg viewBox="0 0 32 32" fill="none" width="36" height="36">
+          <path d="M8 16l6 6 10-12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </div>
       <h2>Vote Submitted!</h2>
       <p>Your ballot for <strong>{{ selectedElection?.name }}</strong> has been recorded. Thank you for participating!</p>
       <div class="success-actions">
-        <button class="btn-outline" (click)="goToResults()">View Results</button>
-        <button class="btn-secondary" (click)="goHome()">Back to Elections</button>
+        <button class="btn-outline" (click)="goHome()">Back to Elections</button>
       </div>
     </div>
   </ng-container>

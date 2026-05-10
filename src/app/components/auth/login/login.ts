@@ -42,14 +42,22 @@ export class LoginComponent implements OnInit {
     this.error = null;
 
     if (!this.identifier || !this.password) {
-      this.error = 'Please enter identifier and password';
+      this.error = 'Please enter your Student ID (or email) and password';
       return;
     }
 
     this.loading = true;
 
     try {
-      const user = await this.auth.login(this.identifier, this.password);
+      // If the input looks like a student ID (no @ symbol), convert it to
+      // the fake voter email so Firebase Auth can find the account.
+      // Admin and elecom accounts use real emails and are passed through as-is.
+      const isStudentId = !this.identifier.includes('@');
+      const emailToUse = isStudentId
+        ? AuthService.buildVoterEmail(this.identifier)
+        : this.identifier;
+
+      const user = await this.auth.login(emailToUse, this.password);
 
       const roleLabel =
         user.role === 'admin'
@@ -71,8 +79,9 @@ export class LoginComponent implements OnInit {
       if (user.role === 'admin') this.router.navigate(['/app/admin-dashboard']);
       else if (user.role === 'elecom') this.router.navigate(['/app/elecom-dashboard']);
       else if (user.role === 'student') this.router.navigate(['/app/student-dashboard']);
+
     } catch (err) {
-      this.error = 'Invalid email or password';
+      this.error = 'Invalid Student ID or password';
     } finally {
       this.loading = false;
     }

@@ -6,7 +6,7 @@
       <h1>Voters</h1>
       <p class="page-sub">Manage registered voters and track participation</p>
     </div>
-    <button class="btn-primary" (click)="showVoterModal = true">
+    <button class="btn-primary" (click)="openModal()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Add Voter
     </button>
@@ -85,39 +85,129 @@
     </table>
   </div>
 
-  <!-- Add Voter Modal -->
-  <div class="modal-overlay" *ngIf="showVoterModal" (click)="showVoterModal = false">
+  <!-- ── Add Voter Modal ─────────────────────────────────────── -->
+  <div class="modal-overlay" *ngIf="showVoterModal" (click)="closeModal()">
     <div class="modal-box" (click)="$event.stopPropagation()">
+
       <div class="modal-header">
-        <h3>Add Voter</h3>
-        <button class="btn-close" (click)="showVoterModal = false">
+        <div class="modal-title-group">
+          <h3>Add Voter</h3>
+          <p class="modal-subtitle">Creates a login account for the student using their ID</p>
+        </div>
+        <button class="btn-close" (click)="closeModal()" [disabled]="saving">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
+
+      <!-- Info banner -->
+      <div class="info-banner">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>The student will log in using their <strong>Student ID</strong> and the password you set below.</span>
+      </div>
+
       <div class="modal-body">
+
+        <!-- Student ID -->
         <div class="form-group">
           <label>Student ID <span class="req">*</span></label>
-          <input [(ngModel)]="newVoter.studentId" placeholder="e.g. 2024-0001" />
+          <input
+            [(ngModel)]="newVoter.studentId"
+            placeholder="e.g. 2024-0001"
+            [disabled]="saving"
+          />
+          <span class="field-hint" *ngIf="newVoter.studentId">
+            Login email: <code>{{ newVoter.studentId }}&#64;evoting.voter.com</code>
+          </span>
         </div>
+
+        <!-- Full Name -->
         <div class="form-group">
           <label>Full Name <span class="req">*</span></label>
-          <input [(ngModel)]="newVoter.name" placeholder="e.g. Juan dela Cruz" />
+          <input
+            [(ngModel)]="newVoter.name"
+            placeholder="e.g. Juan dela Cruz"
+            [disabled]="saving"
+          />
         </div>
+
+        <!-- Course & Year row -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Course <span class="req">*</span></label>
+            <input
+              [(ngModel)]="newVoter.course"
+              placeholder="e.g. BSIT"
+              [disabled]="saving"
+            />
+          </div>
+          <div class="form-group">
+            <label>Year</label>
+            <select [(ngModel)]="newVoter.year" [disabled]="saving">
+              <option *ngFor="let y of voterYears">{{ y }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-divider">
+          <span>Login Credentials</span>
+        </div>
+
+        <!-- Password -->
         <div class="form-group">
-          <label>Course <span class="req">*</span></label>
-          <input [(ngModel)]="newVoter.course" placeholder="e.g. BSIT" />
+          <label>Password <span class="req">*</span></label>
+          <div class="input-password">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              [(ngModel)]="newVoter.password"
+              placeholder="Min. 6 characters"
+              [disabled]="saving"
+            />
+            <button type="button" class="toggle-pw" (click)="showPassword = !showPassword" tabindex="-1">
+              <svg *ngIf="!showPassword" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg *ngIf="showPassword"  width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
         </div>
+
+        <!-- Confirm Password -->
         <div class="form-group">
-          <label>Year</label>
-          <select [(ngModel)]="newVoter.year">
-            <option *ngFor="let y of voterYears">{{ y }}</option>
-          </select>
+          <label>Confirm Password <span class="req">*</span></label>
+          <div class="input-password">
+            <input
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              [(ngModel)]="newVoter.confirmPassword"
+              placeholder="Re-enter password"
+              [disabled]="saving"
+            />
+            <button type="button" class="toggle-pw" (click)="showConfirmPassword = !showConfirmPassword" tabindex="-1">
+              <svg *ngIf="!showConfirmPassword" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg *ngIf="showConfirmPassword"  width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+          <!-- Password match indicator -->
+          <span
+            class="pw-match"
+            *ngIf="newVoter.confirmPassword"
+            [class.match]="newVoter.password === newVoter.confirmPassword"
+            [class.no-match]="newVoter.password !== newVoter.confirmPassword"
+          >
+            {{ newVoter.password === newVoter.confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match' }}
+          </span>
         </div>
+
       </div>
+
       <div class="modal-footer">
-        <button class="btn-cancel" (click)="showVoterModal = false">Cancel</button>
-        <button class="btn-save" (click)="addVoterSubmit()">Add Voter</button>
+        <button class="btn-cancel" (click)="closeModal()" [disabled]="saving">Cancel</button>
+        <button class="btn-save" (click)="addVoterSubmit()" [disabled]="saving">
+          <span *ngIf="!saving">Add Voter</span>
+          <span *ngIf="saving" class="saving-spinner">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            Registering...
+          </span>
+        </button>
       </div>
+
     </div>
   </div>
 

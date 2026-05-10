@@ -19,7 +19,7 @@ import { Candidates } from './components/pages/elecom-pages/candidates/candidate
 import { Elections } from './components/pages/elecom-pages/election/election';
 import { Results } from './components/pages/elecom-pages/results/results';
 import { Voters } from './components/pages/elecom-pages/voters/voters';
-import { BallotCreator } from './components/pages/elecom-pages/ballot-creator/ballot-creator';
+
 
 /* =========================
    ADMIN
@@ -28,6 +28,7 @@ import { BallotCreator } from './components/pages/elecom-pages/ballot-creator/ba
 import { AdminDashboard } from './layouts/admin-portal/admin-dashboard/admin-dashboard';
 import { AdminNotifications } from './layouts/admin-portal/admin-notifications/admin-notifications';
 import { AdminSettings } from './layouts/admin-portal/admin-settings/admin-settings';
+import { AdminCandidates } from './layouts/admin-portal/admin-candidates/admin-candidates';
 
 /* =========================
    STUDENT
@@ -69,7 +70,6 @@ export const routes: Routes = [
 
       { path: 'elecom-settings', component: ElecomSettings, canActivate: [RoleGuard], data: { role: 'elecom' } },
 
-      { path: 'elecom-ballot-creator', component: BallotCreator, canActivate: [RoleGuard], data: { role: 'elecom' } },
 
       /* =========================
          ADMIN ROUTES
@@ -80,6 +80,8 @@ export const routes: Routes = [
       { path: 'admin-notifications', component: AdminNotifications, canActivate: [RoleGuard], data: { role: 'admin' } },
 
       { path: 'admin-settings', component: AdminSettings, canActivate: [RoleGuard], data: { role: 'admin' } },
+
+      { path: 'admin-candidates', component: AdminCandidates, canActivate: [RoleGuard], data: { role: 'admin' } },
 
       /* =========================
          STUDENT ROUTES
