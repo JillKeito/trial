@@ -87,7 +87,9 @@ export class StudentDetails implements OnInit {
     });
 
     // 2. Fetch this student's vote record for this election
-    this.svc.getVoteRecordByStudentId(user.id).subscribe((records) => {
+    // voteRecords stores studentId (e.g. "2024-0001"), not the Firebase UID
+    const studentId = user.studentId ?? user.id;
+    this.svc.getVoteRecordByStudentId(studentId).subscribe((records) => {
       this.record = records.find((r) => r.electionId === electionId) ?? null;
       recordDone = true;
       tryBuild();

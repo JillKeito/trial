@@ -63,7 +63,9 @@ export class StudentBallot implements OnInit {
     }
 
     if (user) {
-      this.svc.getVoterByStudentId(user.id).subscribe((voters: Voter[]) => {
+      // voters collection is keyed on studentId (e.g. "2024-0001"), not the Firebase UID
+      const studentId = user.studentId ?? user.id;
+      this.svc.getVoterByStudentId(studentId).subscribe((voters: Voter[]) => {
         this.voter = voters[0] ?? null;
       });
     }
@@ -202,6 +204,11 @@ export class StudentBallot implements OnInit {
         if (this.voter) this.voter = { ...this.voter, hasVoted: true };
         this.buildSummary();
         this.view = 'success';
+        // Navigate to the permanent vote receipt after a short delay so the
+        // success animation is visible, then student-details takes over.
+        setTimeout(() => {
+          this.router.navigate(['/app/student-details', this.selectedElection!.id]);
+        }, 2000);
       },
       error: (err) => {
         this.submitting = false;

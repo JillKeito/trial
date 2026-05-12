@@ -43,7 +43,7 @@ import { StudentNotif } from './layouts/student-portal/student-dashboard/student
 import { StudentElections } from './components/pages/student-pages/student-elections/student-elections';
 import { StudentApply } from './components/pages/student-pages/student-apply/student-apply';
 import { StudentBallot } from './components/pages/student-pages/student-ballot/student-ballot';
-import { StudentDetails } from './layouts/student-portal/student-dashboard/student-details/student-details';
+import { StudentDetails } from './components/pages/student-pages/student-details/student-details';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },

@@ -229,30 +229,37 @@ export class ElectionService {
   castVote(
     voter: Voter,
     election: Election,
-    votes: { [position: string]: string },
+    votes: { [position: string]: string },  // real votes only (no __ABSTAIN__)
     candidates: Candidate[],
+    allVotes?: { [position: string]: string }, // full map incl. abstains for receipt
   ): Observable<any> {
+    const ABSTAIN = '__ABSTAIN__';
+
     const record = {
-      studentId: voter.studentId,
-      electionId: election.id,
-      votes,
+      studentId:   voter.studentId,
+      electionId:  election.id,
+      votes:       allVotes ?? votes,   // store full map so details page can show abstains
       submittedAt: new Date().toISOString(),
     };
 
-    const candidateUpdates = Object.values(votes).map((cId) => {
-      const c = candidates.find((x) => x.id === cId);
-      if (!c) throw new Error(`Candidate ${cId} not found`);
-      return this.updateCandidate({ ...c, votes: c.votes + 1 });
-    });
+    // Only tally real candidate votes — skip any accidental abstain values
+    const candidateUpdates = Object.values(votes)
+      .filter((cId) => cId && cId !== ABSTAIN)
+      .map((cId) => {
+        const c = candidates.find((x) => x.id === cId);
+        if (!c) throw new Error(`Candidate ${cId} not found`);
+        return this.updateCandidate({ ...c, votes: c.votes + 1 });
+      });
 
     return this.add('voteRecords', record).pipe(
-      switchMap(() =>
-        forkJoin([
+      switchMap(() => {
+        const updates = [
           ...candidateUpdates,
           this.updateVoter({ ...voter, hasVoted: true, verifiedAt: new Date().toISOString() }),
           this.updateElection({ ...election, voted: election.voted + 1 }),
-        ]),
-      ),
+        ];
+        return forkJoin(updates.length > 0 ? updates : [from(Promise.resolve())]);
+      }),
     );
   }
 }

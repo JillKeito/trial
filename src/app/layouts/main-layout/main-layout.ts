@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, PLATFORM_ID, HostListener } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterModule } from '@angular/router';
 import { AuthService, User } from '../../services/auth';
 import { ElectionService } from '../../services/election';
@@ -90,6 +90,14 @@ export class MainLayout implements OnInit, OnDestroy {
 
   toggleProfileMenu(): void {
     this.isProfileMenuOpen = !this.isProfileMenuOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.profile-dropdown')) {
+      this.isProfileMenuOpen = false;
+    }
   }
 
   goToNotifications(): void {
