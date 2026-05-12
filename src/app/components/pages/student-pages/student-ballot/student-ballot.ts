@@ -62,6 +62,14 @@ export class StudentBallot implements OnInit {
       return;
     }
 
+    if (user) {
+      // voters collection is keyed on studentId (e.g. "2024-0001"), not the Firebase UID
+      const studentId = user.studentId ?? user.id;
+      this.svc.getVoterByStudentId(studentId).subscribe((voters: Voter[]) => {
+        this.voter = voters[0] ?? null;
+      });
+    }
+
     this.svc.getElectionById(electionId).subscribe((election) => {
       if (!election) {
         Swal.fire({ icon: 'error', title: 'Election not found.' });
@@ -78,17 +86,6 @@ export class StudentBallot implements OnInit {
       this.selectedElection = election;
       this.loading = false;
       this.loadCandidates(electionId);
-
-      // If voter already voted, go straight to their receipt
-      if (user) {
-        this.svc.getVoterByStudentId(user.id).subscribe((voters: Voter[]) => {
-          const v = voters[0] ?? null;
-          this.voter = v;
-          if (v?.hasVoted) {
-            this.router.navigate(['/app/student-details', electionId]);
-          }
-        });
-      }
     });
   }
 
@@ -185,6 +182,7 @@ export class StudentBallot implements OnInit {
   submitBallot(): void {
     if (!this.allAnswered || !this.selectedElection || !this.voter) return;
 
+    // Double-guard: if voter already voted, do not proceed
     if (this.hasVoted) {
       Swal.fire({ icon: 'warning', title: 'You have already submitted your ballot.' });
       return;
@@ -192,31 +190,32 @@ export class StudentBallot implements OnInit {
 
     this.submitting = true;
 
-    // Strip abstains for tally — only real candidate IDs increment vote counts
+    // Strip abstains — only real votes increment candidate tallies
     const realVotes: Record<string, string> = {};
     for (const [pos, val] of Object.entries(this.votes)) {
       if (val !== ABSTAIN) realVotes[pos] = val;
     }
 
-    // Full map (incl. abstains) stored in vote record for the receipt page
-    const allVotes = { ...this.votes };
-
     const candidateList = this.positions.flatMap((p) => p.candidates);
-    const electionId = this.selectedElection.id;
 
-    this.svc.castVote(this.voter, this.selectedElection, realVotes, candidateList, allVotes).subscribe({
+    this.svc.castVote(this.voter, this.selectedElection, realVotes, candidateList).subscribe({
       next: () => {
         this.submitting = false;
         if (this.voter) this.voter = { ...this.voter, hasVoted: true };
-        // Navigate to the permanent receipt / details page
-        this.router.navigate(['/app/student-details', electionId]);
+        this.buildSummary();
+        this.view = 'success';
+        // Navigate to the permanent vote receipt after a short delay so the
+        // success animation is visible, then student-details takes over.
+        setTimeout(() => {
+          this.router.navigate(['/app/student-details', this.selectedElection!.id]);
+        }, 2000);
       },
       error: (err) => {
         this.submitting = false;
         Swal.fire({
           icon: 'error',
           title: 'Vote Failed',
-          text: err.message || 'Something went wrong. Please try again.',
+          text: err.message || 'Something went wrong.',
         });
       },
     });

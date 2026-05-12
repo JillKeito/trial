@@ -22,7 +22,7 @@ export interface User {
   email: string;
   role: UserRole;
   name: string;
-  studentId?: string;
+  studentId?: string;   // only populated for student accounts
   createdAt?: string;
 }
 

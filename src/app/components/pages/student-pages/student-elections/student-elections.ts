@@ -49,7 +49,9 @@ export class StudentElections implements OnInit {
     // Load the student's vote records so we know which elections they've voted in
     const user = this.auth.getCurrentUser();
     if (user) {
-      this.svc.getVoteRecordByStudentId(user.id).subscribe((records: VoteRecord[]) => {
+      // voteRecords stores studentId (e.g. "2024-0001"), not the Firebase UID
+      const studentId = user.studentId ?? user.id;
+      this.svc.getVoteRecordByStudentId(studentId).subscribe((records: VoteRecord[]) => {
         this.votedElectionIds = new Set(records.map((r) => r.electionId));
       });
     }
@@ -57,6 +59,11 @@ export class StudentElections implements OnInit {
 
   goToBallot(election: Election): void {
     this.router.navigate(['/app/student-ballot', election.id]);
+  }
+
+  /** Navigate to the permanent vote receipt for a completed vote */
+  goToDetails(election: Election): void {
+    this.router.navigate(['/app/student-details', election.id]);
   }
 
   getStatusLabel(status: string): string {
@@ -89,6 +96,8 @@ export class StudentElections implements OnInit {
       this.historyLoading = false;
       return;
     }
+
+    const studentId = user.studentId ?? user.id;
 
     let record: VoteRecord | null = null;
     let candidates: Candidate[] = [];
@@ -125,7 +134,7 @@ export class StudentElections implements OnInit {
       this.historyLoading = false;
     };
 
-    this.svc.getVoteRecordByStudentId(user.id).subscribe((records) => {
+    this.svc.getVoteRecordByStudentId(studentId).subscribe((records) => {
       record = records.find((r) => r.electionId === election.id) ?? null;
       tryBuild();
     });
