@@ -8,7 +8,7 @@ import { forkJoin, Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
 import { Firestore, doc, setDoc } from '@angular/fire/firestore';
-import { Chart, ArcElement, DoughnutController, Tooltip, Legend } from 'chart.js';
+import { Chart, ArcElement, DoughnutController, Tooltip, Legend, Plugin } from 'chart.js';
 
 Chart.register(ArcElement, DoughnutController, Tooltip, Legend);
 
@@ -53,16 +53,16 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
   private chartsNeedRender = false;
 
   pieColors = [
-    '#f59e0b',
-    '#185fa5',
-    '#1d9e75',
-    '#8b5cf6',
-    '#ef4444',
-    '#0ea5e9',
-    '#10b981',
-    '#f97316',
-    '#ec4899',
-    '#6366f1',
+    '#22c84c', // green
+    '#3b82f6', // blue
+    '#f59e0b', // amber
+    '#8b5cf6', // purple
+    '#ef4444', // red
+    '#06b6d4', // cyan
+    '#10b981', // emerald
+    '#f97316', // orange
+    '#ec4899', // pink
+    '#6366f1', // indigo
   ];
 
   private subs = new Subscription();
@@ -72,6 +72,8 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
     private svc: ElectionService,
     private auth: AuthService,
   ) {}
+
+  // ── Lifecycle ────────────────────────────────────────────────
 
   ngOnInit() {
     this.subs.add(
@@ -95,24 +97,7 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
     this.subs.add(
       this.svc.getCandidates().subscribe((allCandidates) => {
         if (!this.selectedResultElection) return;
-        const filtered = allCandidates.filter(
-          (c) =>
-            (c as any).electionId === this.selectedResultElection!.id ||
-            !c.hasOwnProperty('electionId'),
-        );
-        const map = new Map<string, Candidate[]>();
-        for (const c of filtered) {
-          if (!map.has(c.position)) map.set(c.position, []);
-          map.get(c.position)!.push(c);
-        }
-        this.resultsByPosition = Array.from(map.entries()).map(([position, cands]) => {
-          const sorted = [...cands].sort((a, b) => b.votes - a.votes);
-          return {
-            position,
-            candidates: sorted,
-            total: sorted.reduce((s, c) => s + (c.votes || 0), 0),
-          };
-        });
+        this.buildResultsByPosition(allCandidates, this.selectedResultElection.id);
         this.loadingResults = false;
         this.chartsNeedRender = true;
       }),
@@ -132,51 +117,109 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
     }
   }
 
+  // ── Results ──────────────────────────────────────────────────
+
   loadResults(election: Election): void {
     this.selectedResultElection = election;
     this.loadingResults = true;
     this.destroyAllCharts();
     this.resultsByPosition = [];
+
     this.svc.getCandidates().subscribe((allCandidates) => {
-      const filtered = allCandidates.filter(
-        (c) => (c as any).electionId === election.id || !c.hasOwnProperty('electionId'),
-      );
-      const map = new Map<string, Candidate[]>();
-      for (const c of filtered) {
-        if (!map.has(c.position)) map.set(c.position, []);
-        map.get(c.position)!.push(c);
-      }
-      this.resultsByPosition = Array.from(map.entries()).map(([position, cands]) => {
-        const sorted = [...cands].sort((a, b) => b.votes - a.votes);
-        return {
-          position,
-          candidates: sorted,
-          total: sorted.reduce((s, c) => s + (c.votes || 0), 0),
-        };
-      });
+      this.buildResultsByPosition(allCandidates, election.id);
       this.loadingResults = false;
       this.chartsNeedRender = true;
     });
   }
+
+  private buildResultsByPosition(allCandidates: Candidate[], electionId: string): void {
+    const filtered = allCandidates.filter(
+      (c) => (c as any).electionId === electionId || !c.hasOwnProperty('electionId'),
+    );
+    const map = new Map<string, Candidate[]>();
+    for (const c of filtered) {
+      if (!map.has(c.position)) map.set(c.position, []);
+      map.get(c.position)!.push(c);
+    }
+    this.resultsByPosition = Array.from(map.entries()).map(([position, cands]) => {
+      const sorted = [...cands].sort((a, b) => b.votes - a.votes);
+      return {
+        position,
+        candidates: sorted,
+        total: sorted.reduce((s, c) => s + (c.votes || 0), 0),
+      };
+    });
+  }
+
+  // ── Chart rendering ──────────────────────────────────────────
+  //
+  // Each slice gets its own "XX%" label drawn directly on the canvas
+  // via a custom Chart.js plugin (afterDraw hook).
+  // Labels appear at 55% of the way between inner and outer radius
+  // so they sit visually inside each segment.
 
   renderPieCharts(): void {
     this.resultsByPosition.forEach((group, i) => {
       const canvasId = `pie-admin-${i}`;
       const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
       if (!canvas) return;
+
+      // Destroy previous instance
       const existing = this.charts.get(canvasId);
       if (existing) {
         existing.destroy();
         this.charts.delete(canvasId);
       }
-      const labels = group.candidates.map((c) => c.name);
+
+      const hasVotes = group.candidates.some((c) => (c.votes || 0) > 0);
       const data = group.candidates.map((c) => c.votes || 0);
       const colors = group.candidates.map((_, j) => this.pieColors[j % this.pieColors.length]);
-      const hasVotes = data.some((v) => v > 0);
+      const total = group.total;
+
+      // ── Per-slice percent label plugin ──────────────────────
+      const slicePercentPlugin: Plugin<'doughnut'> = {
+        id: `slicePct-${i}`,
+        afterDraw(chart) {
+          if (!hasVotes) return;
+
+          const ctx = chart.ctx;
+          const meta = chart.getDatasetMeta(0);
+          const vals = chart.data.datasets[0].data as number[];
+
+          meta.data.forEach((arc: any, idx: number) => {
+            const votes = vals[idx] || 0;
+            const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
+
+            // Hide label if slice is too small to display cleanly
+            if (pct < 8) return;
+
+            const midAngle = arc.startAngle + (arc.endAngle - arc.startAngle) / 2;
+            const outerR = arc.outerRadius;
+            const innerR = arc.innerRadius;
+            // 55% from inner edge toward outer edge
+            const labelR = innerR + (outerR - innerR) * 0.55;
+
+            const x = arc.x + Math.cos(midAngle) * labelR;
+            const y = arc.y + Math.sin(midAngle) * labelR;
+
+            ctx.save();
+            ctx.font = 'bold 13px system-ui, -apple-system, sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            // Subtle shadow so text is readable on any color
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+            ctx.shadowBlur = 4;
+            ctx.fillText(`${pct}%`, x, y);
+            ctx.restore();
+          });
+        },
+      };
+
       const chart = new Chart(canvas, {
         type: 'doughnut',
         data: {
-          labels,
+          labels: group.candidates.map((c) => c.name),
           datasets: [
             {
               data: hasVotes ? data : group.candidates.map(() => 1),
@@ -189,7 +232,13 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
         },
         options: {
           responsive: false,
-          cutout: '62%',
+          // 58% cutout — smaller hole = more slice area = labels fit better
+          cutout: '58%',
+          animation: {
+            duration: 700,
+            // Redraw after animation so plugin labels render on top
+            onComplete: () => chart.draw(),
+          },
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -197,14 +246,16 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
                 label: (ctx) => {
                   if (!hasVotes) return ' No votes yet';
                   const val = ctx.parsed as number;
-                  const pct = group.total > 0 ? Math.round((val / group.total) * 100) : 0;
+                  const pct = total > 0 ? Math.round((val / total) * 100) : 0;
                   return ` ${val} votes (${pct}%)`;
                 },
               },
             },
           },
         },
+        plugins: [slicePercentPlugin],
       });
+
       this.charts.set(canvasId, chart);
     });
   }
@@ -241,7 +292,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
             requirements: app.requirements,
           })
           .subscribe(() => {
-            // ── Audit log ──
             this.svc
               .addAuditLog({
                 action: 'CANDIDATE_APPROVED',
@@ -251,7 +301,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
                 createdAt: new Date().toISOString(),
               })
               .subscribe();
-
             Swal.fire({
               icon: 'success',
               title: 'Candidate Approved!',
@@ -274,7 +323,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
     }).then((r) => {
       if (!r.isConfirmed) return;
       this.svc.updateApplication({ ...app, status: 'rejected' }).subscribe(() => {
-        // ── Audit log ──
         this.svc
           .addAuditLog({
             action: 'CANDIDATE_DISQUALIFIED',
@@ -284,7 +332,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
             createdAt: new Date().toISOString(),
           })
           .subscribe();
-
         Swal.fire({
           icon: 'info',
           title: 'Application Disqualified',
@@ -318,6 +365,11 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
     return group.candidates[0]?.id === c.id && c.votes > 0;
   }
 
+  // Returns the leading candidate — used in the HTML template center label
+  getWinner(group: { candidates: Candidate[]; total: number }): Candidate {
+    return group.candidates[0];
+  }
+
   // ── Election modal ───────────────────────────────────────────
 
   openCreate() {
@@ -349,7 +401,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
       this.svc
         .updateElection({ ...(this.selectedElection as Election), ...this.form })
         .subscribe(() => {
-          // ── Audit log ──
           this.svc
             .addAuditLog({
               action: 'ELECTION_UPDATED',
@@ -359,7 +410,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
               createdAt: new Date().toISOString(),
             })
             .subscribe();
-
           this.closeModal();
           Swal.fire({ icon: 'success', title: 'Updated!', timer: 1000, showConfirmButton: false });
         });
@@ -375,7 +425,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
           createdAt: new Date().toISOString(),
         })
         .subscribe(() => {
-          // ── Audit log ──
           this.svc
             .addAuditLog({
               action: 'ELECTION_CREATED',
@@ -384,7 +433,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
               createdAt: new Date().toISOString(),
             })
             .subscribe();
-
           this.closeModal();
           Swal.fire({
             icon: 'success',
@@ -410,7 +458,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
     }).then((r) => {
       if (!r.isConfirmed) return;
       this.svc.updateElection({ ...e, status: 'active' }).subscribe(() => {
-        // ── Audit log ──
         this.svc
           .addAuditLog({
             action: 'ELECTION_STARTED',
@@ -434,7 +481,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
     }).then((r) => {
       if (!r.isConfirmed) return;
       this.svc.updateElection({ ...e, status: 'completed' }).subscribe(() => {
-        // ── Audit log ──
         this.svc
           .addAuditLog({
             action: 'ELECTION_ENDED',
@@ -459,7 +505,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
     }).then((r) => {
       if (!r.isConfirmed) return;
       this.svc.deleteElection(e.id).subscribe(() => {
-        // ── Audit log ──
         this.svc
           .addAuditLog({
             action: 'ELECTION_DELETED',
@@ -498,8 +543,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
         role: 'elecom',
         createdAt: new Date().toISOString(),
       });
-
-      // ── Audit log ──
       this.svc
         .addAuditLog({
           action: 'ELECOM_ACCOUNT_CREATED',
@@ -508,7 +551,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
           createdAt: new Date().toISOString(),
         })
         .subscribe();
-
       this.creatingAccount = false;
       this.closeAccountModal();
       Swal.fire({
@@ -564,7 +606,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
               detail: `${dupes} duplicate vote(s) detected!`,
             },
       );
-
       checks.push(
         e.voted === r.length
           ? {
@@ -578,7 +619,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
               detail: `Mismatch! Election: ${e.voted}, Records: ${r.length}.`,
             },
       );
-
       const regIds = new Set(voters.map((v) => v.studentId));
       const unregistered = r.filter((x) => !regIds.has(x.studentId)).length;
       checks.push(
@@ -594,7 +634,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
               detail: `${unregistered} vote(s) from unregistered voters.`,
             },
       );
-
       const totalVotes = c.reduce((sum, x) => sum + (x.votes || 0), 0);
       checks.push(
         c.length === 0
@@ -607,7 +646,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
                 detail: `Mismatch! Candidates: ${totalVotes}, Records: ${r.length}.`,
               },
       );
-
       const outside = r.filter((x) => {
         const t = new Date(x.submittedAt).getTime();
         return t < new Date(e.startDate).getTime() || t > new Date(e.endDate).getTime();
@@ -646,7 +684,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
         certifiedAt: new Date().toISOString(),
       })
       .subscribe(() => {
-        // ── Audit log ──
         this.svc
           .addAuditLog({
             action: 'ELECTION_CERTIFIED',
@@ -656,7 +693,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
             createdAt: new Date().toISOString(),
           })
           .subscribe();
-
         this.notify('clean');
         this.closeAudit();
         Swal.fire({
@@ -681,7 +717,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
         auditNote: this.auditNote,
       })
       .subscribe(() => {
-        // ── Audit log ──
         this.svc
           .addAuditLog({
             action: 'ELECTION_FLAGGED',
@@ -691,7 +726,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
             createdAt: new Date().toISOString(),
           })
           .subscribe();
-
         this.notify('flagged');
         this.closeAudit();
         Swal.fire({

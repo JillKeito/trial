@@ -2,66 +2,170 @@
   <!-- ── Header ─────────────────────────────────────────────── -->
   <div class="page-header">
     <div class="header-left">
-      <h1>🗳️ Welcome Back, Administrator!</h1>
+      <h1><span class="wave">🗳️</span> Welcome Back, Administrator!</h1>
       <p class="page-sub">Create, manage, and audit Elections</p>
+    </div>
+    <div class="header-actions">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
     </div>
   </div>
 
   <!-- ── Stats ──────────────────────────────────────────────── -->
   <div class="stats-grid">
-    <div class="stat-card total c-total">
-      <div class="accent-bar"></div>
-      <div class="stat-icon-wrap">📋</div>
+    <div class="stat-card c-total">
+      <div class="stat-top">
+        <div class="stat-icon-box">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M9 11l3 3L22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+        </div>
+        <span class="stat-badge">All time</span>
+      </div>
       <div class="stat-value">{{ elections.length }}</div>
       <div class="stat-label">Total Elections</div>
-      <div class="stat-trend">All time</div>
     </div>
-    <div class="stat-card active-card c-active">
-      <div class="accent-bar"></div>
-      <div class="stat-icon-wrap">🟢</div>
+
+    <div class="stat-card c-active">
+      <div class="stat-top">
+        <div class="stat-icon-box">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+        </div>
+        <span class="stat-badge live"> <span class="pulse-dot"></span> Live </span>
+      </div>
       <div class="stat-value">{{ activeElection ? 1 : 0 }}</div>
       <div class="stat-label">Active Now</div>
-      <div class="stat-trend" *ngIf="activeElection">Live</div>
     </div>
-    <div class="stat-card upcoming c-upcoming">
-      <div class="accent-bar"></div>
-      <div class="stat-icon-wrap">📅</div>
+
+    <div class="stat-card c-upcoming">
+      <div class="stat-top">
+        <div class="stat-icon-box">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        </div>
+        <span class="stat-badge">Scheduled</span>
+      </div>
       <div class="stat-value">{{ upcomingElections.length }}</div>
       <div class="stat-label">Upcoming</div>
-      <div class="stat-trend">Scheduled</div>
     </div>
-    <div class="stat-card completed c-completed">
-      <div class="accent-bar"></div>
-      <div class="stat-icon-wrap">✅</div>
+
+    <div class="stat-card c-completed">
+      <div class="stat-top">
+        <div class="stat-icon-box">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+        <span class="stat-badge">Finished</span>
+      </div>
       <div class="stat-value">{{ completedElections.length }}</div>
       <div class="stat-label">Completed</div>
-      <div class="stat-trend">Finished</div>
     </div>
   </div>
 
-  <!-- ── Active election banner ─────────────────────────────── -->
+  <!-- ── Active Election Banner ─────────────────────────────── -->
   <div class="active-banner" *ngIf="activeElection">
-    <div class="banner-dot"></div>
+    <div class="banner-pulse"></div>
     <div class="banner-info">
-      <span class="banner-label">🔴 Live — Active Election</span>
-      <span class="banner-name">{{ activeElection.name }}</span>
-      <span class="banner-meta">
+      <div class="banner-top">
+        <span class="banner-live-chip">● LIVE</span>
+        <span style="font-size: 12px; font-weight: 600; color: #166534">Active Election</span>
+      </div>
+      <div class="banner-name">{{ activeElection.name }}</div>
+      <div class="banner-meta">
         {{ activeElection.startDate }} — {{ activeElection.endDate }} ·
         {{ activeElection.totalPositions }} positions
-      </span>
+      </div>
     </div>
-    <span class="banner-ends">Auto-ends {{ activeElection.endDate }}</span>
+    <div class="banner-right">
+      <span class="auto-ends-label">Auto-ends</span>
+      <span class="auto-ends-date">{{ activeElection.endDate }}</span>
+    </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- RESULTS — Election Picker + Pie Charts                   -->
-  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- ── Election Results ───────────────────────────────────── -->
   <div class="results-section-wrap">
     <div class="results-top-header">
       <div class="results-title-wrap">
-        <h2>📊 Election Results</h2>
+        <h2>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#22c84c"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+          Election Results
+        </h2>
         <span class="live-chip" *ngIf="activeElection"> <span class="live-dot"></span> Live </span>
       </div>
+
       <div class="election-picker">
         <button
           *ngFor="let e of elections"
@@ -69,20 +173,25 @@
           [class.active]="selectedResultElection?.id === e.id"
           (click)="loadResults(e)"
         >
-          {{ e.name }}
+          <span class="pick-name">{{ e.name }}</span>
           <span class="pick-badge" [ngClass]="statusClass(e.status)">{{ e.status }}</span>
         </button>
       </div>
     </div>
 
+    <!-- Loading -->
     <div class="results-loading" *ngIf="loadingResults">
-      <span>⏳ Loading results…</span>
+      <div class="loading-spinner"></div>
+      <span>Loading results…</span>
     </div>
 
+    <!-- Empty / no selection -->
     <div class="results-empty" *ngIf="!selectedResultElection && !loadingResults">
+      <div class="empty-icon">📊</div>
       <p>Select an election above to view its results.</p>
     </div>
 
+    <!-- Charts Grid -->
     <div class="pie-charts-grid" *ngIf="!loadingResults && resultsByPosition.length > 0">
       <div class="pie-card" *ngFor="let group of resultsByPosition; let i = index">
         <div class="pie-card-header">
@@ -90,23 +199,35 @@
           <span class="pie-total-votes">{{ group.total }} votes</span>
         </div>
         <div class="pie-chart-wrap">
-          <canvas [id]="'pie-admin-' + i" width="200" height="200"></canvas>
+          <canvas [id]="'pie-admin-' + i" width="180" height="180"></canvas>
+          <!-- Center label overlay — position with CSS -->
+          <div class="pie-center-label">
+            <span class="pie-center-pct"
+              >{{ getPercent(getWinner(group).votes, group.total) }}%</span
+            >
+            <span class="pie-center-name">{{ getWinner(group).name.split(' ')[0] }}</span>
+          </div>
         </div>
         <div class="pie-legend">
           <div class="pie-legend-item" *ngFor="let c of group.candidates; let j = index">
-            <span class="legend-dot" [style.background]="pieColors[j % pieColors.length]"></span>
+            <span
+              class="legend-color-dot"
+              [style.background]="pieColors[j % pieColors.length]"
+            ></span>
             <span class="legend-name">{{ c.name }}</span>
+            <span class="winner-star" *ngIf="isWinner(c, group)" title="Winner">★</span>
             <span class="legend-pct">{{ getPercent(c.votes, group.total) }}%</span>
-            <span class="winner-star" *ngIf="isWinner(c, group)">★</span>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- No results yet -->
     <div
       class="results-empty"
       *ngIf="!loadingResults && selectedResultElection && resultsByPosition.length === 0"
     >
+      <div class="empty-icon">🗳️</div>
       <p>No results yet for this election.</p>
     </div>
   </div>

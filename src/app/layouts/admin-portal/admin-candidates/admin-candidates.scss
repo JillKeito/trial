@@ -1,12 +1,18 @@
+// ── Tokens ───────────────────────────────────────────────────
 $navy: #1e3a5f;
 $green: #22c55e;
 $red: #ef4444;
 $amber: #f59e0b;
+$blue: #3b82f6;
+$purple: #8b5cf6;
 $bg: #f0f4f8;
 $surface: #ffffff;
 $text: #1e293b;
 $muted: #64748b;
 $border: #e2e8f0;
+
+// Avatar background colors pool
+$avatar-colors: #dbeafe, #dcfce7, #fce7f3, #fef3c7, #ede9fe, #ffedd5;
 
 .candidates-page {
   padding: 28px 32px;
@@ -15,12 +21,13 @@ $border: #e2e8f0;
   font-family: 'Segoe UI', sans-serif;
 }
 
-// ── Header ────────────────────────────────────────────────────
+// ── Header ───────────────────────────────────────────────────
 .page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+
   h1 {
     font-size: 22px;
     font-weight: 700;
@@ -38,11 +45,11 @@ $border: #e2e8f0;
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 9px 18px;
+  padding: 10px 20px;
   background: $navy;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -53,52 +60,178 @@ $border: #e2e8f0;
   }
 }
 
-// ── Stats ─────────────────────────────────────────────────────
-.stats-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
+// ── Stat Cards ───────────────────────────────────────────────
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.stat-pill {
+.stat-card {
+  background: $surface;
+  border-radius: 14px;
+  padding: 20px;
+  border: 1px solid $border;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  color: $muted;
-  border: 1px solid $border;
-  background: $surface;
-  strong {
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  // Left accent border
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 14px 0 0 14px;
+  }
+
+  &.c-total::before {
+    background: $blue;
+  }
+  &.c-approved::before {
+    background: $green;
+  }
+  &.c-pending::before {
+    background: $amber;
+  }
+  &.c-rejected::before {
+    background: $red;
+  }
+
+  .stat-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &.c-total .stat-icon-wrap {
+    background: #eff6ff;
+    svg {
+      stroke: $blue;
+    }
+  }
+  &.c-approved .stat-icon-wrap {
+    background: #f0fdf4;
+    svg {
+      stroke: $green;
+    }
+  }
+  &.c-pending .stat-icon-wrap {
+    background: #fffbeb;
+    svg {
+      stroke: $amber;
+    }
+  }
+  &.c-rejected .stat-icon-wrap {
+    background: #fff1f2;
+    svg {
+      stroke: $red;
+    }
+  }
+
+  .stat-info {
+    flex: 1;
+  }
+
+  .stat-value {
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1;
+    color: $text;
+    margin-bottom: 3px;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    font-weight: 600;
     color: $text;
   }
 
-  &.approved {
-    border-color: #bbf7d0;
-    background: #f0fdf4;
-    color: #166534;
-    strong {
-      color: #166534;
+  .stat-sub {
+    font-size: 11px;
+    color: $muted;
+    margin-top: 2px;
+  }
+
+  &.c-approved .stat-value {
+    color: $green;
+  }
+  &.c-pending .stat-value {
+    color: $amber;
+  }
+  &.c-rejected .stat-value {
+    color: $red;
+  }
+}
+
+// ── Tab nav ───────────────────────────────────────────────────
+.tab-nav {
+  display: flex;
+  margin-bottom: 16px;
+  border-bottom: 2px solid $border;
+
+  button {
+    all: unset;
+    box-sizing: border-box;
+    padding: 10px 20px;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    font-size: 13px;
+    font-weight: 500;
+    color: $muted;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition:
+      color 0.15s,
+      border-color 0.15s;
+
+    &:hover {
+      color: $text;
+    }
+    &.active {
+      color: $navy;
+      border-bottom-color: $navy;
+      font-weight: 700;
     }
   }
-  &.pending {
-    border-color: #fde68a;
-    background: #fffbeb;
-    color: #92400e;
-    strong {
-      color: #92400e;
-    }
-  }
-  &.disqualified {
-    border-color: #fecaca;
-    background: #fff1f2;
-    color: #991b1b;
-    strong {
-      color: #991b1b;
-    }
-  }
+}
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: $red;
+  color: white;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
 }
 
 // ── Filter bar ────────────────────────────────────────────────
@@ -116,10 +249,11 @@ $border: #e2e8f0;
   gap: 9px;
   background: $surface;
   border: 1px solid $border;
-  border-radius: 8px;
-  padding: 9px 13px;
+  border-radius: 10px;
+  padding: 10px 14px;
   flex: 1;
-  min-width: 200px;
+  min-width: 220px;
+
   svg {
     color: $muted;
     flex-shrink: 0;
@@ -137,43 +271,16 @@ $border: #e2e8f0;
   }
 }
 
-.filter-tabs {
-  display: flex;
-  gap: 4px;
-  background: $surface;
-  border: 1px solid $border;
-  border-radius: 8px;
-  padding: 4px;
-  button {
-    padding: 6px 14px;
-    border-radius: 6px;
-    border: none;
-    background: transparent;
-    font-size: 12px;
-    font-weight: 600;
-    color: $muted;
-    cursor: pointer;
-    transition: all 0.15s;
-    &:hover {
-      background: #f1f5f9;
-      color: $text;
-    }
-    &.active {
-      background: $navy;
-      color: white;
-    }
-  }
-}
-
 .filter-select {
-  padding: 9px 12px;
+  padding: 10px 14px;
   border: 1px solid $border;
-  border-radius: 8px;
+  border-radius: 10px;
   background: $surface;
   font-size: 13px;
   color: $text;
   outline: none;
   cursor: pointer;
+  min-width: 140px;
   &:focus {
     border-color: $navy;
   }
@@ -183,21 +290,49 @@ $border: #e2e8f0;
 .table-card {
   background: $surface;
   border: 1px solid $border;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.table-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid $border;
+  background: #f8fafc;
+}
+
+.table-count {
+  font-size: 12px;
+  color: $muted;
+  font-weight: 500;
 }
 
 .loading-state {
-  padding: 44px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px;
   color: $muted;
   font-size: 13px;
 }
-.empty-row {
-  text-align: center;
-  color: $muted;
-  padding: 40px 14px;
-  font-size: 13px;
+
+.loading-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid $border;
+  border-top-color: $navy;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 table {
@@ -207,13 +342,13 @@ table {
   thead {
     background: #f8fafc;
     th {
-      padding: 11px 14px;
+      padding: 12px 16px;
       text-align: left;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       color: $muted;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
       border-bottom: 1px solid $border;
     }
   }
@@ -221,7 +356,7 @@ table {
   tbody {
     tr {
       border-bottom: 1px solid $border;
-      transition: background 0.13s;
+      transition: background 0.1s;
       &:hover {
         background: #f8fafc;
       }
@@ -230,7 +365,7 @@ table {
       }
     }
     td {
-      padding: 12px 14px;
+      padding: 14px 16px;
       font-size: 13px;
       color: $text;
       vertical-align: middle;
@@ -238,114 +373,349 @@ table {
   }
 }
 
-.muted {
-  color: $muted;
-  font-size: 12px;
-}
-
 // ── Candidate cell ────────────────────────────────────────────
 .cand-cell {
   display: flex;
   align-items: center;
-  gap: 10px;
-
-  .avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #dbeafe;
-    color: $navy;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-  .avatar-img {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-    border: 1px solid $border;
-  }
-  .cand-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: $text;
-  }
-  .cand-meta {
-    font-size: 11px;
-    color: $muted;
-    margin-top: 1px;
-  }
+  gap: 12px;
 }
 
-.election-cell {
-  font-size: 12px;
+.cand-avatar-wrap {
+  flex-shrink: 0;
+}
+
+.cand-avatar-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid $border;
+  display: block;
+}
+
+.cand-avatar-init {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: $navy;
+  border: 2px solid $border;
+}
+
+.cand-details {
+  flex: 1;
+}
+
+.cand-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: $text;
+  margin-bottom: 2px;
+}
+
+.cand-id-email {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.cand-id {
+  font-size: 11px;
   color: $muted;
-  max-width: 140px;
+  font-family: 'Courier New', monospace;
 }
 
-// ── Badges ────────────────────────────────────────────────────
-.badge {
+.cand-course-tag {
   display: inline-block;
-  padding: 3px 10px;
-  border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
+  color: $navy;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 4px;
+  padding: 1px 7px;
+}
+
+// ── Position cell ─────────────────────────────────────────────
+.position-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+
+  svg {
+    color: $muted;
+    flex-shrink: 0;
+  }
+  strong {
+    font-weight: 700;
+    color: $text;
+  }
+}
+
+// ── Org / party cell ──────────────────────────────────────────
+.org-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.org-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.party-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+
+  &.independent {
+    background: #f8fafc;
+    color: $muted;
+    border-color: $border;
+  }
+}
+
+// ── Election cell ─────────────────────────────────────────────
+.election-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.election-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: $text;
+}
+
+.election-date {
+  font-size: 11px;
+  color: $muted;
+}
+
+// ── Status badge ──────────────────────────────────────────────
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
   text-transform: capitalize;
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
   &.badge-approved {
     background: #dcfce7;
     color: #166534;
+    border: 1px solid #bbf7d0;
   }
   &.badge-pending {
     background: #fef9c3;
     color: #854d0e;
+    border: 1px solid #fde68a;
   }
   &.badge-disqualified {
     background: #fee2e2;
     color: #991b1b;
+    border: 1px solid #fecaca;
   }
 }
 
 // ── Action buttons ────────────────────────────────────────────
 .action-btns {
   display: flex;
-  gap: 5px;
+  gap: 6px;
 }
 
-.btn-action {
-  width: 30px;
-  height: 30px;
-  border-radius: 7px;
+.btn-act {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.15s;
+  flex-shrink: 0;
 
-  &.approve {
+  &.btn-view {
+    background: #eff6ff;
+    color: $blue;
+    border: 1px solid #bfdbfe;
+    &:hover {
+      background: #dbeafe;
+    }
+  }
+  &.btn-approve {
     background: #f0fdf4;
     color: $green;
+    border: 1px solid #bbf7d0;
     &:hover {
       background: #dcfce7;
     }
   }
-  &.disqualify {
-    background: #fff7ed;
+  &.btn-disqualify {
+    background: #fffbeb;
     color: $amber;
+    border: 1px solid #fde68a;
     &:hover {
-      background: #ffedd5;
+      background: #fef3c7;
     }
   }
-  &.delete-btn {
+  &.btn-delete {
     background: #fff1f2;
     color: $red;
+    border: 1px solid #fecaca;
     &:hover {
       background: #fee2e2;
+    }
+  }
+}
+
+// ── Requirements ─────────────────────────────────────────────
+.req-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.req-pill {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #fef9c3;
+  color: #854d0e;
+  border: 1px solid #fde68a;
+
+  &.req-full {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #bbf7d0;
+  }
+}
+
+.req-mini-bar {
+  width: 80px;
+  height: 4px;
+  background: $border;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.req-mini-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, $green, #16a34a);
+  transition: width 0.4s ease;
+}
+
+// ── Reviewed chip ─────────────────────────────────────────────
+.reviewed-chip {
+  font-size: 12px;
+  font-weight: 600;
+  color: #166534;
+  &.disq {
+    color: #991b1b;
+  }
+}
+
+// ── Empty state ───────────────────────────────────────────────
+.empty-row {
+  padding: 0 !important;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  gap: 8px;
+
+  .empty-icon {
+    font-size: 36px;
+    opacity: 0.4;
+  }
+  p {
+    font-size: 14px;
+    color: $muted;
+    margin: 0;
+  }
+}
+
+// ── Table footer ──────────────────────────────────────────────
+.table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-top: 1px solid $border;
+  background: #f8fafc;
+}
+
+.showing-label {
+  font-size: 12px;
+  color: $muted;
+}
+
+// ── App filter bar ────────────────────────────────────────────
+.app-filter-bar {
+  margin-bottom: 14px;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 4px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 4px;
+  width: fit-content;
+
+  button {
+    all: unset;
+    box-sizing: border-box;
+    padding: 7px 16px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    color: $muted;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+
+    &:hover {
+      background: #f1f5f9;
+      color: $text;
+    }
+    &.active {
+      background: $navy;
+      color: white;
     }
   }
 }
@@ -382,6 +752,7 @@ table {
   top: 0;
   background: $surface;
   z-index: 1;
+
   h3 {
     font-size: 16px;
     font-weight: 700;
@@ -416,7 +787,6 @@ table {
   padding: 20px 22px;
 }
 
-// ── Photo upload ──────────────────────────────────────────────
 .photo-upload-area {
   display: flex;
   align-items: center;
@@ -455,6 +825,7 @@ table {
   flex-direction: column;
   gap: 5px;
 }
+
 .btn-upload {
   display: inline-flex;
   align-items: center;
@@ -471,12 +842,12 @@ table {
     background: #2d5a8e;
   }
 }
+
 .photo-hint {
   font-size: 11px;
   color: $muted;
 }
 
-// ── Form fields ───────────────────────────────────────────────
 .form-group {
   margin-bottom: 14px;
 }
@@ -536,7 +907,6 @@ textarea {
   text-align: right;
 }
 
-// ── Modal footer ──────────────────────────────────────────────
 .modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -591,41 +961,10 @@ textarea {
   align-items: center;
   gap: 7px;
 }
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
 .spin {
   animation: spin 0.8s linear infinite;
 }
 
-// ── Responsive ────────────────────────────────────────────────
-@media (max-width: 768px) {
-  .candidates-page {
-    padding: 16px;
-  }
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .filter-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .form-row {
-    flex-direction: column;
-    gap: 0;
-  }
-  .filter-tabs {
-    width: 100%;
-    overflow-x: auto;
-  }
-  .modal-box {
-    max-width: 100%;
-  }
-}
 // ── Conflict banner ───────────────────────────────────────────
 .conflict-banner {
   display: flex;
@@ -672,7 +1011,6 @@ textarea {
     font-style: normal;
     font-weight: 600;
   }
-
   .slot-count {
     margin-left: auto;
     background: $navy;
@@ -701,7 +1039,6 @@ textarea {
   border: 1px solid $border;
   background: white;
   transition: all 0.15s;
-
   svg {
     flex-shrink: 0;
     color: #cbd5e1;
@@ -712,19 +1049,18 @@ textarea {
     border-color: #bbf7d0;
     color: #166534;
     svg {
-      color: #22c55e;
+      color: $green;
     }
     span {
       font-weight: 600;
     }
   }
-
   &.slot-target {
     background: #eff6ff;
     border-color: #93c5fd;
     color: #1e40af;
     svg {
-      color: #3b82f6;
+      color: $blue;
     }
     span {
       font-weight: 600;
@@ -732,312 +1068,35 @@ textarea {
   }
 }
 
-// ── Field hint ────────────────────────────────────────────────
 .field-hint {
   font-size: 11px;
-  color: #ef4444;
+  color: $red;
   display: block;
   margin-top: 4px;
 }
-// ── Tab nav (Candidates / Student Applications) ───────────────
-.tab-nav {
-  display: flex;
-  gap: 0;
-  margin-bottom: 16px;
-  border-bottom: 2px solid #e2e8f0;
 
-  button {
-    padding: 10px 20px;
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -2px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #64748b;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    transition:
-      color 0.15s,
-      border-color 0.15s;
-
-    &:hover {
-      color: #1e293b;
-    }
-    &.active {
-      color: #1e3a5f;
-      border-bottom-color: #1e3a5f;
-      font-weight: 700;
-    }
+// ── Responsive ────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .candidates-page {
+    padding: 16px;
   }
-}
-
-.tab-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  background: #ef4444;
-  color: white;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-// ── Applications filter bar ───────────────────────────────────
-.app-filter-bar {
-  margin-bottom: 14px;
-
-  // reuse .filter-tabs style — already defined, just wrap it
-  .filter-tabs button {
-    min-width: 80px;
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
-}
-
-// ── Applications stat pill (clickable) ───────────────────────
-.stat-pill {
-  // make sure non-application pills are NOT pointer
-  cursor: default;
-}
-
-.stat-pill.applications {
-  border-color: #fde68a;
-  background: #fffbeb;
-  color: #92400e;
-  cursor: pointer;
-  strong {
-    color: #92400e;
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
-  &:hover {
-    background: #fef3c7;
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
   }
-}
-
-// ── Requirements pill ─────────────────────────────────────────
-.req-pill {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 600;
-  background: #fef9c3;
-  color: #854d0e;
-  border: 1px solid #fde68a;
-
-  &.req-full {
-    background: #dcfce7;
-    color: #166534;
-    border-color: #bbf7d0;
+  .form-row {
+    flex-direction: column;
+    gap: 0;
   }
-}
-
-// ── Stat pill as button (Applications clickable pill) ─────────
-button.stat-pill {
-  font-family: inherit;
-  font-size: 12px;
-  cursor: pointer;
-  border: 1px solid #fde68a;
-  background: #fffbeb;
-  color: #92400e;
-  strong {
-    color: #92400e;
-  }
-  &:hover {
-    background: #fef3c7;
-  }
-}
-
-// ── Tab nav ───────────────────────────────────────────────────
-.tab-nav {
-  display: flex;
-  gap: 0;
-  margin-bottom: 16px;
-  border-bottom: 2px solid #e2e8f0;
-
-  button {
-    all: unset; // reset ALL button styles first
-    box-sizing: border-box;
-    padding: 10px 20px;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -2px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #64748b;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    transition:
-      color 0.15s,
-      border-color 0.15s;
-
-    &:hover {
-      color: #1e293b;
-    }
-    &.active {
-      color: #1e3a5f;
-      border-bottom-color: #1e3a5f;
-      font-weight: 700;
-    }
-  }
-}
-
-.tab-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  background: #ef4444;
-  color: white;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-// ── App filter bar ────────────────────────────────────────────
-.app-filter-bar {
-  margin-bottom: 14px;
-}
-
-// ── Requirements pill ─────────────────────────────────────────
-.req-pill {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 600;
-  background: #fef9c3;
-  color: #854d0e;
-  border: 1px solid #fde68a;
-
-  &.req-full {
-    background: #dcfce7;
-    color: #166534;
-    border-color: #bbf7d0;
-  }
-}
-
-// ── Stat pills as clickable buttons ───────────────────────────
-button.stat-pill {
-  all: unset;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  cursor: pointer;
-  transition: all 0.15s;
-  strong {
-    color: #1e293b;
-  }
-  &:hover {
-    background: #f1f5f9;
-  }
-  &.active {
-    border-width: 2px;
-    font-weight: 600;
-  }
-
-  &.approved {
-    border-color: #bbf7d0;
-    background: #f0fdf4;
-    color: #166534;
-    strong {
-      color: #166534;
-    }
-    &.active {
-      border-color: #16a34a;
-      background: #dcfce7;
-    }
-  }
-  &.pending {
-    border-color: #fde68a;
-    background: #fffbeb;
-    color: #92400e;
-    strong {
-      color: #92400e;
-    }
-    &.active {
-      border-color: #d97706;
-      background: #fef3c7;
-    }
-  }
-  &.disqualified {
-    border-color: #fecaca;
-    background: #fff1f2;
-    color: #991b1b;
-    strong {
-      color: #991b1b;
-    }
-    &.active {
-      border-color: #dc2626;
-      background: #fee2e2;
-    }
-  }
-  &.active:not(.approved):not(.pending):not(.disqualified) {
-    border-color: #1e3a5f;
-    background: #eff6ff;
-  }
-}
-
-// Delete button on candidate cards
-.btn-delete-card {
-  width: 100%;
-  margin-top: 6px;
-  padding: 7px 12px;
-  border: 1px solid #fecaca;
-  background: #fef2f2;
-  color: #dc2626;
-  border-radius: 8px;
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
-
-  &:hover {
-    background: #fee2e2;
-  }
-}
-
-// Pending summary block on dashboard link
-.pending-summary {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  font-size: 14px;
-  color: #475569;
-
-  .pending-icon {
-    font-size: 20px;
-  }
-
-  .pending-text strong {
-    color: #1e293b;
-  }
-
-  .pending-link {
-    margin-left: auto;
-    color: #16a34a;
-    font-weight: 600;
-    text-decoration: none;
-    font-size: 13px;
-
-    &:hover {
-      text-decoration: underline;
-    }
+  .modal-box {
+    max-width: 100%;
   }
 }

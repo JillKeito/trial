@@ -15,7 +15,7 @@ import {
 import { Observable, from, forkJoin } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
-// -- Interfaces -----------------------------------------------
+// ── Interfaces ───────────────────────────────────────────────
 export interface Candidate {
   electionId?: string;
   id: string;
@@ -113,21 +113,36 @@ export interface AuditLog {
   createdAt: string;
 }
 
-// -- Service --------------------------------------------------
+// ── Service ──────────────────────────────────────────────────
 @Injectable({ providedIn: 'root' })
 export class ElectionService {
   private fs = inject(Firestore);
 
-  // -- Helpers -------------------------------------------------
+  // ── Helpers ───────────────────────────────────────────────
   private col(name: string) {
     return collection(this.fs, name);
   }
   private ref(name: string, id: string) {
     return doc(this.fs, name, id);
   }
+
+  // ── REAL-TIME list (collectionData) ───────────────────────
+  // This is the key — collectionData uses onSnapshot internally
+  // so any Firestore change instantly pushes to all subscribers
   private list<T>(name: string): Observable<T[]> {
     return collectionData(this.col(name), { idField: 'id' }) as Observable<T[]>;
   }
+
+  // ── REAL-TIME filtered list ───────────────────────────────
+  // Fixed: was using getDocs() (one-time) — now uses collectionData()
+  // so filtered results also update in real-time
+  private listWhere<T>(name: string, field: string, value: string): Observable<T[]> {
+    return collectionData(query(this.col(name), where(field, '==', value)), {
+      idField: 'id',
+    }) as Observable<T[]>;
+  }
+
+  // ── ONE-TIME fetch (still needed for some operations) ─────
   private findWhere<T>(name: string, field: string, value: string): Observable<T[]> {
     return from(
       getDocs(query(this.col(name), where(field, '==', value))).then((s) =>
@@ -135,18 +150,22 @@ export class ElectionService {
       ),
     );
   }
+
   private add<T>(name: string, data: any): Observable<T> {
     return from(addDoc(this.col(name), data)).pipe(map((r) => ({ id: r.id, ...data }) as T));
   }
+
   private update<T>(name: string, item: any): Observable<T> {
     const { id, ...data } = item;
     return from(updateDoc(this.ref(name, id), data)).pipe(map(() => item));
   }
+
   private remove(name: string, id: string): Observable<any> {
     return from(deleteDoc(this.ref(name, id)));
   }
 
-  // -- Candidates ----------------------------------------------
+  // ── Candidates ────────────────────────────────────────────
+  // Real-time — any approval instantly updates the ballot
   getCandidates() {
     return this.list<Candidate>('candidates');
   }
@@ -159,11 +178,14 @@ export class ElectionService {
   deleteCandidate(id: string) {
     return this.remove('candidates', id);
   }
-  getCandidatesByElection(electionId: string) {
-    return this.findWhere<Candidate>('candidates', 'electionId', electionId);
+
+  // Real-time — ballot updates instantly when candidates are approved
+  getCandidatesByElection(electionId: string): Observable<Candidate[]> {
+    return this.listWhere<Candidate>('candidates', 'electionId', electionId);
   }
 
-  // -- Voters --------------------------------------------------
+  // ── Voters ────────────────────────────────────────────────
+  // Real-time — hasVoted updates instantly across all sessions
   getVoters() {
     return this.list<Voter>('voters');
   }
@@ -176,11 +198,14 @@ export class ElectionService {
   deleteVoter(id: string) {
     return this.remove('voters', id);
   }
-  getVoterByStudentId(studentId: string) {
-    return this.findWhere<Voter>('voters', 'studentId', studentId);
+
+  // Real-time — voter status updates instantly
+  getVoterByStudentId(studentId: string): Observable<Voter[]> {
+    return this.listWhere<Voter>('voters', 'studentId', studentId);
   }
 
-  // -- Elections -----------------------------------------------
+  // ── Elections ─────────────────────────────────────────────
+  // Real-time — status changes (active/completed) reflect instantly
   getElections() {
     return this.list<Election>('elections');
   }
@@ -193,9 +218,12 @@ export class ElectionService {
   deleteElection(id: string) {
     return this.remove('elections', id);
   }
-  getActiveElection() {
-    return this.findWhere<Election>('elections', 'status', 'active');
+
+  // Real-time — active election updates instantly
+  getActiveElection(): Observable<Election[]> {
+    return this.listWhere<Election>('elections', 'status', 'active');
   }
+
   getElectionById(id: string): Observable<Election | null> {
     return from(
       getDoc(this.ref('elections', id)).then((s) =>
@@ -204,7 +232,8 @@ export class ElectionService {
     );
   }
 
-  // -- Applications --------------------------------------------
+  // ── Applications ──────────────────────────────────────────
+  // Real-time — new applications appear instantly in admin panel
   getApplications() {
     return this.list<Application>('applications');
   }
@@ -214,27 +243,34 @@ export class ElectionService {
   updateApplication(a: Application) {
     return this.update<Application>('applications', a);
   }
-  getApplicationByStudentId(id: string) {
-    return this.findWhere<Application>('applications', 'studentId', id);
+
+  // Real-time — student sees approval/rejection instantly
+  getApplicationByStudentId(id: string): Observable<Application[]> {
+    return this.listWhere<Application>('applications', 'studentId', id);
   }
 
-  // -- Vote Records --------------------------------------------
+  // ── Vote Records ──────────────────────────────────────────
+  // Real-time — vote tally updates instantly
   getVoteRecords() {
     return this.list<VoteRecord>('voteRecords');
   }
-  getVoteRecordByStudentId(id: string) {
+
+  // One-time is fine here — just checking if student already voted
+  getVoteRecordByStudentId(id: string): Observable<VoteRecord[]> {
     return this.findWhere<VoteRecord>('voteRecords', 'studentId', id);
   }
 
-  // -- Notifications -------------------------------------------
+  // ── Notifications ─────────────────────────────────────────
   addNotification(n: any): Observable<any> {
     return this.add('notifications', n);
   }
-  getNotifications(role: string) {
-    return this.findWhere<any>('notifications', 'role', role);
+
+  // Real-time — notifications appear instantly
+  getNotifications(role: string): Observable<any[]> {
+    return this.listWhere<any>('notifications', 'role', role);
   }
 
-  // -- Audit Logs ----------------------------------------------
+  // ── Audit Logs ────────────────────────────────────────────
   addAuditLog(log: Omit<AuditLog, 'id'>): Observable<AuditLog> {
     return this.add<AuditLog>('auditLogs', log);
   }
@@ -242,7 +278,7 @@ export class ElectionService {
     return this.list<AuditLog>('auditLogs');
   }
 
-  // -- Cast Vote -----------------------------------------------
+  // ── Cast Vote ─────────────────────────────────────────────
   castVote(
     voter: Voter,
     election: Election,
