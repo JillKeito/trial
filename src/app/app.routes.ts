@@ -182,12 +182,7 @@ export const routes: Routes = [
         canActivate: [RoleGuard],
         data: { role: 'student' },
       },
-      {
-        path: 'student-ballot',
-        component: StudentBallot,
-        canActivate: [RoleGuard],
-        data: { role: 'student' },
-      },
+
       {
         path: 'student-ballot/:id',
         component: StudentBallot,

@@ -37,17 +37,22 @@ const YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
   styleUrls: ['./admin-candidates.scss'],
 })
 export class AdminCandidates implements OnInit {
+  // ── Tab & list state ─────────────────────────────────────────
   activeTab: 'candidates' | 'applications' = 'candidates';
   candidates: (Candidate & { electionId?: string; organization?: string })[] = [];
   elections: Election[] = [];
   loading = false;
   applications: Application[] = [];
   loadingApps = false;
+
+  // ── Filters ──────────────────────────────────────────────────
   appFilter: 'all' | 'pending' | 'approved' | 'rejected' = 'pending';
   filterStatus: 'all' | 'pending' | 'approved' | 'disqualified' = 'all';
   filterOrg = '';
   filterElection = '';
   searchText = '';
+
+  // ── Register modal ───────────────────────────────────────────
   showModal = false;
   saving = false;
 
@@ -65,6 +70,11 @@ export class AdminCandidates implements OnInit {
     votes: number;
   } = this.emptyForm();
 
+  // ── Detail (See More) modal ───────────────────────────────────
+  showDetailModal = false;
+  detailCandidate: (Candidate & { electionId?: string; organization?: string }) | null = null;
+
+  // ── Constants ────────────────────────────────────────────────
   readonly orgs = ORGANIZATIONS;
   readonly courses = COURSES;
   readonly years = YEARS;
@@ -74,12 +84,12 @@ export class AdminCandidates implements OnInit {
     private auth: AuthService,
   ) {}
 
+  // ── Lifecycle ────────────────────────────────────────────────
+
   ngOnInit(): void {
     this.load();
     this.loadApplications();
   }
-
-  // ── Data loading ─────────────────────────────────────────────
 
   load(): void {
     this.loading = true;
@@ -100,16 +110,7 @@ export class AdminCandidates implements OnInit {
     });
   }
 
-  // ── Getters ──────────────────────────────────────────────────
-
-  get filteredApplications(): Application[] {
-    if (this.appFilter === 'all') return this.applications;
-    return this.applications.filter((a) => a.status === this.appFilter);
-  }
-
-  get pendingAppCount(): number {
-    return this.applications.filter((a) => a.status === 'pending').length;
-  }
+  // ── Computed lists ───────────────────────────────────────────
 
   get filteredCandidates() {
     return this.candidates.filter((c) => {
@@ -123,6 +124,13 @@ export class AdminCandidates implements OnInit {
     });
   }
 
+  get filteredApplications(): Application[] {
+    if (this.appFilter === 'all') return this.applications;
+    return this.applications.filter((a) => a.status === this.appFilter);
+  }
+
+  // ── Counts ───────────────────────────────────────────────────
+
   get totalCount() {
     return this.candidates.length;
   }
@@ -135,6 +143,50 @@ export class AdminCandidates implements OnInit {
   get disqualifiedCount() {
     return this.candidates.filter((c) => c.status === 'disqualified').length;
   }
+  get pendingAppCount() {
+    return this.applications.filter((a) => a.status === 'pending').length;
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────
+
+  electionName(id: string): string {
+    return this.elections.find((e) => e.id === id)?.name ?? '—';
+  }
+
+  electionNameById(id: string): string {
+    return this.elections.find((e) => e.id === id)?.name ?? '—';
+  }
+
+  reqCount(reqs: any): number {
+    if (!reqs) return 0;
+    return Object.values(reqs).filter(Boolean).length;
+  }
+
+  initial(name: string): string {
+    return name?.charAt(0)?.toUpperCase() ?? '?';
+  }
+
+  statusClass(s?: string) {
+    return s === 'approved'
+      ? 'badge-approved'
+      : s === 'pending'
+        ? 'badge-pending'
+        : 'badge-disqualified';
+  }
+
+  appStatusClass(s?: string) {
+    return s === 'approved'
+      ? 'badge-approved'
+      : s === 'rejected'
+        ? 'badge-disqualified'
+        : 'badge-pending';
+  }
+
+  isPositionTaken(pos: string): boolean {
+    return this.takenPositions.includes(pos);
+  }
+
+  // ── Slot / position helpers ───────────────────────────────────
 
   get positionsForOrg(): string[] {
     return POSITIONS[this.form.organization] ?? [];
@@ -160,12 +212,6 @@ export class AdminCandidates implements OnInit {
   get takenPositions(): string[] {
     return this.candidatesInSlot.map((c) => c.position);
   }
-  get slotsFilled(): number {
-    return this.candidatesInSlot.length;
-  }
-  get slotsTotal(): number {
-    return this.positionsForOrg.length;
-  }
 
   get positionConflict(): boolean {
     if (!this.form.position || !this.form.electionId || !this.form.organization) return false;
@@ -177,64 +223,32 @@ export class AdminCandidates implements OnInit {
     return this.candidatesInSlot.find((c) => c.position === this.form.position)?.name ?? '';
   }
 
-  // ── Helpers ──────────────────────────────────────────────────
-
-  electionName(id: string): string {
-    return this.elections.find((e) => e.id === id)?.name ?? '—';
+  get slotsFilled(): number {
+    return this.candidatesInSlot.length;
+  }
+  get slotsTotal(): number {
+    return this.positionsForOrg.length;
   }
 
-  electionNameById(id: string): string {
-    return this.elections.find((e) => e.id === id)?.name ?? '—';
+  // ── Detail modal ─────────────────────────────────────────────
+
+  openDetail(c: Candidate & { electionId?: string; organization?: string }): void {
+    this.detailCandidate = c;
+    this.showDetailModal = true;
   }
 
-  reqCount(reqs: any): number {
-    if (!reqs) return 0;
-    return Object.values(reqs).filter(Boolean).length;
+  closeDetail(): void {
+    this.showDetailModal = false;
+    this.detailCandidate = null;
   }
 
-  initial(name: string): string {
-    return name?.charAt(0)?.toUpperCase() ?? '?';
-  }
-
-  // ── NEW: Avatar background color ─────────────────────────────
-  avatarBg(index: number): string {
-    const colors = [
-      '#dbeafe', // blue
-      '#dcfce7', // green
-      '#fce7f3', // pink
-      '#fef3c7', // yellow
-      '#ede9fe', // purple
-      '#ffedd5', // orange
-    ];
-    return colors[index % colors.length];
-  }
-
-  statusClass(s?: string): string {
-    return s === 'approved'
-      ? 'badge-approved'
-      : s === 'pending'
-        ? 'badge-pending'
-        : 'badge-disqualified';
-  }
-
-  appStatusClass(s?: string): string {
-    return s === 'approved'
-      ? 'badge-approved'
-      : s === 'rejected'
-        ? 'badge-disqualified'
-        : 'badge-pending';
-  }
-
-  isPositionTaken(pos: string): boolean {
-    return this.takenPositions.includes(pos);
-  }
-
-  // ── Modal ────────────────────────────────────────────────────
+  // ── Register modal ────────────────────────────────────────────
 
   openAdd(): void {
     this.form = this.emptyForm();
     this.showModal = true;
   }
+
   closeModal(): void {
     this.showModal = false;
   }
@@ -272,7 +286,7 @@ export class AdminCandidates implements OnInit {
     reader.readAsDataURL(file);
   }
 
-  // ── Save (register candidate) ────────────────────────────────
+  // ── Save candidate ────────────────────────────────────────────
 
   save(): void {
     if (!this.form.name.trim()) {
@@ -301,6 +315,7 @@ export class AdminCandidates implements OnInit {
     }
 
     this.saving = true;
+
     this.svc
       .addCandidate({
         name: this.form.name.trim(),
@@ -332,7 +347,6 @@ export class AdminCandidates implements OnInit {
             }
           }
 
-          // ── Audit log ──
           this.svc
             .addAuditLog({
               action: 'CANDIDATE_REGISTERED',
@@ -345,6 +359,7 @@ export class AdminCandidates implements OnInit {
           this.saving = false;
           this.closeModal();
           this.load();
+
           Swal.fire({
             icon: 'success',
             title: 'Candidate Registered!',
@@ -360,7 +375,71 @@ export class AdminCandidates implements OnInit {
       });
   }
 
-  // ── Approve application ──────────────────────────────────────
+  // ── Set status (approve / disqualify) ─────────────────────────
+
+  setStatus(
+    c: Candidate & { electionId?: string; organization?: string },
+    status: 'approved' | 'disqualified',
+  ): void {
+    const label = status === 'approved' ? 'Approve' : 'Disqualify';
+    const color = status === 'approved' ? '#22c55e' : '#ef4444';
+
+    Swal.fire({
+      title: `${label} candidate?`,
+      text: c.name,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: color,
+      confirmButtonText: label,
+    }).then((r) => {
+      if (!r.isConfirmed) return;
+      this.svc.updateCandidate({ ...c, status } as Candidate).subscribe(() => {
+        this.svc
+          .addAuditLog({
+            action: `CANDIDATE_${status.toUpperCase()}`,
+            performedBy: this.auth.getCurrentUser()?.name ?? 'Admin',
+            details: `${label}d candidate ${c.name} (${c.position})`,
+            targetId: c.id,
+            createdAt: new Date().toISOString(),
+          })
+          .subscribe();
+
+        this.load();
+        Swal.fire({ icon: 'success', title: `${label}d!`, timer: 900, showConfirmButton: false });
+      });
+    });
+  }
+
+  // ── Delete ────────────────────────────────────────────────────
+
+  delete(c: Candidate): void {
+    Swal.fire({
+      title: 'Delete candidate?',
+      text: `Remove ${c.name} permanently?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Delete',
+    }).then((r) => {
+      if (!r.isConfirmed) return;
+      this.svc.deleteCandidate(c.id).subscribe(() => {
+        this.svc
+          .addAuditLog({
+            action: 'CANDIDATE_DELETED',
+            performedBy: this.auth.getCurrentUser()?.name ?? 'Admin',
+            details: `Deleted candidate ${c.name} (${c.position})`,
+            targetId: c.id,
+            createdAt: new Date().toISOString(),
+          })
+          .subscribe();
+
+        this.load();
+        Swal.fire({ icon: 'success', title: 'Deleted', timer: 900, showConfirmButton: false });
+      });
+    });
+  }
+
+  // ── Approve / reject applications ────────────────────────────
 
   approveApplication(app: Application): void {
     Swal.fire({
@@ -390,7 +469,6 @@ export class AdminCandidates implements OnInit {
             registeredBy: 'admin-from-application',
           } as any)
           .subscribe(() => {
-            // ── Audit log ──
             this.svc
               .addAuditLog({
                 action: 'CANDIDATE_APPROVED',
@@ -401,7 +479,6 @@ export class AdminCandidates implements OnInit {
               })
               .subscribe();
 
-            // ── Notify student ──
             this.svc
               .addNotification({
                 role: 'student',
@@ -416,6 +493,7 @@ export class AdminCandidates implements OnInit {
 
             this.load();
             this.loadApplications();
+
             Swal.fire({
               icon: 'success',
               title: 'Approved!',
@@ -428,8 +506,6 @@ export class AdminCandidates implements OnInit {
     });
   }
 
-  // ── Reject application ───────────────────────────────────────
-
   rejectApplication(app: Application): void {
     Swal.fire({
       title: 'Disqualify application?',
@@ -441,7 +517,6 @@ export class AdminCandidates implements OnInit {
     }).then((r) => {
       if (!r.isConfirmed) return;
       this.svc.updateApplication({ ...app, status: 'rejected' }).subscribe(() => {
-        // ── Audit log ──
         this.svc
           .addAuditLog({
             action: 'CANDIDATE_DISQUALIFIED',
@@ -452,7 +527,6 @@ export class AdminCandidates implements OnInit {
           })
           .subscribe();
 
-        // ── Notify student ──
         this.svc
           .addNotification({
             role: 'student',
@@ -467,72 +541,6 @@ export class AdminCandidates implements OnInit {
 
         this.loadApplications();
         Swal.fire({ icon: 'info', title: 'Disqualified', timer: 1000, showConfirmButton: false });
-      });
-    });
-  }
-
-  // ── Set status (approve / disqualify existing candidate) ─────
-
-  setStatus(
-    c: Candidate & { electionId?: string; organization?: string },
-    status: 'approved' | 'disqualified',
-  ): void {
-    const label = status === 'approved' ? 'Approve' : 'Disqualify';
-    const color = status === 'approved' ? '#22c55e' : '#ef4444';
-
-    Swal.fire({
-      title: `${label} candidate?`,
-      text: c.name,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: color,
-      confirmButtonText: label,
-    }).then((r) => {
-      if (!r.isConfirmed) return;
-      this.svc.updateCandidate({ ...c, status } as Candidate).subscribe(() => {
-        // ── Audit log ──
-        this.svc
-          .addAuditLog({
-            action: `CANDIDATE_${status.toUpperCase()}`,
-            performedBy: this.auth.getCurrentUser()?.name ?? 'Admin',
-            details: `${label}d candidate ${c.name} (${c.position})`,
-            targetId: c.id,
-            createdAt: new Date().toISOString(),
-          })
-          .subscribe();
-
-        this.load();
-        Swal.fire({ icon: 'success', title: `${label}d!`, timer: 900, showConfirmButton: false });
-      });
-    });
-  }
-
-  // ── Delete candidate ─────────────────────────────────────────
-
-  delete(c: Candidate): void {
-    Swal.fire({
-      title: 'Delete candidate?',
-      text: `Remove ${c.name} permanently?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      confirmButtonText: 'Delete',
-    }).then((r) => {
-      if (!r.isConfirmed) return;
-      this.svc.deleteCandidate(c.id).subscribe(() => {
-        // ── Audit log ──
-        this.svc
-          .addAuditLog({
-            action: 'CANDIDATE_DELETED',
-            performedBy: this.auth.getCurrentUser()?.name ?? 'Admin',
-            details: `Deleted candidate ${c.name} (${c.position})`,
-            targetId: c.id,
-            createdAt: new Date().toISOString(),
-          })
-          .subscribe();
-
-        this.load();
-        Swal.fire({ icon: 'success', title: 'Deleted', timer: 900, showConfirmButton: false });
       });
     });
   }

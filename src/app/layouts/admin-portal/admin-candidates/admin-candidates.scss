@@ -1,4 +1,7 @@
-// ── Tokens ───────────────────────────────────────────────────
+/* ════════════════════════════════════════════════
+   Admin Candidates — Enhanced UI
+   ════════════════════════════════════════════════ */
+
 $navy: #1e3a5f;
 $green: #22c55e;
 $red: #ef4444;
@@ -9,30 +12,44 @@ $bg: #f0f4f8;
 $surface: #ffffff;
 $text: #1e293b;
 $muted: #64748b;
+$sub: #94a3b8;
 $border: #e2e8f0;
 
-// Avatar background colors pool
-$avatar-colors: #dbeafe, #dcfce7, #fce7f3, #fef3c7, #ede9fe, #ffedd5;
-
+// ── Base ──────────────────────────────────────────────────────
 .candidates-page {
-  padding: 28px 32px;
+  padding: 24px 28px;
   background: $bg;
   min-height: 100%;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-// ── Header ───────────────────────────────────────────────────
+// ── Header ────────────────────────────────────────────────────
 .page-header {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 24px;
+  background: $surface;
+  border-radius: 16px;
+  padding: 20px 24px;
+  border: 1px solid $border;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 
-  h1 {
-    font-size: 22px;
+  .header-eyebrow {
+    font-size: 11px;
     font-weight: 700;
+    color: $navy;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 800;
     color: $text;
-    margin: 0 0 4px;
+    margin: 0 0 3px;
   }
   .page-sub {
     font-size: 13px;
@@ -42,30 +59,34 @@ $avatar-colors: #dbeafe, #dcfce7, #fce7f3, #fef3c7, #ede9fe, #ffedd5;
 }
 
 .btn-primary {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 7px;
   padding: 10px 20px;
   background: $navy;
-  color: white;
+  color: #fff;
   border: none;
   border-radius: 10px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
   white-space: nowrap;
+  transition:
+    background 0.15s,
+    transform 0.1s;
   &:hover {
     background: #2d5a8e;
   }
+  &:active {
+    transform: scale(0.97);
+  }
 }
 
-// ── Stat Cards ───────────────────────────────────────────────
+// ── Stat Cards ────────────────────────────────────────────────
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin-bottom: 24px;
+  gap: 12px;
 
   @media (max-width: 900px) {
     grid-template-columns: repeat(2, 1fr);
@@ -75,50 +96,39 @@ $avatar-colors: #dbeafe, #dcfce7, #fce7f3, #fef3c7, #ede9fe, #ffedd5;
 .stat-card {
   background: $surface;
   border-radius: 14px;
-  padding: 20px;
+  padding: 18px 20px;
   border: 1px solid $border;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   position: relative;
   overflow: hidden;
   transition:
     transform 0.15s,
     box-shadow 0.15s;
+  border-top: 3px solid transparent;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   }
 
-  // Left accent border
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    border-radius: 14px 0 0 14px;
+  &.c-total {
+    border-top-color: $blue;
+  }
+  &.c-approved {
+    border-top-color: $green;
+  }
+  &.c-pending {
+    border-top-color: $amber;
+  }
+  &.c-disqualified {
+    border-top-color: $red;
   }
 
-  &.c-total::before {
-    background: $blue;
-  }
-  &.c-approved::before {
-    background: $green;
-  }
-  &.c-pending::before {
-    background: $amber;
-  }
-  &.c-rejected::before {
-    background: $red;
-  }
-
-  .stat-icon-wrap {
-    width: 48px;
-    height: 48px;
+  .stat-icon-box {
+    width: 44px;
+    height: 44px;
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -126,75 +136,82 @@ $avatar-colors: #dbeafe, #dcfce7, #fce7f3, #fef3c7, #ede9fe, #ffedd5;
     flex-shrink: 0;
   }
 
-  &.c-total .stat-icon-wrap {
+  &.c-total .stat-icon-box {
     background: #eff6ff;
+    color: $blue;
     svg {
       stroke: $blue;
     }
   }
-  &.c-approved .stat-icon-wrap {
+  &.c-approved .stat-icon-box {
     background: #f0fdf4;
+    color: $green;
     svg {
       stroke: $green;
     }
   }
-  &.c-pending .stat-icon-wrap {
+  &.c-pending .stat-icon-box {
     background: #fffbeb;
+    color: $amber;
     svg {
       stroke: $amber;
     }
   }
-  &.c-rejected .stat-icon-wrap {
-    background: #fff1f2;
+  &.c-disqualified .stat-icon-box {
+    background: #fef2f2;
+    color: $red;
     svg {
       stroke: $red;
     }
   }
 
   .stat-info {
-    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
   }
 
   .stat-value {
-    font-size: 30px;
+    font-size: 28px;
     font-weight: 800;
     line-height: 1;
     color: $text;
-    margin-bottom: 3px;
   }
-
-  .stat-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: $text;
-  }
-
-  .stat-sub {
-    font-size: 11px;
-    color: $muted;
-    margin-top: 2px;
-  }
-
   &.c-approved .stat-value {
     color: $green;
   }
   &.c-pending .stat-value {
     color: $amber;
   }
-  &.c-rejected .stat-value {
+  &.c-disqualified .stat-value {
     color: $red;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: $text;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .stat-sub {
+    font-size: 11px;
+    color: $muted;
   }
 }
 
-// ── Tab nav ───────────────────────────────────────────────────
+// ── Tab Nav ───────────────────────────────────────────────────
 .tab-nav {
   display: flex;
-  margin-bottom: 16px;
+  gap: 0;
   border-bottom: 2px solid $border;
 
   button {
     all: unset;
     box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 7px;
     padding: 10px 20px;
     border-bottom: 2px solid transparent;
     margin-bottom: -2px;
@@ -202,9 +219,6 @@ $avatar-colors: #dbeafe, #dcfce7, #fce7f3, #fef3c7, #ede9fe, #ffedd5;
     font-weight: 500;
     color: $muted;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 7px;
     transition:
       color 0.15s,
       border-color 0.15s;
@@ -228,19 +242,18 @@ $avatar-colors: #dbeafe, #dcfce7, #fce7f3, #fef3c7, #ede9fe, #ffedd5;
   height: 18px;
   padding: 0 5px;
   background: $red;
-  color: white;
+  color: #fff;
   border-radius: 10px;
   font-size: 10px;
   font-weight: 700;
 }
 
-// ── Filter bar ────────────────────────────────────────────────
+// ── Filter Bar ────────────────────────────────────────────────
 .filter-bar {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
 }
 
 .search-wrap {
@@ -249,11 +262,10 @@ $avatar-colors: #dbeafe, #dcfce7, #fce7f3, #fef3c7, #ede9fe, #ffedd5;
   gap: 9px;
   background: $surface;
   border: 1px solid $border;
-  border-radius: 10px;
-  padding: 10px 14px;
+  border-radius: 8px;
+  padding: 9px 13px;
   flex: 1;
-  min-width: 220px;
-
+  min-width: 180px;
   svg {
     color: $muted;
     flex-shrink: 0;
@@ -272,67 +284,465 @@ $avatar-colors: #dbeafe, #dcfce7, #fce7f3, #fef3c7, #ede9fe, #ffedd5;
 }
 
 .filter-select {
-  padding: 10px 14px;
+  padding: 9px 12px;
   border: 1px solid $border;
-  border-radius: 10px;
+  border-radius: 8px;
   background: $surface;
   font-size: 13px;
   color: $text;
   outline: none;
   cursor: pointer;
-  min-width: 140px;
   &:focus {
     border-color: $navy;
   }
 }
 
-// ── Table card ────────────────────────────────────────────────
+.status-pills {
+  display: flex;
+  gap: 6px;
+}
+
+.spill {
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid $border;
+  background: $surface;
+  color: $muted;
+  transition: all 0.15s;
+
+  &.active,
+  &:hover {
+    background: $navy;
+    color: #fff;
+    border-color: $navy;
+  }
+
+  &.spill-approved {
+    &.active,
+    &:hover {
+      background: $green;
+      border-color: $green;
+      color: #fff;
+    }
+  }
+  &.spill-pending {
+    &.active,
+    &:hover {
+      background: $amber;
+      border-color: $amber;
+      color: #fff;
+    }
+  }
+  &.spill-disq {
+    &.active,
+    &:hover {
+      background: $red;
+      border-color: $red;
+      color: #fff;
+    }
+  }
+}
+
+// ── Candidate Cards Grid ──────────────────────────────────────
+.cand-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.cand-card {
+  background: $surface;
+  border-radius: 16px;
+  border: 1.5px solid $border;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+  position: relative;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  }
+
+  // Top accent bar by status
+  .card-accent-bar {
+    height: 4px;
+    width: 100%;
+    background: $border;
+  }
+
+  &.card-approved .card-accent-bar {
+    background: $green;
+  }
+  &.card-pending .card-accent-bar {
+    background: $amber;
+  }
+  &.card-disqualified .card-accent-bar {
+    background: $red;
+  }
+
+  // Subtle background tint
+  &.card-approved {
+    border-color: #bbf7d0;
+  }
+  &.card-pending {
+    border-color: #fde68a;
+  }
+  &.card-disqualified {
+    border-color: #fecaca;
+  }
+}
+
+// Photo area
+.card-photo-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px 12px;
+  gap: 10px;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.card-photo-ring {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  padding: 3px;
+  background: $border;
+
+  &.ring-approved {
+    background: linear-gradient(135deg, $green, #16a34a);
+  }
+  &.ring-pending {
+    background: linear-gradient(135deg, $amber, #d97706);
+  }
+  &.ring-disqualified {
+    background: linear-gradient(135deg, $red, #dc2626);
+  }
+
+  .card-photo {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    border: 2px solid #fff;
+  }
+
+  .card-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: $navy;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 800;
+    border: 2px solid #fff;
+  }
+}
+
+.card-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: capitalize;
+
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.8;
+  }
+
+  &.badge-approved {
+    background: #dcfce7;
+    color: #166534;
+  }
+  &.badge-pending {
+    background: #fef9c3;
+    color: #854d0e;
+  }
+  &.badge-disqualified {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+// Body
+.card-body {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.card-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: $text;
+  text-align: center;
+}
+
+.card-position {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: $navy;
+  svg {
+    stroke: $navy;
+  }
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+}
+
+.card-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+
+  &.tag-party {
+    background: #ede9fe;
+    color: #5b21b6;
+  }
+  &.tag-course {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+  &.tag-org {
+    background: #f0fdf4;
+    color: #166534;
+  }
+}
+
+// Requirements bar on card
+.card-req {
+  margin-top: 4px;
+}
+
+.req-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.req-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: $muted;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.req-fraction {
+  font-size: 11px;
+  font-weight: 700;
+  color: $muted;
+  &.req-full {
+    color: $green;
+  }
+}
+
+.req-track {
+  height: 5px;
+  background: $border;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.req-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.4s ease;
+  &.fill-full {
+    background: $green;
+  }
+  &.fill-partial {
+    background: $amber;
+  }
+}
+
+// Card footer
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-top: 1px solid $border;
+  background: #f8fafc;
+  gap: 6px;
+}
+
+.card-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    opacity 0.15s,
+    transform 0.1s;
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &.btn-see-more {
+    background: #eff6ff;
+    color: $blue;
+    border-color: #bfdbfe;
+    &:hover {
+      background: #dbeafe;
+    }
+  }
+  &.btn-approve-sm {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    justify-content: center;
+    background: #f0fdf4;
+    color: $green;
+    border-color: #bbf7d0;
+    &:hover {
+      background: #dcfce7;
+    }
+  }
+  &.btn-disq-sm {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    justify-content: center;
+    background: #fff7ed;
+    color: $amber;
+    border-color: #fed7aa;
+    &:hover {
+      background: #ffedd5;
+    }
+  }
+  &.btn-delete-sm {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    justify-content: center;
+    background: #fef2f2;
+    color: $red;
+    border-color: #fecaca;
+    &:hover {
+      background: #fee2e2;
+    }
+  }
+}
+
+.card-action-btns {
+  display: flex;
+  gap: 5px;
+}
+
+// Empty state
+.empty-cards {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px;
+  text-align: center;
+  .empty-icon {
+    font-size: 40px;
+  }
+  p {
+    font-size: 15px;
+    font-weight: 600;
+    color: $text;
+    margin: 0;
+  }
+  span {
+    font-size: 12px;
+    color: $muted;
+  }
+}
+
+// ── Applications Tab ──────────────────────────────────────────
+.app-filter-bar {
+  margin-bottom: 2px;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 4px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 8px;
+  padding: 4px;
+  width: fit-content;
+
+  button {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: $muted;
+    cursor: pointer;
+    transition: all 0.15s;
+    &:hover {
+      background: #f1f5f9;
+      color: $text;
+    }
+    &.active {
+      background: $navy;
+      color: #fff;
+    }
+  }
+}
+
+// ── Table ─────────────────────────────────────────────────────
 .table-card {
   background: $surface;
   border: 1px solid $border;
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
-.table-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 20px;
-  border-bottom: 1px solid $border;
-  background: #f8fafc;
-}
-
-.table-count {
-  font-size: 12px;
+.loading-state,
+.empty-row {
+  text-align: center;
   color: $muted;
-  font-weight: 500;
-}
-
-.loading-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 48px;
-  color: $muted;
+  padding: 44px 14px;
   font-size: 13px;
-}
-
-.loading-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid $border;
-  border-top-color: $navy;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 table {
@@ -342,13 +752,13 @@ table {
   thead {
     background: #f8fafc;
     th {
-      padding: 12px 16px;
+      padding: 11px 14px;
       text-align: left;
       font-size: 11px;
       font-weight: 700;
       color: $muted;
       text-transform: uppercase;
-      letter-spacing: 0.6px;
+      letter-spacing: 0.5px;
       border-bottom: 1px solid $border;
     }
   }
@@ -356,16 +766,16 @@ table {
   tbody {
     tr {
       border-bottom: 1px solid $border;
-      transition: background 0.1s;
+      transition: background 0.12s;
       &:hover {
-        background: #f8fafc;
+        background: #fafbfc;
       }
       &:last-child {
         border-bottom: none;
       }
     }
     td {
-      padding: 14px 16px;
+      padding: 12px 14px;
       font-size: 13px;
       color: $text;
       vertical-align: middle;
@@ -373,243 +783,71 @@ table {
   }
 }
 
-// ── Candidate cell ────────────────────────────────────────────
+.muted {
+  color: $muted;
+  font-size: 12px;
+}
+
 .cand-cell {
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.cand-avatar-wrap {
-  flex-shrink: 0;
-}
-
-.cand-avatar-img {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid $border;
-  display: block;
-}
-
-.cand-avatar-init {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: 700;
-  color: $navy;
-  border: 2px solid $border;
-}
-
-.cand-details {
-  flex: 1;
-}
-
-.cand-name {
-  font-size: 14px;
-  font-weight: 700;
-  color: $text;
-  margin-bottom: 2px;
-}
-
-.cand-id-email {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 3px;
-}
-
-.cand-id {
-  font-size: 11px;
-  color: $muted;
-  font-family: 'Courier New', monospace;
-}
-
-.cand-course-tag {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 600;
-  color: $navy;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 4px;
-  padding: 1px 7px;
-}
-
-// ── Position cell ─────────────────────────────────────────────
-.position-cell {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-
-  svg {
-    color: $muted;
+  gap: 10px;
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: $navy;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
     flex-shrink: 0;
   }
-  strong {
-    font-weight: 700;
+  .cand-name {
+    font-size: 13px;
+    font-weight: 600;
     color: $text;
+  }
+  .cand-meta {
+    font-size: 11px;
+    color: $muted;
+    margin-top: 1px;
   }
 }
 
-// ── Org / party cell ──────────────────────────────────────────
-.org-cell {
+.election-cell {
+  font-size: 12px;
+  color: $muted;
+}
+
+.org-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  background: #ede9fe;
+  color: #5b21b6;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+// Requirements inline
+.req-inline {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.org-name {
-  font-size: 12px;
-  font-weight: 700;
-  color: #1d4ed8;
-}
-
-.party-tag {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
-
-  &.independent {
-    background: #f8fafc;
-    color: $muted;
-    border-color: $border;
-  }
-}
-
-// ── Election cell ─────────────────────────────────────────────
-.election-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.election-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: $text;
-}
-
-.election-date {
-  font-size: 11px;
-  color: $muted;
-}
-
-// ── Status badge ──────────────────────────────────────────────
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: capitalize;
-
-  &::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-  }
-
-  &.badge-approved {
-    background: #dcfce7;
-    color: #166534;
-    border: 1px solid #bbf7d0;
-  }
-  &.badge-pending {
-    background: #fef9c3;
-    color: #854d0e;
-    border: 1px solid #fde68a;
-  }
-  &.badge-disqualified {
-    background: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #fecaca;
-  }
-}
-
-// ── Action buttons ────────────────────────────────────────────
-.action-btns {
-  display: flex;
-  gap: 6px;
-}
-
-.btn-act {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s;
-  flex-shrink: 0;
-
-  &.btn-view {
-    background: #eff6ff;
-    color: $blue;
-    border: 1px solid #bfdbfe;
-    &:hover {
-      background: #dbeafe;
-    }
-  }
-  &.btn-approve {
-    background: #f0fdf4;
-    color: $green;
-    border: 1px solid #bbf7d0;
-    &:hover {
-      background: #dcfce7;
-    }
-  }
-  &.btn-disqualify {
-    background: #fffbeb;
-    color: $amber;
-    border: 1px solid #fde68a;
-    &:hover {
-      background: #fef3c7;
-    }
-  }
-  &.btn-delete {
-    background: #fff1f2;
-    color: $red;
-    border: 1px solid #fecaca;
-    &:hover {
-      background: #fee2e2;
-    }
-  }
-}
-
-// ── Requirements ─────────────────────────────────────────────
-.req-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
 .req-pill {
   display: inline-block;
-  padding: 3px 9px;
+  padding: 2px 10px;
   border-radius: 10px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   background: #fef9c3;
   color: #854d0e;
   border: 1px solid #fde68a;
-
   &.req-full {
     background: #dcfce7;
     color: #166534;
@@ -617,129 +855,334 @@ table {
   }
 }
 
-.req-mini-bar {
-  width: 80px;
+.req-track-sm {
   height: 4px;
   background: $border;
-  border-radius: 4px;
+  border-radius: 10px;
   overflow: hidden;
+  width: 80px;
 }
-
-.req-mini-fill {
+.req-fill-sm {
   height: 100%;
-  border-radius: 4px;
-  background: linear-gradient(90deg, $green, #16a34a);
-  transition: width 0.4s ease;
+  border-radius: 10px;
+  &.fill-full {
+    background: $green;
+  }
+  &.fill-partial {
+    background: $amber;
+  }
 }
 
-// ── Reviewed chip ─────────────────────────────────────────────
-.reviewed-chip {
-  font-size: 12px;
-  font-weight: 600;
-  color: #166534;
-  &.disq {
+// Badges
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+
+  .badge-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  &.badge-approved {
+    background: #dcfce7;
+    color: #166534;
+  }
+  &.badge-pending {
+    background: #fef9c3;
+    color: #854d0e;
+  }
+  &.badge-disqualified {
+    background: #fee2e2;
     color: #991b1b;
   }
 }
 
-// ── Empty state ───────────────────────────────────────────────
-.empty-row {
-  padding: 0 !important;
+// Action buttons in table
+.action-btns {
+  display: flex;
+  gap: 5px;
 }
 
-.empty-state {
+.btn-action {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border: none;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px;
-  gap: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
 
-  .empty-icon {
-    font-size: 36px;
-    opacity: 0.4;
+  &.approve {
+    background: #f0fdf4;
+    color: $green;
+    &:hover {
+      background: #dcfce7;
+    }
   }
-  p {
-    font-size: 14px;
-    color: $muted;
-    margin: 0;
+  &.disqualify {
+    background: #fff7ed;
+    color: $amber;
+    &:hover {
+      background: #ffedd5;
+    }
+  }
+  &.delete-btn {
+    background: #fef2f2;
+    color: $red;
+    &:hover {
+      background: #fee2e2;
+    }
   }
 }
 
-// ── Table footer ──────────────────────────────────────────────
-.table-footer {
+// ── Detail Modal ──────────────────────────────────────────────
+.detail-modal {
+  max-width: 480px !important;
+}
+
+.detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.detail-hero {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 14px 20px;
-  border-top: 1px solid $border;
-  background: #f8fafc;
+  gap: 16px;
+  padding: 4px 0 8px;
 }
 
-.showing-label {
-  font-size: 12px;
-  color: $muted;
-}
+.detail-photo-ring {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  padding: 3px;
+  background: $border;
+  flex-shrink: 0;
 
-// ── App filter bar ────────────────────────────────────────────
-.app-filter-bar {
-  margin-bottom: 14px;
-}
+  &.ring-approved {
+    background: linear-gradient(135deg, $green, #16a34a);
+  }
+  &.ring-pending {
+    background: linear-gradient(135deg, $amber, #d97706);
+  }
+  &.ring-disqualified {
+    background: linear-gradient(135deg, $red, #dc2626);
+  }
 
-.filter-tabs {
-  display: flex;
-  gap: 4px;
-  background: $surface;
-  border: 1px solid $border;
-  border-radius: 10px;
-  padding: 4px;
-  width: fit-content;
-
-  button {
-    all: unset;
-    box-sizing: border-box;
-    padding: 7px 16px;
-    border-radius: 7px;
-    font-size: 12px;
-    font-weight: 600;
-    color: $muted;
-    cursor: pointer;
+  img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    border: 2px solid #fff;
+  }
+  .detail-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: $navy;
     display: flex;
     align-items: center;
-    gap: 6px;
-    transition: all 0.15s;
-
-    &:hover {
-      background: #f1f5f9;
-      color: $text;
-    }
-    &.active {
-      background: $navy;
-      color: white;
-    }
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 800;
+    border: 2px solid #fff;
   }
 }
 
-// ── Modal ─────────────────────────────────────────────────────
+.detail-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.detail-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: $text;
+}
+
+.detail-position {
+  font-size: 13px;
+  font-weight: 600;
+  color: $navy;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid $border;
+  border-radius: 10px;
+
+  .detail-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: $muted;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .detail-val {
+    font-size: 13px;
+    font-weight: 600;
+    color: $text;
+  }
+  .vote-count {
+    font-size: 20px;
+    font-weight: 800;
+    color: $navy;
+  }
+}
+
+.detail-section {
+  .detail-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: $muted;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+}
+
+.detail-req-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detail-req-track {
+  flex: 1;
+  height: 8px;
+  background: $border;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.detail-req-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.5s ease;
+  &.fill-full {
+    background: $green;
+  }
+  &.fill-partial {
+    background: $amber;
+  }
+}
+
+.detail-req-fraction {
+  font-size: 12px;
+  font-weight: 700;
+  color: $muted;
+  white-space: nowrap;
+  &.req-full {
+    color: $green;
+  }
+}
+
+.detail-bio {
+  font-size: 13px;
+  color: $text;
+  line-height: 1.65;
+  background: #f8fafc;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 12px 14px;
+
+  &.detail-bio-empty {
+    color: $muted;
+    font-style: italic;
+  }
+}
+
+// Modal action buttons
+.btn-action-modal {
+  padding: 9px 18px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition:
+    opacity 0.15s,
+    transform 0.1s;
+  &:hover {
+    opacity: 0.85;
+  }
+  &:active {
+    transform: scale(0.96);
+  }
+
+  &.approve-modal {
+    background: #dcfce7;
+    color: #166534;
+  }
+  &.disq-modal {
+    background: #fef9c3;
+    color: #854d0e;
+  }
+  &.delete-modal {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+// ── Shared Modal ──────────────────────────────────────────────
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(15, 23, 42, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 16px;
+  padding: 20px;
+  backdrop-filter: blur(2px);
 }
 
 .modal-box {
   background: $surface;
-  border-radius: 16px;
+  border-radius: 18px;
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+  animation: modalIn 0.2s ease;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .modal-header {
@@ -755,7 +1198,7 @@ table {
 
   h3 {
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 800;
     color: $text;
     margin: 0 0 3px;
   }
@@ -764,13 +1207,14 @@ table {
     color: $muted;
     margin: 0;
   }
+
   .btn-close {
     background: none;
     border: none;
     cursor: pointer;
     color: $muted;
     display: flex;
-    padding: 3px;
+    padding: 4px;
     border-radius: 6px;
     transition: background 0.15s;
     &:hover {
@@ -787,10 +1231,91 @@ table {
   padding: 20px 22px;
 }
 
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 22px;
+  border-top: 1px solid $border;
+  position: sticky;
+  bottom: 0;
+  background: $surface;
+}
+
+// ── Form ──────────────────────────────────────────────────────
+.form-group {
+  margin-bottom: 14px;
+}
+.form-row {
+  display: flex;
+  gap: 12px;
+  .form-group {
+    flex: 1;
+  }
+}
+
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: $text;
+  margin-bottom: 5px;
+  .req {
+    color: $red;
+  }
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid $border;
+  border-radius: 8px;
+  font-size: 13px;
+  color: $text;
+  background: $surface;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+
+  &:focus {
+    outline: none;
+    border-color: $navy;
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+  }
+  &:disabled {
+    background: #f8fafc;
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.char-count {
+  font-size: 11px;
+  color: $muted;
+  display: block;
+  margin-top: 3px;
+  text-align: right;
+}
+.field-hint {
+  font-size: 11px;
+  color: $red;
+  display: block;
+  margin-top: 4px;
+}
+
 .photo-upload-area {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   margin-bottom: 18px;
   padding: 14px 16px;
   background: #f8fafc;
@@ -832,12 +1357,12 @@ table {
   gap: 6px;
   padding: 7px 14px;
   background: $navy;
-  color: white;
+  color: #fff;
   border-radius: 7px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.15s;
   &:hover {
     background: #2d5a8e;
   }
@@ -848,79 +1373,9 @@ table {
   color: $muted;
 }
 
-.form-group {
-  margin-bottom: 14px;
-}
-.form-row {
-  display: flex;
-  gap: 12px;
-  .form-group {
-    flex: 1;
-  }
-}
-
-label {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  color: $text;
-  margin-bottom: 6px;
-  .req {
-    color: $red;
-  }
-}
-
-input,
-select,
-textarea {
-  width: 100%;
-  padding: 9px 12px;
-  border: 1px solid $border;
-  border-radius: 8px;
-  font-size: 13px;
-  color: $text;
-  background: $surface;
-  font-family: inherit;
-  box-sizing: border-box;
-  transition: border-color 0.15s;
-  &:focus {
-    outline: none;
-    border-color: $navy;
-  }
-  &:disabled {
-    background: #f8fafc;
-    cursor: not-allowed;
-    opacity: 0.7;
-  }
-}
-
-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.char-count {
-  font-size: 11px;
-  color: $muted;
-  display: block;
-  margin-top: 4px;
-  text-align: right;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 14px 22px;
-  border-top: 1px solid $border;
-  position: sticky;
-  bottom: 0;
-  background: $surface;
-}
-
 .btn-cancel {
   padding: 9px 20px;
-  border: 1px solid $border;
+  border: 1.5px solid $border;
   border-radius: 8px;
   background: $surface;
   font-size: 13px;
@@ -936,17 +1391,17 @@ textarea {
 }
 
 .btn-save {
-  padding: 9px 22px;
-  background: $navy;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 7px;
+  padding: 9px 22px;
+  background: $navy;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
   &:hover:not(:disabled) {
     background: #2d5a8e;
   }
@@ -961,11 +1416,17 @@ textarea {
   align-items: center;
   gap: 7px;
 }
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .spin {
   animation: spin 0.8s linear infinite;
 }
 
-// ── Conflict banner ───────────────────────────────────────────
+// ── Conflict banner, Slot summary (unchanged) ────────────────
 .conflict-banner {
   display: flex;
   align-items: center;
@@ -986,7 +1447,6 @@ textarea {
   }
 }
 
-// ── Slot summary ──────────────────────────────────────────────
 .slot-summary {
   background: #f8fafc;
   border: 1px solid $border;
@@ -1014,7 +1474,7 @@ textarea {
   .slot-count {
     margin-left: auto;
     background: $navy;
-    color: white;
+    color: #fff;
     font-size: 11px;
     font-weight: 700;
     padding: 2px 8px;
@@ -1037,8 +1497,7 @@ textarea {
   padding: 5px 8px;
   border-radius: 6px;
   border: 1px solid $border;
-  background: white;
-  transition: all 0.15s;
+  background: #fff;
   svg {
     flex-shrink: 0;
     color: #cbd5e1;
@@ -1068,13 +1527,6 @@ textarea {
   }
 }
 
-.field-hint {
-  font-size: 11px;
-  color: $red;
-  display: block;
-  margin-top: 4px;
-}
-
 // ── Responsive ────────────────────────────────────────────────
 @media (max-width: 768px) {
   .candidates-page {
@@ -1084,9 +1536,6 @@ textarea {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
-  }
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
   }
   .filter-bar {
     flex-direction: column;
@@ -1098,5 +1547,11 @@ textarea {
   }
   .modal-box {
     max-width: 100%;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cand-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }
