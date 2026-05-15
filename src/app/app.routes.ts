@@ -44,6 +44,8 @@ import { StudentElections } from './components/pages/student-pages/student-elect
 import { StudentApply } from './components/pages/student-pages/student-apply/student-apply';
 import { StudentBallot } from './components/pages/student-pages/student-ballot/student-ballot';
 import { StudentDetails } from './components/pages/student-pages/student-details/student-details';
+import { AdminHelp } from './layouts/admin-portal/admin-help/admin-help';
+import { AdminAudit } from './layouts/admin-portal/admin-audit/admin-audit';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -155,6 +157,8 @@ export const routes: Routes = [
         canActivate: [RoleGuard],
         data: { role: 'admin' },
       },
+      { path: 'admin-audit', component: AdminAudit },
+      { path: 'admin-help', component: AdminHelp },
 
       /* =========================
          STUDENT ROUTES

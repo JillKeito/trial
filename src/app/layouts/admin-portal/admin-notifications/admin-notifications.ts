@@ -1,25 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-
-export type NotifCategory = 'candidates' | 'results' | 'timeline' | 'rules' | 'system';
-
-export interface Notification {
-  id: string;
-  category: NotifCategory;
-  title: string;
-  message: string;
-  sender: string;
-  time: string;
-  read: boolean;
-  actionRequired: boolean;
-}
-
-export interface Tab {
-  key: string;
-  label: string;
-  count: number;
-}
+import { ElectionService } from '../../../services/election';
 
 @Component({
   selector: 'admin-notifications',
@@ -30,148 +12,115 @@ export interface Tab {
 })
 export class AdminNotifications implements OnInit {
   activeTab = 'all';
+  loading = true;
 
-  tabs: Tab[] = [
+  // ── Two types of real notifications ──────────────────────────
+  // 1. From students applying as candidates (role: 'admin-candidate')
+  // 2. From ELECOM audit results (role: 'elecom')
+  candidateNotifs: any[] = [];
+  elecomNotifs: any[] = [];
+
+  tabs = [
     { key: 'all', label: 'All', count: 0 },
     { key: 'unread', label: 'Unread', count: 0 },
-    { key: 'action', label: 'Action Needed', count: 0 },
     { key: 'candidates', label: 'Candidates', count: 0 },
-    { key: 'results', label: 'Results', count: 0 },
-    { key: 'timeline', label: 'Timeline', count: 0 },
-    { key: 'rules', label: 'Rules', count: 0 },
+    { key: 'elecom', label: 'ELECOM', count: 0 },
   ];
 
-  notifications: Notification[] = [
-    {
-      id: 'n-001',
-      category: 'candidates',
-      title: 'Candidate List Submitted',
-      message:
-        'ELECOM has submitted the qualified and disqualified candidate list for Presidential and VP positions. Please review and certify.',
-      sender: 'ELECOM Chair',
-      time: '2 hours ago',
-      read: false,
-      actionRequired: true,
-    },
-    {
-      id: 'n-002',
-      category: 'timeline',
-      title: 'Election Timeline Updated',
-      message:
-        'ELECOM has revised the election schedule. Campaigning period moved from Apr 21 to Apr 24. Confirm it aligns with the school calendar.',
-      sender: 'ELECOM Secretary',
-      time: '5 hours ago',
-      read: false,
-      actionRequired: true,
-    },
-    {
-      id: 'n-003',
-      category: 'rules',
-      title: 'Rule Amendment Proposed',
-      message:
-        "A proposed amendment to extend campaign poster sizes was submitted. This may conflict with the school's facilities policy. Review carefully.",
-      sender: 'ELECOM Chair',
-      time: 'Yesterday, 3:40 PM',
-      read: false,
-      actionRequired: true,
-    },
-    {
-      id: 'n-004',
-      category: 'results',
-      title: 'Preliminary Results Submitted',
-      message:
-        'ELECOM has submitted preliminary election results for your initial review ahead of the official canvassing.',
-      sender: 'ELECOM Tally Officer',
-      time: 'Yesterday, 11:20 AM',
-      read: true,
-      actionRequired: false,
-    },
-    {
-      id: 'n-005',
-      category: 'system',
-      title: 'Election Cycle Officially Started',
-      message:
-        'The 2024–2025 SSG Election cycle has officially begun. All submissions from ELECOM will be logged and routed to your dashboard.',
-      sender: 'System',
-      time: '1 week ago',
-      read: true,
-      actionRequired: false,
-    },
-  ];
+  constructor(private svc: ElectionService) {}
 
-  get filteredNotifications(): Notification[] {
+  ngOnInit(): void {
+    // ── Load candidate application notifications ──────────────
+    // Fired when a student submits an application (student-apply.ts)
+    this.svc.getNotifications('admin-candidate').subscribe((notifs: any[]) => {
+      this.candidateNotifs = notifs.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+      this.loading = false;
+      this.refreshTabCounts();
+    });
+
+    // ── Load ELECOM audit notifications ───────────────────────
+    // Fired when admin certifies or flags an election
+    this.svc.getNotifications('elecom').subscribe((notifs: any[]) => {
+      this.elecomNotifs = notifs.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+      this.refreshTabCounts();
+    });
+  }
+
+  // ── All notifications combined ────────────────────────────────
+  get allNotifications(): any[] {
+    return [...this.candidateNotifs, ...this.elecomNotifs].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  }
+
+  // ── Filtered list based on active tab ────────────────────────
+  get filteredNotifications(): any[] {
     switch (this.activeTab) {
       case 'unread':
-        return this.notifications.filter((n) => !n.read);
-      case 'action':
-        return this.notifications.filter((n) => n.actionRequired);
+        return this.allNotifications.filter((n) => !n.seen);
       case 'candidates':
-        return this.notifications.filter((n) => n.category === 'candidates');
-      case 'results':
-        return this.notifications.filter((n) => n.category === 'results');
-      case 'timeline':
-        return this.notifications.filter((n) => n.category === 'timeline');
-      case 'rules':
-        return this.notifications.filter((n) => n.category === 'rules');
+        return this.candidateNotifs;
+      case 'elecom':
+        return this.elecomNotifs;
       default:
-        return this.notifications;
+        return this.allNotifications;
     }
   }
 
   get unreadCount(): number {
-    return this.notifications.filter((n) => !n.read).length;
+    return this.allNotifications.filter((n) => !n.seen).length;
   }
 
-  ngOnInit(): void {
-    this.refreshTabCounts();
+  get unreadCandidateCount(): number {
+    return this.candidateNotifs.filter((n) => !n.seen).length;
+  }
+
+  get unreadElecomCount(): number {
+    return this.elecomNotifs.filter((n) => !n.seen).length;
+  }
+
+  // ── Get notification category icon ────────────────────────────
+  getCategory(notif: any): string {
+    if (notif.type === 'new-application') return 'candidates';
+    if (notif.type === 'clean') return 'results';
+    if (notif.type === 'flagged') return 'results';
+    return 'system';
+  }
+
+  // ── Time ago helper ───────────────────────────────────────────
+  timeAgo(dateStr: string): string {
+    if (!dateStr) return '';
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(mins / 60);
+    const days = Math.floor(hours / 24);
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    if (mins > 0) return `${mins}m ago`;
+    return 'Just now';
   }
 
   setActiveTab(key: string): void {
     this.activeTab = key;
   }
 
-  markAsRead(notif: Notification): void {
-    notif.read = true;
+  markAsRead(notif: any): void {
+    notif.seen = true;
     this.refreshTabCounts();
   }
 
   markAllAsRead(): void {
-    this.notifications.forEach((n) => (n.read = true));
+    this.allNotifications.forEach((n) => (n.seen = true));
     this.refreshTabCounts();
-  }
-
-  approveFromNotif(notif: Notification): void {
-    notif.actionRequired = false;
-    notif.read = true;
-    this.refreshTabCounts();
-    console.log('Approved from notification:', notif.id);
-  }
-
-  rejectFromNotif(notif: Notification): void {
-    notif.actionRequired = false;
-    notif.read = true;
-    this.refreshTabCounts();
-    console.log('Returned from notification:', notif.id);
   }
 
   private refreshTabCounts(): void {
-    this.tabs.find((t) => t.key === 'unread')!.count = this.notifications.filter(
-      (n) => !n.read,
-    ).length;
-    this.tabs.find((t) => t.key === 'action')!.count = this.notifications.filter(
-      (n) => n.actionRequired,
-    ).length;
-    this.tabs.find((t) => t.key === 'candidates')!.count = this.notifications.filter(
-      (n) => n.category === 'candidates' && !n.read,
-    ).length;
-    this.tabs.find((t) => t.key === 'results')!.count = this.notifications.filter(
-      (n) => n.category === 'results' && !n.read,
-    ).length;
-    this.tabs.find((t) => t.key === 'timeline')!.count = this.notifications.filter(
-      (n) => n.category === 'timeline' && !n.read,
-    ).length;
-    this.tabs.find((t) => t.key === 'rules')!.count = this.notifications.filter(
-      (n) => n.category === 'rules' && !n.read,
-    ).length;
+    this.tabs.find((t) => t.key === 'unread')!.count = this.unreadCount;
+    this.tabs.find((t) => t.key === 'candidates')!.count = this.unreadCandidateCount;
+    this.tabs.find((t) => t.key === 'elecom')!.count = this.unreadElecomCount;
   }
 }

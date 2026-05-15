@@ -1,5 +1,4 @@
 <div class="candidates-page">
-
   <!-- ── Header ──────────────────────────────────────────────── -->
   <div class="page-header">
     <div>
@@ -7,19 +6,35 @@
       <p class="page-sub">Register and manage candidates for elections</p>
     </div>
     <button class="btn-primary" (click)="openAdd()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+      >
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
       </svg>
       Register Candidate
     </button>
   </div>
 
-  <!-- ── Tab switcher ──────────────────────────────────────────── -->
+  <!-- ── Tab switcher ─────────────────────────────────────────── -->
   <div class="tab-nav">
-    <button type="button" [class.active]="activeTab === 'candidates'" (click)="activeTab = 'candidates'">
+    <button
+      type="button"
+      [class.active]="activeTab === 'candidates'"
+      (click)="activeTab = 'candidates'"
+    >
       Candidates
     </button>
-    <button type="button" [class.active]="activeTab === 'applications'" (click)="activeTab = 'applications'">
+    <button
+      type="button"
+      [class.active]="activeTab === 'applications'"
+      (click)="activeTab = 'applications'"
+    >
       Student Applications
       <span class="tab-badge" *ngIf="pendingAppCount > 0">{{ pendingAppCount }}</span>
     </button>
@@ -29,11 +44,20 @@
   <!--  TAB: CANDIDATES                                           -->
   <!-- ══════════════════════════════════════════════════════════ -->
   <ng-container *ngIf="activeTab === 'candidates'">
-
     <!-- ── Filters ──────────────────────────────────────────────── -->
     <div class="filter-bar">
       <div class="search-wrap">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
         <input [(ngModel)]="searchText" placeholder="Search name or position…" />
       </div>
       <select [(ngModel)]="filterOrg" class="filter-select">
@@ -46,10 +70,82 @@
       </select>
     </div>
 
+    <!-- ── Card Grid ─────────────────────────────────────────────── -->
+    <div class="cand-cards-grid">
+      <div class="cand-card" *ngFor="let c of filteredCandidates">
+        <div class="cand-photo-wrap">
+          <img *ngIf="c.photo" [src]="c.photo" [alt]="c.name" class="cand-photo" />
+          <div *ngIf="!c.photo" class="cand-avatar">
+            {{ c.name | slice: 0 : 2 | uppercase }}
+          </div>
+          <span class="cand-status-pill" [ngClass]="statusClass(c.status)">
+            {{ c.status }}
+          </span>
+        </div>
+
+        <div class="cand-body">
+          <div class="cand-name">{{ c.name }}</div>
+          <div class="cand-position">{{ c.position }}</div>
+
+          <div class="cand-meta-row">
+            <span class="cand-meta-item">
+              <span class="meta-label">Party</span>
+              <span class="meta-val">{{ c.party || 'Independent' }}</span>
+            </span>
+            <span class="cand-meta-item">
+              <span class="meta-label">Course</span>
+              <span class="meta-val">{{ c.course }}</span>
+            </span>
+          </div>
+
+          <div class="cand-req">
+            <div class="req-bar-row">
+              <span class="req-label">Requirements</span>
+              <span class="req-fraction">{{ reqCount(c.requirements) }} / 6</span>
+            </div>
+            <div class="req-bar-track">
+              <div
+                class="req-bar-fill"
+                [style.width.%]="(reqCount(c.requirements) / 6) * 100"
+              ></div>
+            </div>
+          </div>
+
+          <div class="cand-actions">
+            <button
+              class="btn-approve"
+              *ngIf="c.status !== 'approved'"
+              (click)="setStatus(c, 'approved')"
+            >
+              ✅ Approve
+            </button>
+            <button
+              class="btn-disqualify"
+              *ngIf="c.status !== 'disqualified'"
+              (click)="setStatus(c, 'disqualified')"
+            >
+              ❌ Disqualify
+            </button>
+            <button class="btn-delete-card" (click)="delete(c)">🗑 Delete</button>
+          </div>
+
+          <div class="reviewed-label" *ngIf="c.status !== 'pending'">
+            {{ c.status === 'approved' ? '✅ Approved' : '❌ Disqualified' }}
+          </div>
+        </div>
+      </div>
+
+      <div
+        *ngIf="filteredCandidates.length === 0 && !loading"
+        style="padding: 40px; text-align: center; color: #64748b; grid-column: 1/-1"
+      >
+        No candidates found.
+      </div>
+    </div>
+
     <!-- ── Table ────────────────────────────────────────────────── -->
     <div class="table-card">
       <div class="loading-state" *ngIf="loading">Loading candidates…</div>
-
       <table *ngIf="!loading">
         <thead>
           <tr>
@@ -77,7 +173,9 @@
               </div>
             </td>
             <td>{{ $any(c).organization || '—' }}</td>
-            <td><strong>{{ c.position }}</strong></td>
+            <td>
+              <strong>{{ c.position }}</strong>
+            </td>
             <td class="election-cell">{{ electionName($any(c).electionId) }}</td>
             <td class="muted">{{ c.party || '—' }}</td>
             <td>
@@ -87,22 +185,55 @@
             </td>
             <td>
               <div class="action-btns">
-                <button class="btn-action approve"
-                        *ngIf="c.status !== 'approved'"
-                        (click)="setStatus(c, 'approved')"
-                        title="Approve">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <button
+                  class="btn-action approve"
+                  *ngIf="c.status !== 'approved'"
+                  (click)="setStatus(c, 'approved')"
+                  title="Approve"
+                >
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                 </button>
-                <button class="btn-action disqualify"
-                        *ngIf="c.status !== 'disqualified'"
-                        (click)="setStatus(c, 'disqualified')"
-                        title="Disqualify">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <button
+                  class="btn-action disqualify"
+                  *ngIf="c.status !== 'disqualified'"
+                  (click)="setStatus(c, 'disqualified')"
+                  title="Disqualify"
+                >
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                  </svg>
                 </button>
-                <button class="btn-action delete-btn"
-                        (click)="delete(c)"
-                        title="Delete">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                <button class="btn-action delete-btn" (click)="delete(c)" title="Delete">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    <path d="M10 11v6M14 11v6" />
+                  </svg>
                 </button>
               </div>
             </td>
@@ -113,28 +244,29 @@
         </tbody>
       </table>
     </div>
-
   </ng-container>
 
   <!-- ══════════════════════════════════════════════════════════ -->
   <!--  TAB: STUDENT APPLICATIONS                                 -->
   <!-- ══════════════════════════════════════════════════════════ -->
   <ng-container *ngIf="activeTab === 'applications'">
-
     <div class="app-filter-bar">
       <div class="filter-tabs">
-        <button [class.active]="appFilter==='pending'"  (click)="appFilter='pending'">
+        <button [class.active]="appFilter === 'pending'" (click)="appFilter = 'pending'">
           Pending <span class="tab-badge" *ngIf="pendingAppCount > 0">{{ pendingAppCount }}</span>
         </button>
-        <button [class.active]="appFilter==='approved'" (click)="appFilter='approved'">Approved</button>
-        <button [class.active]="appFilter==='rejected'" (click)="appFilter='rejected'">Disqualified</button>
-        <button [class.active]="appFilter==='all'"      (click)="appFilter='all'">All</button>
+        <button [class.active]="appFilter === 'approved'" (click)="appFilter = 'approved'">
+          Approved
+        </button>
+        <button [class.active]="appFilter === 'rejected'" (click)="appFilter = 'rejected'">
+          Disqualified
+        </button>
+        <button [class.active]="appFilter === 'all'" (click)="appFilter = 'all'">All</button>
       </div>
     </div>
 
     <div class="table-card">
       <div class="loading-state" *ngIf="loadingApps">Loading applications…</div>
-
       <table *ngIf="!loadingApps">
         <thead>
           <tr>
@@ -161,7 +293,9 @@
                 </div>
               </div>
             </td>
-            <td><strong>{{ app.position }}</strong></td>
+            <td>
+              <strong>{{ app.position }}</strong>
+            </td>
             <td class="muted">{{ app.party || 'Independent' }}</td>
             <td class="election-cell">{{ electionNameById(app.electionId) }}</td>
             <td>
@@ -169,7 +303,7 @@
                 {{ reqCount(app.requirements) }}/6
               </span>
             </td>
-            <td class="muted">{{ app.submittedAt | date:'MMM d, y' }}</td>
+            <td class="muted">{{ app.submittedAt | date: 'MMM d, y' }}</td>
             <td>
               <span class="badge" [ngClass]="appStatusClass(app.status)">
                 {{ app.status }}
@@ -177,11 +311,39 @@
             </td>
             <td>
               <div class="action-btns" *ngIf="app.status === 'pending'">
-                <button class="btn-action approve" (click)="approveApplication(app)" title="Approve">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <button
+                  class="btn-action approve"
+                  (click)="approveApplication(app)"
+                  title="Approve"
+                >
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                 </button>
-                <button class="btn-action disqualify" (click)="rejectApplication(app)" title="Disqualify">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <button
+                  class="btn-action disqualify"
+                  (click)="rejectApplication(app)"
+                  title="Disqualify"
+                >
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                  </svg>
                 </button>
               </div>
               <span class="muted" *ngIf="app.status !== 'pending'">—</span>
@@ -195,7 +357,6 @@
         </tbody>
       </table>
     </div>
-
   </ng-container>
 
   <!-- ══════════════════════════════════════════════════════════ -->
@@ -203,59 +364,102 @@
   <!-- ══════════════════════════════════════════════════════════ -->
   <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
     <div class="modal-box" (click)="$event.stopPropagation()">
-
-      <!-- Header -->
       <div class="modal-header">
         <div>
           <h3>Register Candidate</h3>
           <p class="modal-sub">Candidate is automatically set to <strong>Approved</strong></p>
         </div>
         <button class="btn-close" (click)="closeModal()" [disabled]="saving">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
 
       <div class="modal-body">
-
-        <!-- Photo upload -->
         <div class="photo-upload-area">
           <div class="photo-preview" [class.has-photo]="form.photo">
             <img *ngIf="form.photo" [src]="form.photo" alt="Preview" />
-            <svg *ngIf="!form.photo" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
-              <polyline points="21 15 16 10 5 21"/>
+            <svg
+              *ngIf="!form.photo"
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
             </svg>
           </div>
           <div class="photo-info">
             <label class="btn-upload" for="photoInput">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
               Upload Photo
             </label>
-            <input id="photoInput" type="file" accept="image/*" (change)="onPhotoSelected($event)" style="display:none" />
+            <input
+              id="photoInput"
+              type="file"
+              accept="image/*"
+              (change)="onPhotoSelected($event)"
+              style="display: none"
+            />
             <span class="photo-hint">JPG, PNG · optional</span>
           </div>
         </div>
 
-        <!-- Full Name -->
         <div class="form-group">
           <label>Full Name <span class="req">*</span></label>
           <input [(ngModel)]="form.name" placeholder="e.g. Juan dela Cruz" [disabled]="saving" />
         </div>
 
-        <!-- Organization + Position -->
         <div class="form-row">
           <div class="form-group">
             <label>Organization <span class="req">*</span></label>
-            <select [(ngModel)]="form.organization" (ngModelChange)="onOrgChange()" [disabled]="saving">
+            <select
+              [(ngModel)]="form.organization"
+              (ngModelChange)="onOrgChange()"
+              [disabled]="saving"
+            >
               <option value="">Select organization</option>
               <option *ngFor="let o of orgs" [value]="o">{{ o }}</option>
             </select>
           </div>
           <div class="form-group">
             <label>Position <span class="req">*</span></label>
-            <select [(ngModel)]="form.position" [disabled]="saving || !form.organization || !form.electionId">
+            <select
+              [(ngModel)]="form.position"
+              [disabled]="saving || !form.organization || !form.electionId"
+            >
               <option value="">
-                {{ !form.organization ? 'Select org first' : !form.electionId ? 'Select election first' : 'Select position' }}
+                {{
+                  !form.organization
+                    ? 'Select org first'
+                    : !form.electionId
+                      ? 'Select election first'
+                      : 'Select position'
+                }}
               </option>
               <option *ngFor="let p of positionsForOrg" [value]="p" [disabled]="isPositionTaken(p)">
                 {{ p }}{{ isPositionTaken(p) ? ' — taken' : '' }}
@@ -264,22 +468,37 @@
           </div>
         </div>
 
-        <!-- Position conflict warning -->
         <div class="conflict-banner" *ngIf="positionConflict">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+            />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
-          <span><strong>{{ form.position }}</strong> is already assigned to <strong>{{ conflictHolder }}</strong> in this election.</span>
+          <span
+            ><strong>{{ form.position }}</strong> is already assigned to
+            <strong>{{ conflictHolder }}</strong> in this election.</span
+          >
         </div>
 
-        <!-- Election -->
         <div class="form-group">
           <label>Election <span class="req">*</span></label>
-          <select [(ngModel)]="form.electionId" (ngModelChange)="onElectionChange()" [disabled]="saving">
+          <select
+            [(ngModel)]="form.electionId"
+            (ngModelChange)="onElectionChange()"
+            [disabled]="saving"
+          >
             <option value="">Select election</option>
             <option *ngFor="let e of availableElections" [value]="e.id">
-              {{ e.name }} <span *ngIf="e.status === 'active'"> — Active</span>
+              {{ e.name }}<span *ngIf="e.status === 'active'"> — Active</span>
             </option>
           </select>
           <span class="field-hint" *ngIf="availableElections.length === 0">
@@ -287,30 +506,72 @@
           </span>
         </div>
 
-        <!-- Slot summary -->
         <div class="slot-summary" *ngIf="form.electionId && form.organization && slotsTotal > 0">
           <div class="slot-header">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
-            <span>{{ form.organization }} slots in <em>{{ selectedElection?.name }}</em></span>
+            <span
+              >{{ form.organization }} slots in <em>{{ selectedElection?.name }}</em></span
+            >
             <span class="slot-count">{{ slotsFilled }} / {{ slotsTotal }} filled</span>
           </div>
           <div class="slot-grid">
-            <div class="slot-item"
-                 *ngFor="let p of positionsForOrg"
-                 [class.slot-taken]="isPositionTaken(p)"
-                 [class.slot-target]="form.position === p && !isPositionTaken(p)">
-              <svg *ngIf="isPositionTaken(p)" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              <svg *ngIf="!isPositionTaken(p) && form.position !== p" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
-              <svg *ngIf="form.position === p && !isPositionTaken(p)" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <div
+              class="slot-item"
+              *ngFor="let p of positionsForOrg"
+              [class.slot-taken]="isPositionTaken(p)"
+              [class.slot-target]="form.position === p && !isPositionTaken(p)"
+            >
+              <svg
+                *ngIf="isPositionTaken(p)"
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <svg
+                *ngIf="!isPositionTaken(p) && form.position !== p"
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="9" />
+              </svg>
+              <svg
+                *ngIf="form.position === p && !isPositionTaken(p)"
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
               <span>{{ p }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Course + Year -->
         <div class="form-row">
           <div class="form-group">
             <label>Course</label>
@@ -328,19 +589,22 @@
           </div>
         </div>
 
-        <!-- Party -->
         <div class="form-group">
           <label>Party / Team</label>
           <input [(ngModel)]="form.party" placeholder="e.g. PINLAK" [disabled]="saving" />
         </div>
 
-        <!-- Platform -->
         <div class="form-group">
           <label>Platform / Goals</label>
-          <textarea [(ngModel)]="form.bio" placeholder="Enter platform or goals…" rows="3" [disabled]="saving" maxlength="500"></textarea>
+          <textarea
+            [(ngModel)]="form.bio"
+            placeholder="Enter platform or goals…"
+            rows="3"
+            [disabled]="saving"
+            maxlength="500"
+          ></textarea>
           <span class="char-count">{{ form.bio.length }}/500 characters</span>
         </div>
-
       </div>
 
       <div class="modal-footer">
@@ -348,13 +612,21 @@
         <button class="btn-save" (click)="save()" [disabled]="saving || positionConflict">
           <span *ngIf="!saving">Save Candidate</span>
           <span *ngIf="saving" class="saving-wrap">
-            <svg class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            <svg
+              class="spin"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+            </svg>
             Saving…
           </span>
         </button>
       </div>
-
     </div>
   </div>
-
 </div>

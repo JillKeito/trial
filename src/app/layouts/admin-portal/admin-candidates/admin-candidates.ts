@@ -2,32 +2,32 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ElectionService, Candidate, Election, Application } from '../../../services/election';
+import { AuthService } from '../../../services/auth';
 import Swal from 'sweetalert2';
 
-// Positions available per organization
 const POSITIONS: Record<string, string[]> = {
-  'ATLAS': [
-    'President', 'Vice President', 'Secretary', 'Treasurer',
-    'Auditor', 'PRO', 'Business Manager', '1st Year Rep',
-    '2nd Year Rep', '3rd Year Rep', '4th Year Rep', 'Sergeant-at-Arms',
+  ATLAS: [
+    'President',
+    'Vice President',
+    'Secretary',
+    'Treasurer',
+    'Auditor',
+    'PRO',
+    'Business Manager',
+    '1st Year Rep',
+    '2nd Year Rep',
+    '3rd Year Rep',
+    '4th Year Rep',
+    'Sergeant-at-Arms',
   ],
-  'USG': [
-    'President', 'Vice President', 'Secretary', 'Treasurer',
-    'Auditor', 'PRO',
-  ],
-  'STCM': [
-    'President', 'Vice President', 'Secretary', 'Treasurer',
-    'Auditor', 'PRO',
-  ],
-  'AEMT': [
-    'President', 'Vice President', 'Secretary', 'Treasurer',
-    'Auditor', 'PRO',
-  ],
+  USG: ['President', 'Vice President', 'Secretary', 'Treasurer', 'Auditor', 'PRO'],
+  STCM: ['President', 'Vice President', 'Secretary', 'Treasurer', 'Auditor', 'PRO'],
+  AEMT: ['President', 'Vice President', 'Secretary', 'Treasurer', 'Auditor', 'PRO'],
 };
 
 const ORGANIZATIONS = Object.keys(POSITIONS);
 const COURSES = ['BSIT', 'BSTCM', 'BSEMT', 'BSCS', 'BSEd', 'BSED', 'BSN', 'Other'];
-const YEARS   = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+const YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
 
 @Component({
   selector: 'app-admin-candidates',
@@ -37,31 +37,20 @@ const YEARS   = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
   styleUrls: ['./admin-candidates.scss'],
 })
 export class AdminCandidates implements OnInit {
-
-  // ── Tabs ──────────────────────────────────────────────────────
   activeTab: 'candidates' | 'applications' = 'candidates';
-
-  // ── Candidates data ───────────────────────────────────────────
   candidates: (Candidate & { electionId?: string; organization?: string })[] = [];
   elections: Election[] = [];
   loading = false;
-
-  // ── Applications data (from student submissions) ──────────────
   applications: Application[] = [];
   loadingApps = false;
   appFilter: 'all' | 'pending' | 'approved' | 'rejected' = 'pending';
-
-  // ── Filter state ──────────────────────────────────────────────
   filterStatus: 'all' | 'pending' | 'approved' | 'disqualified' = 'all';
   filterOrg = '';
   filterElection = '';
   searchText = '';
-
-  // ── Modal state ───────────────────────────────────────────────
   showModal = false;
   saving = false;
 
-  // ── Form ──────────────────────────────────────────────────────
   form: {
     name: string;
     organization: string;
@@ -76,32 +65,34 @@ export class AdminCandidates implements OnInit {
     votes: number;
   } = this.emptyForm();
 
-  // ── Lookups ───────────────────────────────────────────────────
-  readonly orgs    = ORGANIZATIONS;
+  readonly orgs = ORGANIZATIONS;
   readonly courses = COURSES;
-  readonly years   = YEARS;
+  readonly years = YEARS;
 
-  constructor(private svc: ElectionService) {}
+  constructor(
+    private svc: ElectionService,
+    private auth: AuthService, // ← added
+  ) {}
 
   ngOnInit(): void {
     this.load();
     this.loadApplications();
   }
 
-  // ── Load candidates ───────────────────────────────────────────
   load(): void {
     this.loading = true;
-    this.svc.getElections().subscribe(e => { this.elections = e; });
-    this.svc.getCandidates().subscribe(c => {
+    this.svc.getElections().subscribe((e) => {
+      this.elections = e;
+    });
+    this.svc.getCandidates().subscribe((c) => {
       this.candidates = c as any[];
       this.loading = false;
     });
   }
 
-  // ── Load student applications ─────────────────────────────────
   loadApplications(): void {
     this.loadingApps = true;
-    this.svc.getApplications().subscribe(apps => {
+    this.svc.getApplications().subscribe((apps) => {
       this.applications = apps;
       this.loadingApps = false;
     });
@@ -109,15 +100,15 @@ export class AdminCandidates implements OnInit {
 
   get filteredApplications(): Application[] {
     if (this.appFilter === 'all') return this.applications;
-    return this.applications.filter(a => a.status === this.appFilter);
+    return this.applications.filter((a) => a.status === this.appFilter);
   }
 
   get pendingAppCount(): number {
-    return this.applications.filter(a => a.status === 'pending').length;
+    return this.applications.filter((a) => a.status === 'pending').length;
   }
 
   electionNameById(id: string): string {
-    return this.elections.find(e => e.id === id)?.name ?? '—';
+    return this.elections.find((e) => e.id === id)?.name ?? '—';
   }
 
   reqCount(reqs: any): number {
@@ -125,7 +116,6 @@ export class AdminCandidates implements OnInit {
     return Object.values(reqs).filter(Boolean).length;
   }
 
-  // ── Approve application → adds to /candidates ─────────────────
   approveApplication(app: Application): void {
     Swal.fire({
       title: 'Approve application?',
@@ -134,49 +124,63 @@ export class AdminCandidates implements OnInit {
       showCancelButton: true,
       confirmButtonColor: '#22c55e',
       confirmButtonText: 'Approve',
-    }).then(r => {
+    }).then((r) => {
       if (!r.isConfirmed) return;
-
-      // 1. Update application status to approved
       this.svc.updateApplication({ ...app, status: 'approved' }).subscribe(() => {
+        this.svc
+          .addCandidate({
+            name: app.name,
+            position: app.position,
+            party: app.party || 'Independent',
+            photo: app.photo || '',
+            votes: 0,
+            bio: app.bio || '',
+            course: app.course,
+            year: app.year,
+            status: 'approved',
+            electionId: app.electionId,
+            requirements: app.requirements,
+            registeredAt: new Date().toISOString(),
+            registeredBy: 'admin-from-application',
+          } as any)
+          .subscribe(() => {
+            // ── Audit log ──
+            this.svc
+              .addAuditLog({
+                action: 'CANDIDATE_APPROVED',
+                performedBy: this.auth.getCurrentUser()?.name ?? 'Admin',
+                details: `Approved ${app.name} for ${app.position}`,
+                targetId: app.id,
+                createdAt: new Date().toISOString(),
+              })
+              .subscribe();
 
-        // 2. Add to /candidates collection as approved candidate
-        this.svc.addCandidate({
-          name:         app.name,
-          position:     app.position,
-          party:        app.party || 'Independent',
-          photo:        app.photo || '',
-          votes:        0,
-          bio:          app.bio || '',
-          course:       app.course,
-          year:         app.year,
-          status:       'approved',
-          electionId:   app.electionId,
-          requirements: app.requirements,
-          registeredAt: new Date().toISOString(),
-          registeredBy: 'admin-from-application',
-        } as any).subscribe(() => {
+            this.svc
+              .addNotification({
+                role: 'student',
+                studentId: app.studentId,
+                type: 'approved',
+                title: '✅ Application Approved',
+                message: `Your application for ${app.position} has been approved. You are now an official candidate!`,
+                createdAt: new Date().toISOString(),
+                seen: false,
+              })
+              .subscribe();
 
-          // 3. Send notification to student
-          this.svc.addNotification({
-            role:      'student',
-            studentId: app.studentId,
-            type:      'approved',
-            title:     '✅ Application Approved',
-            message:   `Your application for ${app.position} has been approved. You are now an official candidate!`,
-            createdAt: new Date().toISOString(),
-            seen:      false,
-          }).subscribe();
-
-          this.load();
-          this.loadApplications();
-          Swal.fire({ icon: 'success', title: 'Approved!', text: `${app.name} is now a candidate.`, timer: 1500, showConfirmButton: false });
-        });
+            this.load();
+            this.loadApplications();
+            Swal.fire({
+              icon: 'success',
+              title: 'Approved!',
+              text: `${app.name} is now a candidate.`,
+              timer: 1500,
+              showConfirmButton: false,
+            });
+          });
       });
     });
   }
 
-  // ── Reject/disqualify application ─────────────────────────────
   rejectApplication(app: Application): void {
     Swal.fire({
       title: 'Disqualify application?',
@@ -185,21 +189,31 @@ export class AdminCandidates implements OnInit {
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
       confirmButtonText: 'Disqualify',
-    }).then(r => {
+    }).then((r) => {
       if (!r.isConfirmed) return;
-
       this.svc.updateApplication({ ...app, status: 'rejected' }).subscribe(() => {
+        // ── Audit log ──
+        this.svc
+          .addAuditLog({
+            action: 'CANDIDATE_DISQUALIFIED',
+            performedBy: this.auth.getCurrentUser()?.name ?? 'Admin',
+            details: `Disqualified ${app.name} for ${app.position}`,
+            targetId: app.id,
+            createdAt: new Date().toISOString(),
+          })
+          .subscribe();
 
-        // Notify student
-        this.svc.addNotification({
-          role:      'student',
-          studentId: app.studentId,
-          type:      'disqualified',
-          title:     '❌ Application Disqualified',
-          message:   `Your application for ${app.position} has been disqualified. Please contact the committee for more details.`,
-          createdAt: new Date().toISOString(),
-          seen:      false,
-        }).subscribe();
+        this.svc
+          .addNotification({
+            role: 'student',
+            studentId: app.studentId,
+            type: 'disqualified',
+            title: '❌ Application Disqualified',
+            message: `Your application for ${app.position} has been disqualified.`,
+            createdAt: new Date().toISOString(),
+            seen: false,
+          })
+          .subscribe();
 
         this.loadApplications();
         Swal.fire({ icon: 'info', title: 'Disqualified', timer: 1000, showConfirmButton: false });
@@ -207,169 +221,223 @@ export class AdminCandidates implements OnInit {
     });
   }
 
-  // ── Derived lists ─────────────────────────────────────────────
   get positionsForOrg(): string[] {
     return POSITIONS[this.form.organization] ?? [];
   }
-
   get availableElections(): Election[] {
-    return this.elections.filter(e => e.status === 'upcoming' || e.status === 'active');
+    return this.elections.filter((e) => e.status === 'upcoming' || e.status === 'active');
   }
-
   get selectedElection(): Election | null {
-    return this.elections.find(e => e.id === this.form.electionId) ?? null;
+    return this.elections.find((e) => e.id === this.form.electionId) ?? null;
   }
-
-  get candidatesInSlot(): (Candidate & { electionId?: string; organization?: string })[] {
+  get candidatesInSlot() {
     if (!this.form.electionId || !this.form.organization) return [];
     return this.candidates.filter(
-      c => (c as any).electionId === this.form.electionId &&
-           (c as any).organization === this.form.organization
+      (c) =>
+        (c as any).electionId === this.form.electionId &&
+        (c as any).organization === this.form.organization,
     );
   }
-
   get takenPositions(): string[] {
-    return this.candidatesInSlot.map(c => c.position);
+    return this.candidatesInSlot.map((c) => c.position);
   }
-
   get positionConflict(): boolean {
     if (!this.form.position || !this.form.electionId || !this.form.organization) return false;
     return this.takenPositions.includes(this.form.position);
   }
-
   get conflictHolder(): string {
     if (!this.positionConflict) return '';
-    return this.candidatesInSlot.find(c => c.position === this.form.position)?.name ?? '';
+    return this.candidatesInSlot.find((c) => c.position === this.form.position)?.name ?? '';
+  }
+  get slotsFilled(): number {
+    return this.candidatesInSlot.length;
+  }
+  get slotsTotal(): number {
+    return this.positionsForOrg.length;
   }
 
-  get slotsFilled(): number { return this.candidatesInSlot.length; }
-  get slotsTotal(): number  { return this.positionsForOrg.length; }
-
   get filteredCandidates() {
-    return this.candidates.filter(c => {
-      const matchStatus   = this.filterStatus === 'all' || c.status === this.filterStatus;
-      const matchOrg      = !this.filterOrg      || (c as any).organization === this.filterOrg;
-      const matchElection = !this.filterElection || (c as any).electionId   === this.filterElection;
+    return this.candidates.filter((c) => {
+      const matchStatus = this.filterStatus === 'all' || c.status === this.filterStatus;
+      const matchOrg = !this.filterOrg || (c as any).organization === this.filterOrg;
+      const matchElection = !this.filterElection || (c as any).electionId === this.filterElection;
       const q = this.searchText.toLowerCase();
-      const matchSearch   = !q || c.name.toLowerCase().includes(q) || c.position.toLowerCase().includes(q);
+      const matchSearch =
+        !q || c.name.toLowerCase().includes(q) || c.position.toLowerCase().includes(q);
       return matchStatus && matchOrg && matchElection && matchSearch;
     });
   }
 
-  get totalCount()        { return this.candidates.length; }
-  get approvedCount()     { return this.candidates.filter(c => c.status === 'approved').length; }
-  get pendingCount()      { return this.candidates.filter(c => c.status === 'pending').length; }
-  get disqualifiedCount() { return this.candidates.filter(c => c.status === 'disqualified').length; }
-
-  electionName(id: string): string {
-    return this.elections.find(e => e.id === id)?.name ?? '—';
+  get totalCount() {
+    return this.candidates.length;
+  }
+  get approvedCount() {
+    return this.candidates.filter((c) => c.status === 'approved').length;
+  }
+  get pendingCount() {
+    return this.candidates.filter((c) => c.status === 'pending').length;
+  }
+  get disqualifiedCount() {
+    return this.candidates.filter((c) => c.status === 'disqualified').length;
   }
 
-  // ── Modal open/close ──────────────────────────────────────────
+  electionName(id: string): string {
+    return this.elections.find((e) => e.id === id)?.name ?? '—';
+  }
+
   openAdd(): void {
     this.form = this.emptyForm();
     this.showModal = true;
   }
-
-  closeModal(): void { this.showModal = false; }
+  closeModal(): void {
+    this.showModal = false;
+  }
 
   emptyForm() {
     return {
-      name: '', organization: '', position: '', electionId: '',
-      party: '', bio: '', course: '', year: '', photo: '',
+      name: '',
+      organization: '',
+      position: '',
+      electionId: '',
+      party: '',
+      bio: '',
+      course: '',
+      year: '',
+      photo: '',
       status: 'approved' as const,
       votes: 0,
     };
   }
 
-  onOrgChange(): void { this.form.position = ''; }
-  onElectionChange(): void { this.form.position = ''; }
+  onOrgChange(): void {
+    this.form.position = '';
+  }
+  onElectionChange(): void {
+    this.form.position = '';
+  }
 
   onPhotoSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => { this.form.photo = reader.result as string; };
+    reader.onload = () => {
+      this.form.photo = reader.result as string;
+    };
     reader.readAsDataURL(file);
   }
 
-  // ── Save manually registered candidate ───────────────────────
   save(): void {
     if (!this.form.name.trim()) {
-      Swal.fire('Missing field', 'Full Name is required.', 'warning'); return;
+      Swal.fire('Missing field', 'Full Name is required.', 'warning');
+      return;
     }
     if (!this.form.organization) {
-      Swal.fire('Missing field', 'Organization is required.', 'warning'); return;
+      Swal.fire('Missing field', 'Organization is required.', 'warning');
+      return;
     }
     if (!this.form.position) {
-      Swal.fire('Missing field', 'Position is required.', 'warning'); return;
+      Swal.fire('Missing field', 'Position is required.', 'warning');
+      return;
     }
     if (!this.form.electionId) {
-      Swal.fire('Missing field', 'Please select an Election.', 'warning'); return;
+      Swal.fire('Missing field', 'Please select an Election.', 'warning');
+      return;
     }
     if (this.positionConflict) {
       Swal.fire({
         icon: 'warning',
         title: 'Position already filled',
-        text: `${this.form.position} in this election is already assigned to ${this.conflictHolder}.`,
+        text: `${this.form.position} is already assigned to ${this.conflictHolder}.`,
       });
       return;
     }
-
     this.saving = true;
-
-    this.svc.addCandidate({
-      name:         this.form.name.trim(),
-      position:     this.form.position,
-      party:        this.form.party.trim(),
-      photo:        this.form.photo,
-      votes:        0,
-      bio:          this.form.bio.trim(),
-      course:       this.form.course,
-      year:         this.form.year,
-      status:       'approved',
-      organization: this.form.organization,
-      electionId:   this.form.electionId,
-      registeredAt: new Date().toISOString(),
-      registeredBy: 'admin',
-    } as any).subscribe({
-      next: () => {
-        const election = this.selectedElection;
-        if (election) {
-          const existingPositions: string[] = election.positions ?? [];
-          if (!existingPositions.includes(this.form.position)) {
-            const updatedPositions = [...existingPositions, this.form.position];
-            this.svc.updateElection({ ...election, positions: updatedPositions }).subscribe();
+    this.svc
+      .addCandidate({
+        name: this.form.name.trim(),
+        position: this.form.position,
+        party: this.form.party.trim(),
+        photo: this.form.photo,
+        votes: 0,
+        bio: this.form.bio.trim(),
+        course: this.form.course,
+        year: this.form.year,
+        status: 'approved',
+        organization: this.form.organization,
+        electionId: this.form.electionId,
+        registeredAt: new Date().toISOString(),
+        registeredBy: 'admin',
+      } as any)
+      .subscribe({
+        next: () => {
+          const election = this.selectedElection;
+          if (election) {
+            const existingPositions: string[] = election.positions ?? [];
+            if (!existingPositions.includes(this.form.position)) {
+              this.svc
+                .updateElection({
+                  ...election,
+                  positions: [...existingPositions, this.form.position],
+                })
+                .subscribe();
+            }
           }
-        }
-        this.saving = false;
-        this.closeModal();
-        this.load();
-        Swal.fire({
-          icon: 'success',
-          title: 'Candidate Registered!',
-          html: `<b>${this.form.name.trim()}</b> added as <b>${this.form.position}</b>`,
-          timer: 1800,
-          showConfirmButton: false,
-        });
-      },
-      error: err => {
-        this.saving = false;
-        Swal.fire({ icon: 'error', title: 'Error', text: err.message });
-      },
-    });
+
+          // ── Audit log ──
+          this.svc
+            .addAuditLog({
+              action: 'CANDIDATE_REGISTERED',
+              performedBy: this.auth.getCurrentUser()?.name ?? 'Admin',
+              details: `Registered ${this.form.name.trim()} as ${this.form.position}`,
+              createdAt: new Date().toISOString(),
+            })
+            .subscribe();
+
+          this.saving = false;
+          this.closeModal();
+          this.load();
+          Swal.fire({
+            icon: 'success',
+            title: 'Candidate Registered!',
+            html: `<b>${this.form.name.trim()}</b> added as <b>${this.form.position}</b>`,
+            timer: 1800,
+            showConfirmButton: false,
+          });
+        },
+        error: (err) => {
+          this.saving = false;
+          Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+        },
+      });
   }
 
-  // ── Quick status change on existing candidate ─────────────────
-  setStatus(c: Candidate & { electionId?: string; organization?: string }, status: 'approved' | 'disqualified'): void {
+  setStatus(
+    c: Candidate & { electionId?: string; organization?: string },
+    status: 'approved' | 'disqualified',
+  ): void {
     const label = status === 'approved' ? 'Approve' : 'Disqualify';
     const color = status === 'approved' ? '#22c55e' : '#ef4444';
     Swal.fire({
-      title: `${label} candidate?`, text: c.name, icon: 'question',
-      showCancelButton: true, confirmButtonColor: color, confirmButtonText: label,
-    }).then(r => {
+      title: `${label} candidate?`,
+      text: c.name,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: color,
+      confirmButtonText: label,
+    }).then((r) => {
       if (!r.isConfirmed) return;
       this.svc.updateCandidate({ ...c, status } as Candidate).subscribe(() => {
+        // ── Audit log ──
+        this.svc
+          .addAuditLog({
+            action: `CANDIDATE_${status.toUpperCase()}`,
+            performedBy: this.auth.getCurrentUser()?.name ?? 'Admin',
+            details: `${label}d candidate ${c.name} (${c.position})`,
+            targetId: c.id,
+            createdAt: new Date().toISOString(),
+          })
+          .subscribe();
+
         this.load();
         Swal.fire({ icon: 'success', title: `${label}d!`, timer: 900, showConfirmButton: false });
       });
@@ -378,11 +446,26 @@ export class AdminCandidates implements OnInit {
 
   delete(c: Candidate): void {
     Swal.fire({
-      title: 'Delete candidate?', text: `Remove ${c.name} permanently?`, icon: 'warning',
-      showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Delete',
-    }).then(r => {
+      title: 'Delete candidate?',
+      text: `Remove ${c.name} permanently?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Delete',
+    }).then((r) => {
       if (!r.isConfirmed) return;
       this.svc.deleteCandidate(c.id).subscribe(() => {
+        // ── Audit log ──
+        this.svc
+          .addAuditLog({
+            action: 'CANDIDATE_DELETED',
+            performedBy: this.auth.getCurrentUser()?.name ?? 'Admin',
+            details: `Deleted candidate ${c.name} (${c.position})`,
+            targetId: c.id,
+            createdAt: new Date().toISOString(),
+          })
+          .subscribe();
+
         this.load();
         Swal.fire({ icon: 'success', title: 'Deleted', timer: 900, showConfirmButton: false });
       });
@@ -390,17 +473,22 @@ export class AdminCandidates implements OnInit {
   }
 
   statusClass(s?: string) {
-    return s === 'approved' ? 'badge-approved' : s === 'pending' ? 'badge-pending' : 'badge-disqualified';
+    return s === 'approved'
+      ? 'badge-approved'
+      : s === 'pending'
+        ? 'badge-pending'
+        : 'badge-disqualified';
   }
-
   appStatusClass(s?: string) {
-    return s === 'approved' ? 'badge-approved' : s === 'rejected' ? 'badge-disqualified' : 'badge-pending';
+    return s === 'approved'
+      ? 'badge-approved'
+      : s === 'rejected'
+        ? 'badge-disqualified'
+        : 'badge-pending';
   }
-
   isPositionTaken(pos: string): boolean {
     return this.takenPositions.includes(pos);
   }
-
   initial(name: string): string {
     return name?.charAt(0)?.toUpperCase() ?? '?';
   }

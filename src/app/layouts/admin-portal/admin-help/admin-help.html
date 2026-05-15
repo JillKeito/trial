@@ -1,0 +1,37 @@
+<div class="help-page">
+  <div class="page-header">
+    <div>
+      <h1>❓ Help & Support</h1>
+      <p class="page-sub">Frequently asked questions and system guidance</p>
+    </div>
+  </div>
+
+  <div class="faq-list">
+    <div class="faq-item" *ngFor="let faq of faqs" [class.open]="faq.open">
+      <div class="faq-question" (click)="toggle(faq)">
+        <span>{{ faq.q }}</span>
+        <svg
+          class="chevron"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </div>
+      <div class="faq-answer" *ngIf="faq.open">{{ faq.a }}</div>
+    </div>
+  </div>
+
+  <div class="contact-card">
+    <h3>Still need help?</h3>
+    <p>Contact your system administrator or the development team.</p>
+    <div class="contact-info">
+      <span>📧 admin@ustp.edu.ph</span>
+      <span>📍 USTP Villanueva Campus</span>
+    </div>
+  </div>
+</div>

@@ -104,12 +104,21 @@ export interface VoteRecord {
   submittedAt: string;
 }
 
+export interface AuditLog {
+  id?: string;
+  action: string;
+  performedBy: string;
+  details: string;
+  targetId?: string;
+  createdAt: string;
+}
+
 // -- Service --------------------------------------------------
 @Injectable({ providedIn: 'root' })
 export class ElectionService {
   private fs = inject(Firestore);
 
-  // helpers
+  // -- Helpers -------------------------------------------------
   private col(name: string) {
     return collection(this.fs, name);
   }
@@ -225,24 +234,31 @@ export class ElectionService {
     return this.findWhere<any>('notifications', 'role', role);
   }
 
+  // -- Audit Logs ----------------------------------------------
+  addAuditLog(log: Omit<AuditLog, 'id'>): Observable<AuditLog> {
+    return this.add<AuditLog>('auditLogs', log);
+  }
+  getAuditLogs(): Observable<AuditLog[]> {
+    return this.list<AuditLog>('auditLogs');
+  }
+
   // -- Cast Vote -----------------------------------------------
   castVote(
     voter: Voter,
     election: Election,
-    votes: { [position: string]: string },  // real votes only (no __ABSTAIN__)
+    votes: { [position: string]: string },
     candidates: Candidate[],
-    allVotes?: { [position: string]: string }, // full map incl. abstains for receipt
+    allVotes?: { [position: string]: string },
   ): Observable<any> {
     const ABSTAIN = '__ABSTAIN__';
 
     const record = {
-      studentId:   voter.studentId,
-      electionId:  election.id,
-      votes:       allVotes ?? votes,   // store full map so details page can show abstains
+      studentId: voter.studentId,
+      electionId: election.id,
+      votes: allVotes ?? votes,
       submittedAt: new Date().toISOString(),
     };
 
-    // Only tally real candidate votes — skip any accidental abstain values
     const candidateUpdates = Object.values(votes)
       .filter((cId) => cId && cId !== ABSTAIN)
       .map((cId) => {

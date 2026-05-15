@@ -1,0 +1,45 @@
+<div class="audit-page">
+  <div class="page-header">
+    <div>
+      <h1>📋 Audit Logs</h1>
+      <p class="page-sub">Every admin action is recorded here with full details</p>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="loading-state" *ngIf="loading">Loading audit logs…</div>
+
+    <table *ngIf="!loading">
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Performed By</th>
+          <th>Details</th>
+          <th>Date & Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of logs">
+          <td>
+            <span class="action-badge" [ngClass]="actionClass(log.action)">
+              {{ actionIcon(log.action) }} {{ log.action }}
+            </span>
+          </td>
+          <td>
+            <div class="performer">
+              <div class="performer-avatar">
+                {{ log.performedBy?.charAt(0) ?? 'A' }}
+              </div>
+              {{ log.performedBy }}
+            </div>
+          </td>
+          <td class="details-cell">{{ log.details }}</td>
+          <td class="muted">{{ log.createdAt | date: 'MMM d, y · h:mm a' }}</td>
+        </tr>
+        <tr *ngIf="logs.length === 0 && !loading">
+          <td colspan="4" class="empty-row">No audit logs yet.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
