@@ -56,20 +56,7 @@
                 >
                   ▶ Start
                 </button>
-                <button
-                  class="btn-action btn-end-sm"
-                  *ngIf="e.status === 'active'"
-                  (click)="end(e)"
-                >
-                  ⏹ End
-                </button>
-                <button
-                  class="btn-action btn-results"
-                  *ngIf="e.status === 'completed'"
-                  routerLink="/app/admin-results"
-                >
-                  📊 Results
-                </button>
+
                 <button
                   class="btn-action btn-edit"
                   *ngIf="e.status !== 'active'"

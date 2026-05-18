@@ -215,8 +215,8 @@
     <ng-container *ngIf="auth.getRole() === 'elecom'">
       <div class="logo-section">
         <img src="/logo.png" alt="USTP Logo" />
-        <h2>Elecom Panel</h2>
-        <p class="logo-subtitle">Election Committee Portal</p>
+        <h2></h2>
+        <p class="logo-subtitle"></p>
       </div>
       <ul class="menu">
         <li
@@ -264,6 +264,7 @@
           </svg>
           <span>Dashboard</span>
         </li>
+
         <li routerLink="/app/elecom-voters" routerLinkActive="active">
           <svg viewBox="0 0 18 18" fill="none">
             <circle cx="6" cy="6" r="2.5" stroke="currentColor" stroke-width="1.3" />
@@ -277,6 +278,7 @@
           </svg>
           <span>Voters</span>
         </li>
+
         <li routerLink="/app/elecom-results" routerLinkActive="active">
           <svg viewBox="0 0 18 18" fill="none">
             <rect
@@ -309,6 +311,7 @@
           </svg>
           <span>Results</span>
         </li>
+
         <li routerLink="/app/elecom-notifications" routerLinkActive="active">
           <svg viewBox="0 0 18 18" fill="none">
             <rect
@@ -336,6 +339,7 @@
           </svg>
           <span>Notifications</span>
         </li>
+
         <li routerLink="/app/elecom-settings" routerLinkActive="active">
           <svg viewBox="0 0 18 18" fill="none">
             <circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.3" />
@@ -349,6 +353,7 @@
           <span>Settings</span>
         </li>
       </ul>
+
       <div class="sidebar-footer">
         <div class="avatar">{{ auth.getCurrentUser()?.name?.charAt(0) || 'E' }}</div>
         <div class="user-info">
@@ -411,6 +416,7 @@
           </svg>
           <span>Dashboard</span>
         </li>
+
         <li
           routerLink="/app/student-elections"
           routerLinkActive="active"
@@ -426,7 +432,9 @@
           </svg>
           <span>Elections</span>
         </li>
-        <li routerLink="/app/student-ballot" routerLinkActive="active">
+
+        <!-- FIXED: was /app/student-ballot — now correctly points to /app/student-apply -->
+        <li routerLink="/app/student-apply" routerLinkActive="active">
           <svg viewBox="0 0 18 18" fill="none">
             <rect
               x="3"
@@ -437,11 +445,16 @@
               stroke="currentColor"
               stroke-width="1.3"
             />
-            <path />
+            <path
+              d="M6 6h6M6 9h6M6 12h3"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+            />
           </svg>
-
           <span>Apply</span>
         </li>
+
         <li routerLink="/app/student-notifications" routerLinkActive="active">
           <svg viewBox="0 0 18 18" fill="none">
             <path
@@ -457,6 +470,7 @@
           </span>
         </li>
       </ul>
+
       <div class="sidebar-footer">
         <div class="avatar">{{ auth.getCurrentUser()?.name?.charAt(0) || 'S' }}</div>
         <div class="user-info">
@@ -511,6 +525,7 @@
           </svg>
           <span class="badge" *ngIf="unseenCount > 0">{{ unseenCount }}</span>
         </div>
+
         <div
           class="notification-icon"
           (click)="goToNotifications()"
@@ -531,6 +546,7 @@
             {{ studentNotifService.unreadCount() }}
           </span>
         </div>
+
         <div class="profile-dropdown" (click)="toggleProfileMenu()">
           <div class="profile-avatar-text">{{ auth.getCurrentUser()?.name?.charAt(0) || 'U' }}</div>
           <span class="profile-name">{{ auth.getCurrentUser()?.name || 'User' }}</span>
@@ -542,6 +558,7 @@
         </div>
       </div>
     </header>
+
     <section class="content-body">
       <router-outlet></router-outlet>
     </section>

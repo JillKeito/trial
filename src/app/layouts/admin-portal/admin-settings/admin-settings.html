@@ -6,252 +6,28 @@
     </div>
   </div>
 
-  <div class="settings-layout">
-    <!-- Sidebar Navigation -->
-    <nav class="settings-nav">
-      <button
-        *ngFor="let section of settingsSections"
-        class="nav-item"
-        [class.active]="activeSection === section.key"
-        (click)="setSection(section.key)"
-      >
-        <span class="nav-icon">
-          <svg
-            *ngIf="section.key === 'profile'"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          <svg
-            *ngIf="section.key === 'election'"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <rect x="3" y="4" width="18" height="18" rx="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-          <svg
-            *ngIf="section.key === 'notifications'"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-          </svg>
-          <svg
-            *ngIf="section.key === 'access'"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-          </svg>
-        </span>
-        <span>{{ section.label }}</span>
-      </button>
-    </nav>
+  <div class="settings-content">
+    <div class="settings-section">
+      <div class="section-header">
+        <h2>Notification Preferences</h2>
+        <p>Control how and when you get alerted about ELECOM activity.</p>
+      </div>
 
-    <!-- Settings Content -->
-    <div class="settings-content">
-      <!-- Profile Section -->
-      <div *ngIf="activeSection === 'profile'" class="settings-section">
-        <div class="section-header">
-          <h2>Admin Profile</h2>
-          <p>Your identity as the authorized school representative.</p>
-        </div>
-        <div class="form-grid">
-          <div class="form-group full">
-            <label>Full Name</label>
-            <input
-              type="text"
-              [(ngModel)]="profile.name"
-              class="form-input"
-              placeholder="e.g. Mr. Juan Dela Cruz"
-            />
+      <div class="toggle-group">
+        <div class="toggle-item" *ngFor="let pref of notifPreferences">
+          <div class="toggle-info">
+            <span class="toggle-label">{{ pref.label }}</span>
+            <span class="toggle-desc">{{ pref.description }}</span>
           </div>
-          <div class="form-group">
-            <label>Position / Title</label>
-            <input
-              type="text"
-              [(ngModel)]="profile.position"
-              class="form-input"
-              placeholder="e.g. SSG Adviser"
-            />
-          </div>
-          <div class="form-group">
-            <label>Department</label>
-            <input
-              type="text"
-              [(ngModel)]="profile.department"
-              class="form-input"
-              placeholder="e.g. Student Affairs Office"
-            />
-          </div>
-          <div class="form-group full">
-            <label>Official Email</label>
-            <input
-              type="email"
-              [(ngModel)]="profile.email"
-              class="form-input"
-              placeholder="admin@school.edu.ph"
-            />
-          </div>
-        </div>
-        <div class="form-actions">
-          <button class="btn-save" (click)="saveProfile()">Save Changes</button>
+          <label class="toggle-switch">
+            <input type="checkbox" [(ngModel)]="pref.enabled" />
+            <span class="slider"></span>
+          </label>
         </div>
       </div>
 
-      <!-- Election Config -->
-      <div *ngIf="activeSection === 'election'" class="settings-section">
-        <div class="section-header">
-          <h2>Election Configuration</h2>
-          <p>
-            Settings that define the current election cycle. These affect what ELECOM can submit.
-          </p>
-        </div>
-
-        <div class="form-grid">
-          <div class="form-group full">
-            <label>Election Cycle Label</label>
-            <input
-              type="text"
-              [(ngModel)]="electionConfig.cycleLabel"
-              class="form-input"
-              placeholder="e.g. S.Y. 2024–2025"
-            />
-          </div>
-          <div class="form-group">
-            <label>Election Date</label>
-            <input type="date" [(ngModel)]="electionConfig.electionDate" class="form-input" />
-          </div>
-          <div class="form-group">
-            <label>Results Deadline</label>
-            <input type="date" [(ngModel)]="electionConfig.resultsDeadline" class="form-input" />
-          </div>
-        </div>
-
-        <div class="toggle-group">
-          <div class="toggle-item">
-            <div class="toggle-info">
-              <span class="toggle-label">Allow ELECOM Submissions</span>
-              <span class="toggle-desc"
-                >When off, ELECOM cannot submit any documents for review.</span
-              >
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" [(ngModel)]="electionConfig.allowSubmissions" />
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="toggle-item">
-            <div class="toggle-info">
-              <span class="toggle-label">Require Admin Sign-off for All Submissions</span>
-              <span class="toggle-desc"
-                >Every ELECOM document must be explicitly approved before going live.</span
-              >
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" [(ngModel)]="electionConfig.requireSignOff" />
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="toggle-item">
-            <div class="toggle-info">
-              <span class="toggle-label">Lock Results After Certification</span>
-              <span class="toggle-desc"
-                >Certified results cannot be edited or re-submitted by ELECOM.</span
-              >
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" [(ngModel)]="electionConfig.lockAfterCert" />
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn-save" (click)="saveElectionConfig()">Save Configuration</button>
-        </div>
-      </div>
-
-      <!-- Notification Preferences -->
-      <div *ngIf="activeSection === 'notifications'" class="settings-section">
-        <div class="section-header">
-          <h2>Notification Preferences</h2>
-          <p>Control how and when you get alerted about ELECOM activity.</p>
-        </div>
-
-        <div class="toggle-group">
-          <div class="toggle-item" *ngFor="let pref of notifPreferences">
-            <div class="toggle-info">
-              <span class="toggle-label">{{ pref.label }}</span>
-              <span class="toggle-desc">{{ pref.description }}</span>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" [(ngModel)]="pref.enabled" />
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn-save" (click)="saveNotifPrefs()">Save Preferences</button>
-        </div>
-      </div>
-
-      <!-- Access Control -->
-      <div *ngIf="activeSection === 'access'" class="settings-section">
-        <div class="section-header">
-          <h2>Access Control</h2>
-          <p>Manage who has admin-level access to this portal.</p>
-        </div>
-
-        <div class="access-list">
-          <div class="access-item" *ngFor="let user of accessUsers">
-            <div class="access-avatar">{{ user.name[0] }}</div>
-            <div class="access-info">
-              <span class="access-name">{{ user.name }}</span>
-              <span class="access-email">{{ user.email }}</span>
-            </div>
-            <span class="access-role-badge" [ngClass]="'role-' + user.role">{{
-              user.roleLabel
-            }}</span>
-            <button
-              class="btn-revoke"
-              (click)="revokeAccess(user)"
-              *ngIf="user.role !== 'superadmin'"
-            >
-              Revoke
-            </button>
-          </div>
-        </div>
-
-        <div class="invite-row">
-          <input
-            type="email"
-            [(ngModel)]="newInviteEmail"
-            class="form-input"
-            placeholder="Invite admin by email..."
-          />
-          <button class="btn-save" (click)="inviteAdmin()">Invite</button>
-        </div>
+      <div class="form-actions">
+        <button class="btn-save" (click)="saveNotifPrefs()">Save Preferences</button>
       </div>
     </div>
   </div>

@@ -1,5 +1,4 @@
 <div class="voters-page">
-
   <!-- Header -->
   <div class="page-header">
     <div>
@@ -9,15 +8,30 @@
     <div class="header-right">
       <!-- Draft banner shown on the page when a draft exists but modal is closed -->
       <div class="draft-banner" *ngIf="hasDraft && !showVoterModal" (click)="openModal()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
         </svg>
         Unsaved draft — click to continue
       </div>
       <button class="btn-primary" (click)="openModal()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
         </svg>
         Add Voter
       </button>
@@ -26,16 +40,53 @@
 
   <!-- Stats -->
   <div class="stats-row">
-    <div class="stat-pill">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    <div class="stat-pill" [class.active]="statusFilter === 'all'" (click)="setFilter('all')">
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+      </svg>
       Total: <strong>{{ totalVoters }}</strong>
     </div>
-    <div class="stat-pill voted">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/></svg>
+    <div
+      class="stat-pill voted"
+      [class.active]="statusFilter === 'voted'"
+      (click)="setFilter('voted')"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <polyline points="9 11 12 14 22 4" />
+      </svg>
       Voted: <strong>{{ votedCount }}</strong>
     </div>
-    <div class="stat-pill pending">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
+    <div
+      class="stat-pill pending"
+      [class.active]="statusFilter === 'pending'"
+      (click)="setFilter('pending')"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+      </svg>
       Not Voted: <strong>{{ notVotedCount }}</strong>
     </div>
     <div class="stat-pill rate">
@@ -45,7 +96,17 @@
 
   <!-- Search -->
   <div class="search-bar">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+    >
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
     <input [(ngModel)]="voterSearch" placeholder="Search by name, student ID or course..." />
   </div>
 
@@ -75,8 +136,12 @@
               <div *ngIf="!v.photo" class="voter-initials">{{ getInitials(v.name) }}</div>
             </div>
           </td>
-          <td><span class="student-id">{{ v.studentId }}</span></td>
-          <td><strong>{{ v.name }}</strong></td>
+          <td>
+            <span class="student-id">{{ v.studentId }}</span>
+          </td>
+          <td>
+            <strong>{{ v.name }}</strong>
+          </td>
           <td>{{ v.course }}</td>
           <td>{{ v.year }}</td>
           <td>
@@ -87,11 +152,38 @@
           <td class="muted">{{ v.verifiedAt || '—' }}</td>
           <td>
             <div class="action-btns">
-              <button class="btn-action mark" *ngIf="!v.hasVoted" (click)="markVoted(v)" title="Mark as voted">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              <button
+                class="btn-action mark"
+                *ngIf="!v.hasVoted"
+                (click)="markVoted(v)"
+                title="Mark as voted"
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="9 11 12 14 22 4" />
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                </svg>
               </button>
               <button class="btn-action delete" (click)="deleteVoter(v)" title="Delete voter">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="3 6 5 6 21 6" />
+                  <path
+                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                  />
+                </svg>
               </button>
             </div>
           </td>
@@ -110,38 +202,63 @@
   -->
   <div class="modal-overlay" *ngIf="showVoterModal" (click)="closeModal()">
     <div class="modal-box" (click)="$event.stopPropagation()">
-
       <div class="modal-header">
         <div class="modal-title-group">
           <h3>Add Voter</h3>
           <p class="modal-subtitle">Creates a login account using the student's ID</p>
         </div>
         <button class="btn-close" (click)="discardAndClose()" [disabled]="saving">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
       </div>
 
       <!-- Draft restore notice -->
       <div class="draft-notice" *ngIf="hasDraft">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
         </svg>
         Draft restored — your previous progress has been loaded
       </div>
 
       <!-- Info banner -->
       <div class="info-banner">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
-        <span>The student will log in using their <strong>Student ID</strong> and the password you set below.</span>
+        <span
+          >The student will log in using their <strong>Student ID</strong> and the password you set
+          below.</span
+        >
       </div>
 
       <div class="modal-body">
-
         <!-- Photo Upload -->
         <div class="form-group photo-group">
           <label>Photo <span class="optional">(optional)</span></label>
@@ -149,23 +266,52 @@
             <div class="photo-preview">
               <img *ngIf="photoPreview" [src]="photoPreview" alt="Preview" class="preview-img" />
               <div *ngIf="!photoPreview" class="preview-placeholder">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
                 </svg>
                 <span>No photo</span>
               </div>
             </div>
             <div class="photo-actions">
               <label class="btn-upload" [class.disabled]="saving">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
                 </svg>
                 {{ photoPreview ? 'Change Photo' : 'Upload Photo' }}
-                <input type="file" accept="image/*" (change)="onPhotoSelected($event)" [disabled]="saving" hidden />
+                <input
+                  type="file"
+                  accept="image/*"
+                  (change)="onPhotoSelected($event)"
+                  [disabled]="saving"
+                  hidden
+                />
               </label>
-              <button *ngIf="photoPreview" type="button" class="btn-remove-photo"
-                      (click)="removePhoto()" [disabled]="saving">Remove</button>
+              <button
+                *ngIf="photoPreview"
+                type="button"
+                class="btn-remove-photo"
+                (click)="removePhoto()"
+                [disabled]="saving"
+              >
+                Remove
+              </button>
             </div>
           </div>
           <span class="field-hint">Max 2MB · JPG, PNG, WEBP</span>
@@ -174,10 +320,12 @@
         <!-- Student ID — saveDraft on every change -->
         <div class="form-group">
           <label>Student ID <span class="req">*</span></label>
-          <input [(ngModel)]="newVoter.studentId"
-                 (ngModelChange)="saveDraft()"
-                 placeholder="e.g. 2024-0001"
-                 [disabled]="saving" />
+          <input
+            [(ngModel)]="newVoter.studentId"
+            (ngModelChange)="saveDraft()"
+            placeholder="e.g. 2024-0001"
+            [disabled]="saving"
+          />
           <span class="field-hint" *ngIf="newVoter.studentId">
             Login email: <code>{{ newVoter.studentId }}&#64;evoting.voter.com</code>
           </span>
@@ -186,19 +334,19 @@
         <!-- Full Name -->
         <div class="form-group">
           <label>Full Name <span class="req">*</span></label>
-          <input [(ngModel)]="newVoter.name"
-                 (ngModelChange)="saveDraft()"
-                 placeholder="e.g. Juan dela Cruz"
-                 [disabled]="saving" />
+          <input
+            [(ngModel)]="newVoter.name"
+            (ngModelChange)="saveDraft()"
+            placeholder="e.g. Juan dela Cruz"
+            [disabled]="saving"
+          />
         </div>
 
         <!-- Course & Year -->
         <div class="form-row">
           <div class="form-group">
             <label>Course <span class="req">*</span></label>
-            <select [(ngModel)]="newVoter.course"
-                    (ngModelChange)="saveDraft()"
-                    [disabled]="saving">
+            <select [(ngModel)]="newVoter.course" (ngModelChange)="saveDraft()" [disabled]="saving">
               <option value="">Select course</option>
               <option value="BSIT">BSIT</option>
               <option value="EMT">EMT</option>
@@ -207,9 +355,7 @@
           </div>
           <div class="form-group">
             <label>Year</label>
-            <select [(ngModel)]="newVoter.year"
-                    (ngModelChange)="saveDraft()"
-                    [disabled]="saving">
+            <select [(ngModel)]="newVoter.year" (ngModelChange)="saveDraft()" [disabled]="saving">
               <option *ngFor="let y of voterYears">{{ y }}</option>
             </select>
           </div>
@@ -221,14 +367,44 @@
         <div class="form-group">
           <label>Password <span class="req">*</span></label>
           <div class="input-password">
-            <input [type]="showPassword ? 'text' : 'password'"
-                   [(ngModel)]="newVoter.password"
-                   placeholder="Min. 6 characters"
-                   [disabled]="saving" />
-            <button type="button" class="toggle-pw"
-                    (click)="showPassword = !showPassword" tabindex="-1">
-              <svg *ngIf="!showPassword" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              <svg *ngIf="showPassword"  width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              [(ngModel)]="newVoter.password"
+              placeholder="Min. 6 characters"
+              [disabled]="saving"
+            />
+            <button
+              type="button"
+              class="toggle-pw"
+              (click)="showPassword = !showPassword"
+              tabindex="-1"
+            >
+              <svg
+                *ngIf="!showPassword"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <svg
+                *ngIf="showPassword"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
             </button>
           </div>
           <span class="field-hint">Password is never saved to draft</span>
@@ -238,41 +414,82 @@
         <div class="form-group">
           <label>Confirm Password <span class="req">*</span></label>
           <div class="input-password">
-            <input [type]="showConfirmPassword ? 'text' : 'password'"
-                   [(ngModel)]="newVoter.confirmPassword"
-                   placeholder="Re-enter password"
-                   [disabled]="saving" />
-            <button type="button" class="toggle-pw"
-                    (click)="showConfirmPassword = !showConfirmPassword" tabindex="-1">
-              <svg *ngIf="!showConfirmPassword" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              <svg *ngIf="showConfirmPassword"  width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            <input
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              [(ngModel)]="newVoter.confirmPassword"
+              placeholder="Re-enter password"
+              [disabled]="saving"
+            />
+            <button
+              type="button"
+              class="toggle-pw"
+              (click)="showConfirmPassword = !showConfirmPassword"
+              tabindex="-1"
+            >
+              <svg
+                *ngIf="!showConfirmPassword"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <svg
+                *ngIf="showConfirmPassword"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
             </button>
           </div>
-          <span class="pw-match"
-                *ngIf="newVoter.confirmPassword"
-                [class.match]="newVoter.password === newVoter.confirmPassword"
-                [class.no-match]="newVoter.password !== newVoter.confirmPassword">
-            {{ newVoter.password === newVoter.confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match' }}
+          <span
+            class="pw-match"
+            *ngIf="newVoter.confirmPassword"
+            [class.match]="newVoter.password === newVoter.confirmPassword"
+            [class.no-match]="newVoter.password !== newVoter.confirmPassword"
+          >
+            {{
+              newVoter.password === newVoter.confirmPassword
+                ? '✓ Passwords match'
+                : '✗ Passwords do not match'
+            }}
           </span>
         </div>
-
       </div>
 
       <div class="modal-footer">
         <!-- Cancel = ask to discard, X = also ask to discard -->
         <button class="btn-cancel" (click)="discardAndClose()" [disabled]="saving">Cancel</button>
-        <button class="btn-save"   (click)="addVoterSubmit()"  [disabled]="saving">
+        <button class="btn-save" (click)="addVoterSubmit()" [disabled]="saving">
           <span *ngIf="!saving">Add Voter</span>
           <span *ngIf="saving" class="saving-spinner">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin">
-              <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              class="spin"
+            >
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
             </svg>
             Registering...
           </span>
         </button>
       </div>
-
     </div>
   </div>
-
 </div>

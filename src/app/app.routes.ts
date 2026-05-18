@@ -19,7 +19,6 @@ import { Candidates } from './components/pages/elecom-pages/candidates/candidate
 import { Elections } from './components/pages/elecom-pages/election/election';
 import { Results } from './components/pages/elecom-pages/results/results';
 import { Voters } from './components/pages/elecom-pages/voters/voters';
-import { BallotCreator } from './components/pages/elecom-pages/ballot-creator/ballot-creator';
 
 /* =========================
    ADMIN
@@ -101,12 +100,6 @@ export const routes: Routes = [
       {
         path: 'elecom-settings',
         component: ElecomSettings,
-        canActivate: [RoleGuard],
-        data: { role: 'elecom' },
-      },
-      {
-        path: 'elecom-ballot-creator',
-        component: BallotCreator,
         canActivate: [RoleGuard],
         data: { role: 'elecom' },
       },

@@ -1,14 +1,13 @@
 import { Component, OnInit, OnDestroy, AfterViewChecked, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
 import { ElectionService, Election, Application, Candidate } from '../../../services/election';
 import { AuthService } from '../../../services/auth';
 import { forkJoin, Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
 import { Firestore, doc, setDoc } from '@angular/fire/firestore';
-import { Chart, ArcElement, DoughnutController, Tooltip, Legend, Plugin } from 'chart.js';
+import { Chart, ArcElement, DoughnutController, Tooltip, Legend } from 'chart.js';
 
 Chart.register(ArcElement, DoughnutController, Tooltip, Legend);
 
@@ -33,16 +32,20 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
   loading = false;
   applications: Application[] = [];
   loadingApps = false;
+
   resultsByPosition: { position: string; candidates: Candidate[]; total: number }[] = [];
   loadingResults = false;
   selectedResultElection: Election | null = null;
+
   showAccountModal = false;
   accountForm = { name: '', email: '', password: '' };
   creatingAccount = false;
+
   showModal = false;
   isEditMode = false;
   selectedElection: Partial<Election> = {};
   form = { name: '', description: '', startDate: '', endDate: '', totalPositions: 7 };
+
   showAuditModal = false;
   auditElection: Election | null = null;
   auditChecks: AuditCheck[] = [];
@@ -53,32 +56,41 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
   private chartsNeedRender = false;
 
   pieColors = [
-    '#22c84c', // green
-    '#3b82f6', // blue
-    '#f59e0b', // amber
-    '#8b5cf6', // purple
-    '#ef4444', // red
-    '#06b6d4', // cyan
-    '#10b981', // emerald
-    '#f97316', // orange
-    '#ec4899', // pink
-    '#6366f1', // indigo
+    '#f59e0b',
+    '#185fa5',
+    '#1d9e75',
+    '#8b5cf6',
+    '#ef4444',
+    '#0ea5e9',
+    '#10b981',
+    '#f97316',
+    '#ec4899',
+    '#6366f1',
   ];
 
   private subs = new Subscription();
-  private candidateSub: Subscription | null = null;
 
   constructor(
     private svc: ElectionService,
     private auth: AuthService,
   ) {}
 
-  // ── Lifecycle ────────────────────────────────────────────────
-
   ngOnInit() {
     this.subs.add(
       this.svc.getElections().subscribe((e) => {
-        this.elections = e;
+        const now = new Date();
+        this.elections = e.map((el) => {
+          const start = new Date(el.startDate);
+          const end = new Date(el.endDate);
+          if (isNaN(start.getTime()) || isNaN(end.getTime())) return el;
+          const correct: 'upcoming' | 'active' | 'completed' =
+            now < start ? 'upcoming' : now <= end ? 'active' : 'completed';
+          if (el.status !== correct && el.auditStatus !== 'clean') {
+            this.svc.updateElection({ ...el, status: correct }).subscribe();
+            return { ...el, status: correct };
+          }
+          return el;
+        });
         this.loading = false;
         if (this.selectedResultElection) {
           const updated = e.find((el) => el.id === this.selectedResultElection!.id);
@@ -97,7 +109,22 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
     this.subs.add(
       this.svc.getCandidates().subscribe((allCandidates) => {
         if (!this.selectedResultElection) return;
-        this.buildResultsByPosition(allCandidates, this.selectedResultElection.id);
+        const filtered = allCandidates.filter(
+          (c) => (c as any).electionId === this.selectedResultElection!.id,
+        );
+        const map = new Map<string, Candidate[]>();
+        for (const c of filtered) {
+          if (!map.has(c.position)) map.set(c.position, []);
+          map.get(c.position)!.push(c);
+        }
+        this.resultsByPosition = Array.from(map.entries()).map(([position, cands]) => {
+          const sorted = [...cands].sort((a, b) => b.votes - a.votes);
+          return {
+            position,
+            candidates: sorted,
+            total: sorted.reduce((s, c) => s + (c.votes || 0), 0),
+          };
+        });
         this.loadingResults = false;
         this.chartsNeedRender = true;
       }),
@@ -106,7 +133,6 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
-    this.candidateSub?.unsubscribe();
     this.destroyAllCharts();
   }
 
@@ -117,8 +143,7 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
     }
   }
 
-  // ── Results ──────────────────────────────────────────────────
-
+  // ── Results ───────────────────────────────────────────────────
   loadResults(election: Election): void {
     this.selectedResultElection = election;
     this.loadingResults = true;
@@ -126,100 +151,44 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
     this.resultsByPosition = [];
 
     this.svc.getCandidates().subscribe((allCandidates) => {
-      this.buildResultsByPosition(allCandidates, election.id);
+      const filtered = allCandidates.filter((c) => (c as any).electionId === election.id);
+      const map = new Map<string, Candidate[]>();
+      for (const c of filtered) {
+        if (!map.has(c.position)) map.set(c.position, []);
+        map.get(c.position)!.push(c);
+      }
+      this.resultsByPosition = Array.from(map.entries()).map(([position, cands]) => {
+        const sorted = [...cands].sort((a, b) => b.votes - a.votes);
+        return {
+          position,
+          candidates: sorted,
+          total: sorted.reduce((s, c) => s + (c.votes || 0), 0),
+        };
+      });
       this.loadingResults = false;
       this.chartsNeedRender = true;
     });
   }
 
-  private buildResultsByPosition(allCandidates: Candidate[], electionId: string): void {
-    const filtered = allCandidates.filter(
-      (c) => (c as any).electionId === electionId || !c.hasOwnProperty('electionId'),
-    );
-    const map = new Map<string, Candidate[]>();
-    for (const c of filtered) {
-      if (!map.has(c.position)) map.set(c.position, []);
-      map.get(c.position)!.push(c);
-    }
-    this.resultsByPosition = Array.from(map.entries()).map(([position, cands]) => {
-      const sorted = [...cands].sort((a, b) => b.votes - a.votes);
-      return {
-        position,
-        candidates: sorted,
-        total: sorted.reduce((s, c) => s + (c.votes || 0), 0),
-      };
-    });
-  }
-
-  // ── Chart rendering ──────────────────────────────────────────
-  //
-  // Each slice gets its own "XX%" label drawn directly on the canvas
-  // via a custom Chart.js plugin (afterDraw hook).
-  // Labels appear at 55% of the way between inner and outer radius
-  // so they sit visually inside each segment.
-
+  // ── Pie charts ────────────────────────────────────────────────
   renderPieCharts(): void {
     this.resultsByPosition.forEach((group, i) => {
       const canvasId = `pie-admin-${i}`;
       const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
       if (!canvas) return;
-
-      // Destroy previous instance
       const existing = this.charts.get(canvasId);
       if (existing) {
         existing.destroy();
         this.charts.delete(canvasId);
       }
-
-      const hasVotes = group.candidates.some((c) => (c.votes || 0) > 0);
+      const labels = group.candidates.map((c) => c.name);
       const data = group.candidates.map((c) => c.votes || 0);
       const colors = group.candidates.map((_, j) => this.pieColors[j % this.pieColors.length]);
-      const total = group.total;
-
-      // ── Per-slice percent label plugin ──────────────────────
-      const slicePercentPlugin: Plugin<'doughnut'> = {
-        id: `slicePct-${i}`,
-        afterDraw(chart) {
-          if (!hasVotes) return;
-
-          const ctx = chart.ctx;
-          const meta = chart.getDatasetMeta(0);
-          const vals = chart.data.datasets[0].data as number[];
-
-          meta.data.forEach((arc: any, idx: number) => {
-            const votes = vals[idx] || 0;
-            const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
-
-            // Hide label if slice is too small to display cleanly
-            if (pct < 8) return;
-
-            const midAngle = arc.startAngle + (arc.endAngle - arc.startAngle) / 2;
-            const outerR = arc.outerRadius;
-            const innerR = arc.innerRadius;
-            // 55% from inner edge toward outer edge
-            const labelR = innerR + (outerR - innerR) * 0.55;
-
-            const x = arc.x + Math.cos(midAngle) * labelR;
-            const y = arc.y + Math.sin(midAngle) * labelR;
-
-            ctx.save();
-            ctx.font = 'bold 13px system-ui, -apple-system, sans-serif';
-            ctx.fillStyle = '#ffffff';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            // Subtle shadow so text is readable on any color
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-            ctx.shadowBlur = 4;
-            ctx.fillText(`${pct}%`, x, y);
-            ctx.restore();
-          });
-        },
-      };
-
+      const hasVotes = data.some((v) => v > 0);
       const chart = new Chart(canvas, {
         type: 'doughnut',
         data: {
-          labels: group.candidates.map((c) => c.name),
+          labels,
           datasets: [
             {
               data: hasVotes ? data : group.candidates.map(() => 1),
@@ -232,13 +201,7 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
         },
         options: {
           responsive: false,
-          // 58% cutout — smaller hole = more slice area = labels fit better
-          cutout: '58%',
-          animation: {
-            duration: 700,
-            // Redraw after animation so plugin labels render on top
-            onComplete: () => chart.draw(),
-          },
+          cutout: '62%',
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -246,16 +209,14 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
                 label: (ctx) => {
                   if (!hasVotes) return ' No votes yet';
                   const val = ctx.parsed as number;
-                  const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                  const pct = group.total > 0 ? Math.round((val / group.total) * 100) : 0;
                   return ` ${val} votes (${pct}%)`;
                 },
               },
             },
           },
         },
-        plugins: [slicePercentPlugin],
       });
-
       this.charts.set(canvasId, chart);
     });
   }
@@ -265,8 +226,8 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
     this.charts.clear();
   }
 
-  // ── Applications ─────────────────────────────────────────────
-
+  // ── Applications ──────────────────────────────────────────────
+  // FIX: removed registeredAt/registeredBy — not on Candidate interface
   approveApplication(app: Application) {
     Swal.fire({
       title: 'Approve candidate?',
@@ -283,20 +244,22 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
             name: app.name,
             position: app.position,
             party: app.party,
-            photo: app.photo || '',
+            photo: app.photo || (app as any).photoUrl || '',
             votes: 0,
             bio: app.bio || '',
             course: app.course,
             year: app.year,
             status: 'approved',
             requirements: app.requirements,
-          })
+            electionId: app.electionId,
+            organization: (app as any).organization || '',
+          } as any)
           .subscribe(() => {
             this.svc
               .addAuditLog({
                 action: 'CANDIDATE_APPROVED',
                 performedBy: this.auth.getCurrentUser()?.name ?? 'Admin',
-                details: `Approved ${app.name} for ${app.position}`,
+                details: `Approved ${app.name} for ${app.position} in election ${app.electionId}`,
                 targetId: app.id,
                 createdAt: new Date().toISOString(),
               })
@@ -342,8 +305,7 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
-  // ── Getters ──────────────────────────────────────────────────
-
+  // ── Getters ───────────────────────────────────────────────────
   get activeElection() {
     return this.elections.find((e) => e.status === 'active') || null;
   }
@@ -360,18 +322,14 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
   getPercent(votes: number, total: number): number {
     return total > 0 ? Math.round((votes / total) * 100) : 0;
   }
-
+  getWinner(group: { candidates: Candidate[] }): Candidate {
+    return group.candidates[0] ?? ({ name: '—', votes: 0 } as any);
+  }
   isWinner(c: Candidate, group: { candidates: Candidate[] }): boolean {
     return group.candidates[0]?.id === c.id && c.votes > 0;
   }
 
-  // Returns the leading candidate — used in the HTML template center label
-  getWinner(group: { candidates: Candidate[]; total: number }): Candidate {
-    return group.candidates[0];
-  }
-
-  // ── Election modal ───────────────────────────────────────────
-
+  // ── Election modal ────────────────────────────────────────────
   openCreate() {
     this.isEditMode = false;
     this.form = { name: '', description: '', startDate: '', endDate: '', totalPositions: 7 };
@@ -397,9 +355,37 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
 
   save() {
     if (!this.form.name || !this.form.startDate || !this.form.endDate) return;
+    const start = new Date(this.form.startDate);
+    const end = new Date(this.form.endDate);
+    const now = new Date();
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid dates',
+        text: 'Please enter valid start and end dates.',
+      });
+      return;
+    }
+    if (end <= start) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid date range',
+        text: 'End date must be after start date.',
+      });
+      return;
+    }
+    const computedStatus: 'upcoming' | 'active' | 'completed' =
+      now < start ? 'upcoming' : now <= end ? 'active' : 'completed';
+
     if (this.isEditMode) {
       this.svc
-        .updateElection({ ...(this.selectedElection as Election), ...this.form })
+        .updateElection({
+          ...(this.selectedElection as Election),
+          ...this.form,
+          startDate: start.toISOString(),
+          endDate: end.toISOString(),
+          status: computedStatus,
+        })
         .subscribe(() => {
           this.svc
             .addAuditLog({
@@ -417,9 +403,11 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
       this.svc
         .addElection({
           ...this.form,
+          startDate: start.toISOString(),
+          endDate: end.toISOString(),
           totalVoters: 0,
           voted: 0,
-          status: 'upcoming',
+          status: computedStatus,
           auditStatus: 'pending',
           createdBy: 'admin',
           createdAt: new Date().toISOString(),
@@ -495,13 +483,17 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   delete(e: Election) {
+    const isActive = e.status === 'active';
     Swal.fire({
-      title: 'Delete?',
-      text: `Delete "${e.name}"?`,
+      title: isActive ? '⚠️ Delete Active Election?' : 'Delete Election?',
+      text: isActive
+        ? `"${e.name}" is currently LIVE. Deleting will stop all ongoing voting immediately. This cannot be undone.`
+        : `Delete "${e.name}"? This cannot be undone.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
-      confirmButtonText: 'Delete',
+      confirmButtonText: isActive ? 'Yes, delete anyway' : 'Delete',
+      cancelButtonText: 'Cancel',
     }).then((r) => {
       if (!r.isConfirmed) return;
       this.svc.deleteElection(e.id).subscribe(() => {
@@ -509,7 +501,7 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
           .addAuditLog({
             action: 'ELECTION_DELETED',
             performedBy: this.auth.getCurrentUser()?.name ?? 'Admin',
-            details: `Deleted election "${e.name}"`,
+            details: `Deleted ${isActive ? 'ACTIVE ' : ''}election "${e.name}"`,
             targetId: e.id,
             createdAt: new Date().toISOString(),
           })
@@ -518,8 +510,7 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
-  // ── Account modal ────────────────────────────────────────────
-
+  // ── Account modal ─────────────────────────────────────────────
   openAccountModal() {
     this.showAccountModal = true;
     this.accountForm = { name: '', email: '', password: '' };
@@ -569,8 +560,7 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
     }
   }
 
-  // ── Audit modal ──────────────────────────────────────────────
-
+  // ── Audit modal ───────────────────────────────────────────────
   openAudit(e: Election) {
     this.auditElection = e;
     this.auditChecks = [];
@@ -606,6 +596,7 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
               detail: `${dupes} duplicate vote(s) detected!`,
             },
       );
+
       checks.push(
         e.voted === r.length
           ? {
@@ -619,6 +610,7 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
               detail: `Mismatch! Election: ${e.voted}, Records: ${r.length}.`,
             },
       );
+
       const regIds = new Set(voters.map((v) => v.studentId));
       const unregistered = r.filter((x) => !regIds.has(x.studentId)).length;
       checks.push(
@@ -634,6 +626,7 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
               detail: `${unregistered} vote(s) from unregistered voters.`,
             },
       );
+
       const totalVotes = c.reduce((sum, x) => sum + (x.votes || 0), 0);
       checks.push(
         c.length === 0
@@ -646,6 +639,7 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
                 detail: `Mismatch! Candidates: ${totalVotes}, Records: ${r.length}.`,
               },
       );
+
       const outside = r.filter((x) => {
         const t = new Date(x.submittedAt).getTime();
         return t < new Date(e.startDate).getTime() || t > new Date(e.endDate).getTime();
@@ -755,8 +749,7 @@ export class AdminDashboard implements OnInit, OnDestroy, AfterViewChecked {
       .subscribe();
   }
 
-  // ── Helpers ──────────────────────────────────────────────────
-
+  // ── Helpers ───────────────────────────────────────────────────
   statusClass(s: string) {
     return s === 'active'
       ? 'status-active'

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+
 import { ElectionService, Election, Candidate } from '../../../services/election';
 import { forkJoin } from 'rxjs';
 import Swal from 'sweetalert2';
@@ -15,7 +15,7 @@ export interface AuditCheck {
 @Component({
   selector: 'admin-elections',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-elections.html',
   styleUrls: ['./admin-elections.scss'],
 })

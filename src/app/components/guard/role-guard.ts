@@ -9,8 +9,7 @@ export class RoleGuard implements CanActivate {
 
   canActivate(route: ActivatedRouteSnapshot): boolean {
     const userStr = localStorage.getItem('user');
-    
-    // No user in storage at all
+
     if (!userStr) {
       this.router.navigate(['/login']);
       return false;

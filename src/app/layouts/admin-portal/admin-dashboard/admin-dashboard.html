@@ -1,234 +1,705 @@
-<div class="admin-dashboard">
-  <!-- ── Header ─────────────────────────────────────────────── -->
-  <div class="page-header">
-    <div class="header-left">
-      <h1><span class="wave">🗳️</span> Welcome Back, Administrator!</h1>
-      <p class="page-sub">Create, manage, and audit Elections</p>
-    </div>
-    <div class="header-actions">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <line x1="12" y1="5" x2="12" y2="19" />
-        <line x1="5" y1="12" x2="19" y2="12" />
-      </svg>
-    </div>
-  </div>
-
-  <!-- ── Stats ──────────────────────────────────────────────── -->
-  <div class="stats-grid">
-    <div class="stat-card c-total">
-      <div class="stat-top">
-        <div class="stat-icon-box">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M9 11l3 3L22 4" />
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-          </svg>
-        </div>
-        <span class="stat-badge">All time</span>
+<div class="dash">
+  <div class="dash-hero">
+    <div class="hero-left">
+      <div class="hero-eyebrow">
+        <span class="eyebrow-pulse"></span>
+        Admin Control Panel
       </div>
-      <div class="stat-value">{{ elections.length }}</div>
-      <div class="stat-label">Total Elections</div>
+      <h1 class="hero-title">Election Dashboard</h1>
+      <p class="hero-sub">
+        Manage elections, review applications, and certify results from one place.
+      </p>
     </div>
-
-    <div class="stat-card c-active">
-      <div class="stat-top">
-        <div class="stat-icon-box">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
-        </div>
-        <span class="stat-badge live"> <span class="pulse-dot"></span> Live </span>
-      </div>
-      <div class="stat-value">{{ activeElection ? 1 : 0 }}</div>
-      <div class="stat-label">Active Now</div>
-    </div>
-
-    <div class="stat-card c-upcoming">
-      <div class="stat-top">
-        <div class="stat-icon-box">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-        </div>
-        <span class="stat-badge">Scheduled</span>
-      </div>
-      <div class="stat-value">{{ upcomingElections.length }}</div>
-      <div class="stat-label">Upcoming</div>
-    </div>
-
-    <div class="stat-card c-completed">
-      <div class="stat-top">
-        <div class="stat-icon-box">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        </div>
-        <span class="stat-badge">Finished</span>
-      </div>
-      <div class="stat-value">{{ completedElections.length }}</div>
-      <div class="stat-label">Completed</div>
-    </div>
-  </div>
-
-  <!-- ── Active Election Banner ─────────────────────────────── -->
-  <div class="active-banner" *ngIf="activeElection">
-    <div class="banner-pulse"></div>
-    <div class="banner-info">
-      <div class="banner-top">
-        <span class="banner-live-chip">● LIVE</span>
-        <span style="font-size: 12px; font-weight: 600; color: #166534">Active Election</span>
-      </div>
-      <div class="banner-name">{{ activeElection.name }}</div>
-      <div class="banner-meta">
-        {{ activeElection.startDate }} — {{ activeElection.endDate }} ·
-        {{ activeElection.totalPositions }} positions
-      </div>
-    </div>
-    <div class="banner-right">
-      <span class="auto-ends-label">Auto-ends</span>
-      <span class="auto-ends-date">{{ activeElection.endDate }}</span>
-    </div>
-  </div>
-
-  <!-- ── Election Results ───────────────────────────────────── -->
-  <div class="results-section-wrap">
-    <div class="results-top-header">
-      <div class="results-title-wrap">
-        <h2>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#22c84c"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
-          </svg>
-          Election Results
-        </h2>
-        <span class="live-chip" *ngIf="activeElection"> <span class="live-dot"></span> Live </span>
-      </div>
-
-      <div class="election-picker">
-        <button
-          *ngFor="let e of elections"
-          class="pick-btn"
-          [class.active]="selectedResultElection?.id === e.id"
-          (click)="loadResults(e)"
+    <div class="hero-actions">
+      <button class="btn-create" (click)="openCreate()">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
         >
-          <span class="pick-name">{{ e.name }}</span>
-          <span class="pick-badge" [ngClass]="statusClass(e.status)">{{ e.status }}</span>
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        New Election
+      </button>
+      <button class="btn-elecom" (click)="openAccountModal()">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+          <line x1="19" y1="8" x2="19" y2="14" />
+          <line x1="22" y1="11" x2="16" y2="11" />
+        </svg>
+        Add ELECOM
+      </button>
+    </div>
+  </div>
+
+  <div class="kpi-strip">
+    <div class="kpi-card kpi-active">
+      <div class="kpi-icon">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ activeElection ? 1 : 0 }}</div>
+        <div class="kpi-label">Active Election</div>
+        <div class="kpi-detail">{{ activeElection?.name || 'None running' }}</div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-upcoming">
+      <div class="kpi-icon">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ upcomingElections.length }}</div>
+        <div class="kpi-label">Upcoming</div>
+        <div class="kpi-detail">Scheduled elections</div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-apps">
+      <div class="kpi-icon">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+          <line x1="16" y1="13" x2="8" y2="13" />
+          <line x1="16" y1="17" x2="8" y2="17" />
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ pendingApplications.length }}</div>
+        <div class="kpi-label">Pending Applications</div>
+        <div class="kpi-detail">Awaiting review</div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-completed">
+      <div class="kpi-icon">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ completedElections.length }}</div>
+        <div class="kpi-label">Completed</div>
+        <div class="kpi-detail">Past elections</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       MAIN GRID
+  ══════════════════════════════════════════════════════════ -->
+  <div class="main-grid">
+    <!-- ── Elections Panel ───────────────────────────────────── -->
+    <section class="panel panel-elections">
+      <div class="panel-head">
+        <div class="panel-title-row">
+          <h2>Elections</h2>
+          <span class="panel-count">{{ elections.length }}</span>
+        </div>
+        <p class="panel-sub">Create, start, end, and audit elections</p>
+      </div>
+
+      <div class="loading-state" *ngIf="loading">
+        <div class="spinner"></div>
+        Loading elections…
+      </div>
+
+      <div class="election-list" *ngIf="!loading">
+        <div *ngIf="elections.length === 0" class="empty-state">
+          <div class="empty-icon">🗳️</div>
+          <p>No elections yet.</p>
+          <span>Click "New Election" to get started.</span>
+        </div>
+
+        <div class="election-card" *ngFor="let e of elections" [ngClass]="statusClass(e.status)">
+          <div class="ecard-left">
+            <div class="ecard-status-bar"></div>
+            <div class="ecard-info">
+              <div class="ecard-name">{{ e.name }}</div>
+              <div class="ecard-meta">
+                <span class="ecard-date">
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  {{ e.startDate | date: 'MMM d' }} – {{ e.endDate | date: 'MMM d, y' }}
+                </span>
+                <span class="ecard-status-pill" [ngClass]="statusClass(e.status)">{{
+                  e.status
+                }}</span>
+                <span class="ecard-audit-pill" [ngClass]="auditClass(e.auditStatus)">
+                  {{ e.auditStatus || 'pending' }}
+                </span>
+              </div>
+              <div class="ecard-progress" *ngIf="e.status === 'active'">
+                <div class="ecard-progress-track">
+                  <div
+                    class="ecard-progress-fill"
+                    [style.width.%]="e.totalVoters > 0 ? (e.voted / e.totalVoters) * 100 : 0"
+                  ></div>
+                </div>
+                <span class="ecard-progress-label">{{ e.voted }}/{{ e.totalVoters }} voted</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ecard-actions">
+            <button class="btn-icon btn-edit" title="Edit" (click)="openEdit(e)">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
+            <button
+              class="btn-icon btn-audit"
+              title="Audit"
+              (click)="openAudit(e)"
+              *ngIf="e.status === 'completed'"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M9 11l3 3L22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+            </button>
+            <button
+              class="btn-icon btn-results"
+              title="View Results"
+              (click)="loadResults(e)"
+              *ngIf="e.status === 'completed'"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+              </svg>
+            </button>
+            <button class="btn-start" (click)="start(e)" *ngIf="e.status === 'upcoming'">
+              Start
+            </button>
+            <button class="btn-end" (click)="end(e)" *ngIf="e.status === 'active'">End</button>
+
+            <!-- ── DELETE — now shows on ALL statuses ── -->
+            <button class="btn-icon btn-delete" title="Delete" (click)="delete(e)">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6M14 11v6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Pending Applications Panel ────────────────────────── -->
+    <section class="panel panel-apps">
+      <div class="panel-head">
+        <div class="panel-title-row">
+          <h2>Pending Applications</h2>
+          <span class="panel-count accent">{{ pendingApplications.length }}</span>
+        </div>
+        <p class="panel-sub">Review and approve candidate applications</p>
+      </div>
+
+      <div class="loading-state" *ngIf="loadingApps">
+        <div class="spinner"></div>
+        Loading applications…
+      </div>
+
+      <div class="app-list" *ngIf="!loadingApps">
+        <div *ngIf="pendingApplications.length === 0" class="empty-state">
+          <div class="empty-icon">✅</div>
+          <p>All caught up!</p>
+          <span>No pending applications.</span>
+        </div>
+
+        <div class="app-card" *ngFor="let app of pendingApplications">
+          <div class="app-avatar">{{ app.name.charAt(0).toUpperCase() }}</div>
+          <div class="app-info">
+            <div class="app-name">{{ app.name }}</div>
+            <div class="app-meta">
+              <span class="app-position">{{ app.position }}</span>
+              <span class="app-dot">·</span>
+              <span class="app-course">{{ app.course }}</span>
+            </div>
+            <div class="app-date">{{ app.submittedAt | date: 'MMM d, y · h:mm a' }}</div>
+          </div>
+          <div class="app-actions">
+            <button class="btn-approve" (click)="approveApplication(app)" title="Approve">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </button>
+            <button class="btn-reject" (click)="rejectApplication(app)" title="Disqualify">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       RESULTS PANEL
+  ══════════════════════════════════════════════════════════ -->
+  <section class="panel panel-results" *ngIf="selectedResultElection">
+    <div class="panel-head">
+      <div class="panel-title-row">
+        <h2>Results — {{ selectedResultElection.name }}</h2>
+        <span class="results-votes-badge">
+          {{ selectedResultElection.voted }} / {{ selectedResultElection.totalVoters }} votes
+        </span>
+      </div>
+      <p class="panel-sub">Live vote tallies by position</p>
+    </div>
+
+    <div class="loading-state" *ngIf="loadingResults">
+      <div class="spinner"></div>
+      Loading results…
+    </div>
+
+    <div class="results-grid" *ngIf="!loadingResults && resultsByPosition.length > 0">
+      <div class="result-card" *ngFor="let group of resultsByPosition; let i = index">
+        <div class="result-card-head">
+          <div class="result-position">{{ group.position }}</div>
+          <div class="result-total">{{ group.total }} votes</div>
+        </div>
+
+        <div class="result-chart-wrap">
+          <canvas [id]="'pie-admin-' + i" width="130" height="130"></canvas>
+          <div class="result-chart-center" *ngIf="group.total === 0">
+            <span class="no-votes-label">No votes</span>
+          </div>
+        </div>
+
+        <div class="result-legend">
+          <div
+            class="result-row"
+            *ngFor="let c of group.candidates; let j = index"
+            [class.result-winner]="isWinner(c, group)"
+          >
+            <span class="result-dot" [style.background]="pieColors[j % pieColors.length]"></span>
+            <div class="result-cand-info">
+              <span class="result-cand-name">{{ c.name }}</span>
+              <span class="winner-crown" *ngIf="isWinner(c, group)">👑</span>
+            </div>
+            <div class="result-bar-wrap">
+              <div class="result-bar-track">
+                <div
+                  class="result-bar-fill"
+                  [style.width.%]="getPercent(c.votes, group.total)"
+                  [style.background]="pieColors[j % pieColors.length]"
+                ></div>
+              </div>
+              <span class="result-pct">{{ getPercent(c.votes, group.total) }}%</span>
+            </div>
+            <span class="result-votes">{{ c.votes }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="!loadingResults && resultsByPosition.length === 0">
+      <div class="empty-icon">📊</div>
+      <p>No results yet.</p>
+      <span>No candidates found for this election.</span>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════
+       ELECTION MODAL
+  ══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+            </svg>
+          </div>
+          <div>
+            <h3>{{ isEditMode ? 'Edit Election' : 'Create Election' }}</h3>
+            <p class="modal-sub">
+              {{ isEditMode ? 'Update election details' : 'Set up a new election' }}
+            </p>
+          </div>
+        </div>
+        <button class="btn-close" (click)="closeModal()">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Election Name <span class="req">*</span></label>
+          <input [(ngModel)]="form.name" placeholder="e.g. USG General Election 2025" />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea
+            [(ngModel)]="form.description"
+            rows="3"
+            placeholder="Brief description…"
+          ></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Start Date <span class="req">*</span></label>
+            <input [(ngModel)]="form.startDate" type="date" />
+          </div>
+          <div class="form-group">
+            <label>End Date <span class="req">*</span></label>
+            <input [(ngModel)]="form.endDate" type="date" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Total Positions</label>
+          <input [(ngModel)]="form.totalPositions" type="number" min="1" max="50" />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeModal()">Cancel</button>
+        <button
+          class="btn-save"
+          (click)="save()"
+          [disabled]="!form.name || !form.startDate || !form.endDate"
+        >
+          {{ isEditMode ? 'Save Changes' : 'Create Election' }}
         </button>
       </div>
     </div>
+  </div>
 
-    <!-- Loading -->
-    <div class="results-loading" *ngIf="loadingResults">
-      <div class="loading-spinner"></div>
-      <span>Loading results…</span>
-    </div>
-
-    <!-- Empty / no selection -->
-    <div class="results-empty" *ngIf="!selectedResultElection && !loadingResults">
-      <div class="empty-icon">📊</div>
-      <p>Select an election above to view its results.</p>
-    </div>
-
-    <!-- Charts Grid -->
-    <div class="pie-charts-grid" *ngIf="!loadingResults && resultsByPosition.length > 0">
-      <div class="pie-card" *ngFor="let group of resultsByPosition; let i = index">
-        <div class="pie-card-header">
-          <span class="pie-position-name">{{ group.position }}</span>
-          <span class="pie-total-votes">{{ group.total }} votes</span>
-        </div>
-        <div class="pie-chart-wrap">
-          <canvas [id]="'pie-admin-' + i" width="180" height="180"></canvas>
-          <!-- Center label overlay — position with CSS -->
-          <div class="pie-center-label">
-            <span class="pie-center-pct"
-              >{{ getPercent(getWinner(group).votes, group.total) }}%</span
+  <!-- ══════════════════════════════════════════════════════════
+       ACCOUNT MODAL
+  ══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" *ngIf="showAccountModal" (click)="closeAccountModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon modal-icon-elecom">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
             >
-            <span class="pie-center-name">{{ getWinner(group).name.split(' ')[0] }}</span>
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+              <line x1="19" y1="8" x2="19" y2="14" />
+              <line x1="22" y1="11" x2="16" y2="11" />
+            </svg>
+          </div>
+          <div>
+            <h3>Create ELECOM Account</h3>
+            <p class="modal-sub">Grant election committee access</p>
           </div>
         </div>
-        <div class="pie-legend">
-          <div class="pie-legend-item" *ngFor="let c of group.candidates; let j = index">
-            <span
-              class="legend-color-dot"
-              [style.background]="pieColors[j % pieColors.length]"
-            ></span>
-            <span class="legend-name">{{ c.name }}</span>
-            <span class="winner-star" *ngIf="isWinner(c, group)" title="Winner">★</span>
-            <span class="legend-pct">{{ getPercent(c.votes, group.total) }}%</span>
+        <button class="btn-close" (click)="closeAccountModal()">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Full Name <span class="req">*</span></label>
+          <input
+            [(ngModel)]="accountForm.name"
+            placeholder="e.g. Maria Santos"
+            [disabled]="creatingAccount"
+          />
+        </div>
+        <div class="form-group">
+          <label>Email Address <span class="req">*</span></label>
+          <input
+            [(ngModel)]="accountForm.email"
+            type="email"
+            placeholder="e.g. maria@school.edu"
+            [disabled]="creatingAccount"
+          />
+        </div>
+        <div class="form-group">
+          <label>Password <span class="req">*</span></label>
+          <input
+            [(ngModel)]="accountForm.password"
+            type="password"
+            placeholder="Min. 6 characters"
+            [disabled]="creatingAccount"
+          />
+        </div>
+        <div class="info-banner">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          This account will have ELECOM-level access: monitor results, manage voters, and view
+          participation stats.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeAccountModal()" [disabled]="creatingAccount">
+          Cancel
+        </button>
+        <button class="btn-save" (click)="createElecomAccount()" [disabled]="creatingAccount">
+          <span *ngIf="!creatingAccount">Create Account</span>
+          <span *ngIf="creatingAccount" class="saving-wrap">
+            <svg
+              class="spin"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+            </svg>
+            Creating…
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       AUDIT MODAL
+  ══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" *ngIf="showAuditModal" (click)="closeAudit()">
+    <div class="modal-box modal-audit" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon modal-icon-audit">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <path d="M9 11l3 3L22 4" />
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+            </svg>
+          </div>
+          <div>
+            <h3>Audit — {{ auditElection?.name }}</h3>
+            <p class="modal-sub">Integrity checks & certification</p>
+          </div>
+        </div>
+        <button class="btn-close" (click)="closeAudit()">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="loading-state" *ngIf="auditLoading">
+          <div class="spinner"></div>
+          Running audit checks…
+        </div>
+
+        <div class="audit-checks" *ngIf="!auditLoading">
+          <div class="audit-overall" [ngClass]="'overall-' + auditOverall">
+            <span class="audit-overall-icon">
+              {{ auditOverall === 'clean' ? '✅' : auditOverall === 'warning' ? '⚠️' : '❌' }}
+            </span>
+            <div>
+              <div class="audit-overall-title">
+                {{
+                  auditOverall === 'clean'
+                    ? 'All checks passed'
+                    : auditOverall === 'warning'
+                      ? 'Warnings detected'
+                      : 'Issues found'
+                }}
+              </div>
+              <div class="audit-overall-sub">{{ auditChecks.length }} checks completed</div>
+            </div>
+          </div>
+
+          <div
+            class="audit-check-row"
+            *ngFor="let check of auditChecks"
+            [ngClass]="'check-' + check.status"
+          >
+            <span class="check-icon">{{ checkIcon(check.status) }}</span>
+            <div class="check-body">
+              <div class="check-label">{{ check.label }}</div>
+              <div class="check-detail">{{ check.detail }}</div>
+            </div>
+          </div>
+
+          <div class="form-group audit-note-group">
+            <label>Audit Note</label>
+            <textarea
+              [(ngModel)]="auditNote"
+              rows="3"
+              placeholder="Add notes, observations, or reasons for flagging…"
+            ></textarea>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- No results yet -->
-    <div
-      class="results-empty"
-      *ngIf="!loadingResults && selectedResultElection && resultsByPosition.length === 0"
-    >
-      <div class="empty-icon">🗳️</div>
-      <p>No results yet for this election.</p>
+      <div class="modal-footer audit-footer" *ngIf="!auditLoading">
+        <button class="btn-cancel" (click)="closeAudit()">Close</button>
+        <button class="btn-flag" (click)="flag()">⚠️ Flag</button>
+        <button class="btn-certify" (click)="certify()" [disabled]="auditOverall === 'flagged'">
+          ✅ Certify
+        </button>
+      </div>
     </div>
   </div>
 </div>

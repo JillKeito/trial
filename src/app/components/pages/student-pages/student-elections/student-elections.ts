@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { ElectionService, Election, Candidate, VoteRecord } from '../../../../services/election';
 import { AuthService } from '../../../../services/auth';
 
@@ -46,15 +47,26 @@ export class StudentElections implements OnInit {
       this.loading = false;
     });
 
-    // Load the student's vote records so we know which elections they've voted in
-    const user = this.auth.getCurrentUser();
-    if (user) {
-      // voteRecords stores studentId (e.g. "2024-0001"), not the Firebase UID
-      const studentId = user.studentId ?? user.id;
-      this.svc.getVoteRecordByStudentId(studentId).subscribe((records: VoteRecord[]) => {
-        this.votedElectionIds = new Set(records.map((r) => r.electionId));
+    this.loadVotedIds();
+
+    // Re-check voted status each time the student navigates back to this page
+    // (e.g. after submitting their ballot or returning from student-details).
+    this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe((e) => {
+        if (e.urlAfterRedirects.includes('student-elections')) {
+          this.loadVotedIds();
+        }
       });
-    }
+  }
+
+  private loadVotedIds(): void {
+    const user = this.auth.getCurrentUser();
+    if (!user) return;
+    const studentId = user.studentId ?? user.id;
+    this.svc.getVoteRecordByStudentId(studentId).subscribe((records: VoteRecord[]) => {
+      this.votedElectionIds = new Set(records.map((r) => r.electionId));
+    });
   }
 
   goToBallot(election: Election): void {

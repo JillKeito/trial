@@ -17,9 +17,17 @@ const ABSTAIN = '__ABSTAIN__';
 
 // Preferred position order
 const POSITION_ORDER = [
-  'President', 'Vice President', 'Secretary', 'Treasurer',
-  'Auditor', 'PRO', 'Business Manager',
-  '1st Year Rep', '2nd Year Rep', '3rd Year Rep', '4th Year Rep',
+  'President',
+  'Vice President',
+  'Secretary',
+  'Treasurer',
+  'Auditor',
+  'PRO',
+  'Business Manager',
+  '1st Year Rep',
+  '2nd Year Rep',
+  '3rd Year Rep',
+  '4th Year Rep',
   'Sergeant-at-Arms',
 ];
 
@@ -128,13 +136,25 @@ export class StudentBallot implements OnInit {
   get hasVoted(): boolean {
     return this.voter?.hasVoted ?? false;
   }
-  get totalPositions(): number { return this.positions.length; }
-  get answeredCount(): number  { return Object.keys(this.votes).length; }
+  get totalPositions(): number {
+    return this.positions.length;
+  }
+  get answeredCount(): number {
+    return Object.keys(this.votes).length;
+  }
   get progressPercent(): number {
     return this.totalPositions ? (this.answeredCount / this.totalPositions) * 100 : 0;
   }
   get allAnswered(): boolean {
     return this.answeredCount === this.totalPositions && this.totalPositions > 0;
+  }
+  /** All conditions required to actually submit are met */
+  get canSubmit(): boolean {
+    return this.allAnswered && !!this.selectedElection && !this.submitting;
+  }
+  /** Voter record couldn't be found — warn but still allow submission */
+  get voterMissing(): boolean {
+    return !this.loading && !this.ballotLoading && !this.voter;
   }
 
   // ── Selection ─────────────────────────────────────────────
@@ -180,13 +200,26 @@ export class StudentBallot implements OnInit {
   }
 
   submitBallot(): void {
-    if (!this.allAnswered || !this.selectedElection || !this.voter) return;
+    if (!this.allAnswered || !this.selectedElection) return;
 
     // Double-guard: if voter already voted, do not proceed
     if (this.hasVoted) {
       Swal.fire({ icon: 'warning', title: 'You have already submitted your ballot.' });
       return;
     }
+
+    // Build a minimal voter stub from the auth user if the voter document
+    // wasn't found in Firestore — the vote record will still be saved.
+    const user = this.auth.getCurrentUser();
+    const effectiveVoter: Voter = this.voter ?? {
+      id: '',
+      studentId: (user as any)?.studentId ?? user?.id ?? '',
+      name: (user as any)?.displayName ?? '',
+      course: '',
+      year: '',
+      hasVoted: false,
+      verifiedAt: null,
+    };
 
     this.submitting = true;
 
@@ -198,27 +231,29 @@ export class StudentBallot implements OnInit {
 
     const candidateList = this.positions.flatMap((p) => p.candidates);
 
-    this.svc.castVote(this.voter, this.selectedElection, realVotes, candidateList).subscribe({
-      next: () => {
-        this.submitting = false;
-        if (this.voter) this.voter = { ...this.voter, hasVoted: true };
-        this.buildSummary();
-        this.view = 'success';
-        // Navigate to the permanent vote receipt after a short delay so the
-        // success animation is visible, then student-details takes over.
-        setTimeout(() => {
-          this.router.navigate(['/app/student-details', this.selectedElection!.id]);
-        }, 2000);
-      },
-      error: (err) => {
-        this.submitting = false;
-        Swal.fire({
-          icon: 'error',
-          title: 'Vote Failed',
-          text: err.message || 'Something went wrong.',
-        });
-      },
-    });
+    this.svc
+      .castVote(effectiveVoter, this.selectedElection, realVotes, candidateList, this.votes)
+      .subscribe({
+        next: () => {
+          this.submitting = false;
+          if (this.voter) this.voter = { ...this.voter, hasVoted: true };
+          this.buildSummary();
+          this.view = 'success';
+          setTimeout(() => {
+            this.router.navigate(['/app/student-details', this.selectedElection!.id], {
+              queryParams: { fromBallot: 'true' },
+            });
+          }, 1800);
+        },
+        error: (err) => {
+          this.submitting = false;
+          Swal.fire({
+            icon: 'error',
+            title: 'Vote Failed',
+            text: err.message || 'Something went wrong.',
+          });
+        },
+      });
   }
 
   // ── Helpers ───────────────────────────────────────────────
@@ -232,7 +267,13 @@ export class StudentBallot implements OnInit {
       .toUpperCase();
   }
 
-  goBack(): void      { this.router.navigate(['/app/student-elections']); }
-  goToResults(): void { this.router.navigate(['/app/student-elections']); }
-  goHome(): void      { this.router.navigate(['/app/student-elections']); }
+  goBack(): void {
+    this.router.navigate(['/app/student-elections']);
+  }
+  goToResults(): void {
+    this.router.navigate(['/app/student-elections']);
+  }
+  goHome(): void {
+    this.router.navigate(['/app/student-elections']);
+  }
 }

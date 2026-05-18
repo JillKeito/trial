@@ -19,10 +19,9 @@ export class StudentApply implements OnInit {
   submittedData: any = null;
   submitting = false;
 
-  // active election from Firestore
+  elections: Election[] = [];
   activeElection: Election | null = null;
 
-  // existing application check
   existingApplication: Application | null = null;
 
   parties: string[] = [
@@ -53,27 +52,31 @@ export class StudentApply implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // get active election so we can link application to it
+    // load all open elections for the student to choose from
     this.svc.getElections().subscribe((elections) => {
-      this.activeElection =
-        elections.find((e) => e.status === 'active' || e.status === 'upcoming') || null;
+      this.elections = elections.filter((e) => e.status === 'active' || e.status === 'upcoming');
+      // keep activeElection as fallback (first active one)
+      this.activeElection = this.elections[0] || null;
     });
 
-    // check if student already applied
+    // check if student already applied (any election)
     const user = this.auth.getCurrentUser();
     if (user) {
-      // use studentId field if available, fall back to id
       const lookupId = (user as any).studentId || user.id;
       this.svc.getApplicationByStudentId(lookupId).subscribe((apps) => {
-        this.existingApplication = apps[0] || null;
-        if (this.existingApplication) {
+        // will re-check per election once student selects one
+        this.existingApplication = null;
+        // if they already applied to one, pre-select that election and show confirmation
+        if (apps && apps.length > 0) {
+          this.existingApplication = apps[0];
           this.submittedData = {
-            name: this.existingApplication.name,
-            position: this.existingApplication.position,
-            party: this.existingApplication.party,
-            course: this.existingApplication.course,
-            year: this.existingApplication.year,
-            reqCount: this.countReqs(this.existingApplication.requirements),
+            name: this.existingApplication!.name,
+            position: this.existingApplication!.position,
+            party: this.existingApplication!.party,
+            course: this.existingApplication!.course,
+            year: this.existingApplication!.year,
+            electionId: (this.existingApplication as any).electionId || '',
+            reqCount: this.countReqs(this.existingApplication!.requirements),
           };
           this.currentStep = 4;
         }
@@ -81,8 +84,33 @@ export class StudentApply implements OnInit {
     }
   }
 
+  // called when student changes the election selection
+  onElectionChange(): void {
+    const user = this.auth.getCurrentUser();
+    if (!user || !this.form.electionId) return;
+    const lookupId = (user as any).studentId || user.id;
+    this.svc.getApplicationByStudentId(lookupId).subscribe((apps) => {
+      const match = apps.find((a: any) => a.electionId === this.form.electionId);
+      this.existingApplication = match || null;
+      if (this.existingApplication) {
+        this.submittedData = {
+          name: this.existingApplication!.name,
+          position: this.existingApplication!.position,
+          party: this.existingApplication!.party,
+          course: this.existingApplication!.course,
+          year: this.existingApplication!.year,
+          electionId: this.form.electionId,
+          reqCount: this.countReqs(this.existingApplication!.requirements),
+        };
+        this.currentStep = 4;
+      }
+    });
+  }
 
-  // ── Photo upload ──────────────────────────────────────────────
+  get selectedElectionName(): string {
+    return this.elections.find((e) => e.id === this.form.electionId)?.name || '';
+  }
+
   onPhotoSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
@@ -111,6 +139,7 @@ export class StudentApply implements OnInit {
       bio: '',
       age: null as number | null,
       photoUrl: '',
+      electionId: '',
       status: 'pending',
       requirements: {
         enrollment: false,
@@ -149,6 +178,10 @@ export class StudentApply implements OnInit {
   // ACID: Atomicity — entire application saves as one document
   // If it fails, nothing is saved (no partial data)
   submitApplication(): void {
+    if (!this.form.electionId) {
+      Swal.fire({ icon: 'warning', title: 'Please select an election to apply for.' });
+      return;
+    }
     if (!this.form.name || !this.form.position || !this.form.course) {
       Swal.fire({ icon: 'warning', title: 'Please fill in all required fields.' });
       return;
@@ -188,7 +221,7 @@ export class StudentApply implements OnInit {
       supportingDoc: '',
       status: 'pending', // always starts as pending
       submittedAt: new Date().toISOString(),
-      electionId: this.activeElection?.id || '', // link to active election
+      electionId: this.form.electionId || this.activeElection?.id || '',
       requirements: this.form.requirements,
       age: this.form.age || null,
       photoUrl: this.form.photoUrl || '',
@@ -206,6 +239,7 @@ export class StudentApply implements OnInit {
           party: this.form.party || 'Independent',
           course: this.form.course,
           year: this.form.year,
+          electionId: this.form.electionId,
           reqCount: this.reqCount(),
         };
 

@@ -10,10 +10,10 @@ export class AuthGuard implements CanActivate {
   canActivate(): boolean {
     if (isPlatformBrowser(this.platformId)) {
       if (localStorage.getItem('isLoggedIn') === 'true') {
-        return true; // ✅ logged in → allow
+        return true;
       }
     }
     this.router.navigate(['/login']);
-    return false; // ✅ not logged in → block
+    return false;
   }
 }
